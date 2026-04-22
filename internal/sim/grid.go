@@ -1,14 +1,15 @@
 package sim
 
-const GridSize = 11
+const GridSize = 5
 
 type Cell struct {
-	Upgrader Upgrader
+	Component   Component
+	IsCollector bool
 }
 
 type Grid struct {
-	Cells [GridSize][GridSize]Cell
-	Orbs  []Orb
+	Cells    [GridSize][GridSize]Cell
+	Subjects []Subject
 }
 
 func NewGrid() *Grid { return &Grid{} }

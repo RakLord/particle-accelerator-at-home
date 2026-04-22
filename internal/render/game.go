@@ -1,44 +1,158 @@
 package render
 
 import (
-	"image/color"
+	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
+	"particleaccelerator/internal/input"
 	"particleaccelerator/internal/sim"
+	"particleaccelerator/internal/ui"
 )
 
-const (
-	cellSize    = 64
-	gridPadding = 48
-)
+// SaveFn is invoked when the player presses "Save now" in the settings modal.
+type SaveFn func() error
+
+// ResetFn is invoked after the player confirms a hard reset. Implementations
+// should wipe persistent save data so a subsequent restart doesn't restore
+// the pre-reset state.
+type ResetFn func() error
+
+const autosaveInterval = 300
 
 type Game struct {
-	grid *sim.Grid
+	state          *sim.GameState
+	ui             *ui.UIState
+	save           SaveFn
+	reset          ResetFn
+	ticksSinceSave int
 }
 
-func New(g *sim.Grid) *Game { return &Game{grid: g} }
+func New(s *sim.GameState, u *ui.UIState, save SaveFn, reset ResetFn) *Game {
+	return &Game{state: s, ui: u, save: save, reset: reset}
+}
 
 func (g *Game) Update() error {
-	g.grid.Tick()
+	g.handleInput()
+	g.state.Tick()
+	g.ticksSinceSave++
+	if g.ticksSinceSave >= autosaveInterval && g.save != nil {
+		if err := g.save(); err != nil {
+			log.Printf("autosave failed: %v", err)
+			g.ui.AutosaveError = err.Error()
+		} else {
+			g.ui.AutosaveError = ""
+		}
+		g.ticksSinceSave = 0
+	}
 	return nil
 }
 
-func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x0a, 0x0a, 0x14, 0xff})
+func (g *Game) handleInput() {
+	mx, my := ebiten.CursorPosition()
 
-	line := color.RGBA{0x33, 0x33, 0x5a, 0xff}
-	for i := 0; i <= sim.GridSize; i++ {
-		p := float32(gridPadding + i*cellSize)
-		a := float32(gridPadding)
-		b := float32(gridPadding + sim.GridSize*cellSize)
-		vector.StrokeLine(screen, p, a, p, b, 1, line, false)
-		vector.StrokeLine(screen, a, p, b, p, 1, line, false)
+	// Settings modal swallows clicks when open.
+	if g.ui.SettingsOpen {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			g.handleSettingsClick(mx, my)
+		}
+		return
+	}
+
+	// Header: settings button.
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if contains(mx, my, settingsBtnX, settingsBtnY, settingsBtnW, settingsBtnH) {
+			g.ui.SettingsOpen = true
+			g.ui.ResetArmed = false
+			g.ui.LastSaveNotice = ""
+			return
+		}
+	}
+
+	// Palette: tool selection.
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if tool, ok := paletteButtonAt(mx, my); ok {
+			if g.ui.Selected == tool {
+				g.ui.Selected = ui.ToolNone
+			} else {
+				g.ui.Selected = tool
+			}
+			return
+		}
+	}
+
+	// Grid: place / reconfigure / erase.
+	if pos, ok := cellAt(mx, my); ok {
+		cell := g.state.Grid.Cells[pos.Y][pos.X]
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			if g.ui.Selected != ui.ToolNone {
+				input.PlaceFromTool(g.state, g.ui, pos)
+			} else if cell.Component != nil {
+				input.Reconfigure(g.state, pos)
+			}
+		} else if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+			input.Erase(g.state, pos)
+		}
+	}
+}
+
+func (g *Game) handleSettingsClick(mx, my int) {
+	if contains(mx, my, saveBtnX(), saveBtnY(), saveBtnW, saveBtnH) {
+		if g.save != nil {
+			if err := g.save(); err == nil {
+				g.ui.LastSaveNotice = "Saved"
+				g.ui.AutosaveError = ""
+			} else {
+				log.Printf("save failed: %v", err)
+				g.ui.LastSaveNotice = "Save failed: " + err.Error()
+				g.ui.AutosaveError = err.Error()
+			}
+		}
+		g.ui.ResetArmed = false
+		return
+	}
+	if contains(mx, my, resetBtnX(), resetBtnY(), resetBtnW, resetBtnH) {
+		if !g.ui.ResetArmed {
+			g.ui.ResetArmed = true
+			g.ui.LastSaveNotice = ""
+			return
+		}
+		g.state.HardReset()
+		g.ticksSinceSave = 0
+		if g.reset != nil {
+			if err := g.reset(); err == nil {
+				g.ui.LastSaveNotice = "Reset"
+				g.ui.AutosaveError = ""
+			} else {
+				log.Printf("reset save failed: %v", err)
+				g.ui.LastSaveNotice = "Reset failed: " + err.Error()
+				g.ui.AutosaveError = err.Error()
+			}
+		}
+		g.ui.ResetArmed = false
+		return
+	}
+	if contains(mx, my, closeBtnX(), closeBtnY(), closeBtnW, closeBtnH) {
+		g.ui.SettingsOpen = false
+		g.ui.ResetArmed = false
+		return
+	}
+}
+
+func (g *Game) Draw(screen *ebiten.Image) {
+	// Tick-granular rendering: Subjects draw at their logical cell with no
+	// interpolation. See docs/overview.md on the tick/render split — revisit
+	// if motion feels too steppy at higher speeds.
+	screen.Fill(colorBG)
+	drawGrid(screen, g.state)
+	drawPalette(screen, g.ui)
+	drawHeader(screen, g.state, g.ui)
+	if g.ui.SettingsOpen {
+		drawSettings(screen, g.ui)
 	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	side := gridPadding*2 + cellSize*sim.GridSize
-	return side, side
+	return screenW, screenH
 }
