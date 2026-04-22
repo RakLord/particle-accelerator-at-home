@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Particle Accelerator @ Home</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #05050a; color: #eee; font-family: system-ui, sans-serif; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { touch-action: none; }
+  #loader { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #05050a; font-size: 14px; letter-spacing: 0.3em; text-transform: uppercase; color: #6aa; }
+  #loader.hidden { display: none; }
+</style>
+</head>
+<body>
+<div id="loader">Booting accelerator…</div>
+<script src="./wasm_exec.js"></script>
+<script>
+  (async () => {
+    const go = new Go();
+    const result = await WebAssembly.instantiateStreaming(fetch("./game.wasm"), go.importObject);
+    document.getElementById("loader").classList.add("hidden");
+    go.run(result.instance);
+  })();
+</script>
+</body>
+</html>
