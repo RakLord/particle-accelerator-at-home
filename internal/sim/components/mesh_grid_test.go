@@ -3,6 +3,7 @@ package components
 import (
 	"testing"
 
+	"particleaccelerator/internal/bignum"
 	"particleaccelerator/internal/sim"
 )
 
@@ -31,14 +32,14 @@ func TestMeshGridPreservesOtherFields(t *testing.T) {
 	mg := &MeshGrid{}
 	in := sim.Subject{
 		Element:   sim.ElementHelium,
-		Mass:      2,
+		Mass:      bignum.FromInt(2),
 		Speed:     4,
-		Magnetism: 3,
+		Magnetism: bignum.FromInt(3),
 		Direction: sim.DirWest,
 		Position:  sim.Position{X: 1, Y: 2},
 	}
 	out := mg.Apply(in)
-	if out.Element != in.Element || out.Mass != in.Mass || out.Magnetism != in.Magnetism ||
+	if out.Element != in.Element || !out.Mass.Eq(in.Mass) || !out.Magnetism.Eq(in.Magnetism) ||
 		out.Direction != in.Direction || out.Position != in.Position {
 		t.Fatalf("MeshGrid mutated unrelated fields: %+v", out)
 	}

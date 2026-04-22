@@ -28,6 +28,7 @@ type Game struct {
 	save           SaveFn
 	reset          ResetFn
 	ticksSinceSave int
+	income         incomeRateWindow
 
 	// Render interpolation. lastTickAt is set right after each sim Tick and
 	// Draw uses (now - lastTickAt)/tickDuration as the interpolation alpha.
@@ -45,6 +46,7 @@ func New(s *sim.GameState, u *ui.UIState, save SaveFn, reset ResetFn) *Game {
 		ui:           u,
 		save:         save,
 		reset:        reset,
+		income:       newIncomeRateWindow(s.TickRate),
 		lastTickAt:   time.Now(),
 		tickDuration: tickDurationFor(s.TickRate),
 	}
@@ -62,7 +64,10 @@ func tickDurationFor(tps int) time.Duration {
 
 func (g *Game) Update() error {
 	g.handleInput()
+	beforeUSD := g.state.USD
 	g.state.Tick()
+	g.income.ensureTickRate(g.state.TickRate)
+	g.income.record(g.state.USD.Sub(beforeUSD))
 	g.lastTickAt = time.Now()
 	g.tickDuration = tickDurationFor(g.state.TickRate)
 	g.ticksSinceSave++
@@ -168,6 +173,7 @@ func (g *Game) handleSettingsClick(mx, my int) {
 			return
 		}
 		g.state.HardReset()
+		g.income.reset(g.state.TickRate)
 		g.ticksSinceSave = 0
 		if g.reset != nil {
 			if err := g.reset(); err == nil {
@@ -202,7 +208,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.updateTrail(alpha)
 	drawGrid(screen, g.state, alpha, g.trail)
 	drawPalette(screen, g.state, g.ui)
-	drawHeader(screen, g.state, g.ui)
+	drawHeader(screen, g.state, g.ui, g.income.perSecond())
 	if g.ui.SettingsOpen {
 		drawSettings(screen, g.ui)
 	}

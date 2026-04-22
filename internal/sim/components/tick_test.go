@@ -3,6 +3,7 @@ package components_test
 import (
 	"testing"
 
+	"particleaccelerator/internal/bignum"
 	"particleaccelerator/internal/sim"
 	"particleaccelerator/internal/sim/components"
 )
@@ -12,7 +13,7 @@ func TestAcceleratorIncreasesSpeed(t *testing.T) {
 	s.Grid.Cells[2][2].Component = &components.SimpleAccelerator{SpeedBonus: 2 * sim.SpeedDivisor}
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,
-		Mass:        1,
+		Mass:        bignum.One(),
 		Speed:       sim.SpeedDivisor, // one cell per tick so the tick enters (2,2)
 		Direction:   sim.DirEast,
 		InDirection: sim.DirEast,
@@ -32,7 +33,7 @@ func TestRotatorChangesDirection(t *testing.T) {
 	s.Grid.Cells[2][2].Component = &components.Rotator{Turn: components.TurnRight}
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,
-		Mass:        1,
+		Mass:        bignum.One(),
 		Speed:       sim.SpeedDivisor,
 		Direction:   sim.DirEast,
 		InDirection: sim.DirEast,

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"particleaccelerator/internal/bignum"
 	"particleaccelerator/internal/sim"
 	"particleaccelerator/internal/sim/components"
 )
@@ -15,7 +16,7 @@ func TestSaveLoadRoundTripDesktop(t *testing.T) {
 	t.Setenv("HOME", dir)
 
 	s := sim.NewGameState()
-	s.USD = 42
+	s.USD = bignum.FromInt(42)
 	s.Grid.Cells[0][0].Component = &components.Injector{
 		Direction: sim.DirEast, SpawnInterval: 5, Element: sim.ElementHydrogen,
 	}
@@ -30,7 +31,7 @@ func TestSaveLoadRoundTripDesktop(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected saved state to be present")
 	}
-	if got.USD != 42 {
+	if !got.USD.Eq(bignum.FromInt(42)) {
 		t.Fatalf("USD mismatch: got %v", got.USD)
 	}
 	if _, isInjector := got.Grid.Cells[0][0].Component.(*components.Injector); !isInjector {
@@ -46,7 +47,7 @@ func TestCellRoundTrip(t *testing.T) {
 		{Component: &components.SimpleAccelerator{SpeedBonus: 3}},
 		{Component: &components.Rotator{Turn: components.TurnLeft}},
 		{Component: &components.MeshGrid{}},
-		{Component: &components.Magnetiser{Bonus: 1.5}},
+		{Component: &components.Magnetiser{Bonus: bignum.MustParse("1.5")}},
 	}
 	for i, c := range cells {
 		blob, err := json.Marshal(c)
@@ -71,7 +72,7 @@ func TestCellRoundTrip(t *testing.T) {
 
 func TestGameStateRoundTrip(t *testing.T) {
 	s := sim.NewGameState()
-	s.USD = 1234.5
+	s.USD = bignum.MustParse("1234.5")
 	s.Research[sim.ElementHydrogen] = 7
 	s.Grid.Cells[0][0].Component = &components.Injector{
 		Direction: sim.DirEast, SpawnInterval: 30, Element: sim.ElementHydrogen, TickCounter: 12,
@@ -79,7 +80,7 @@ func TestGameStateRoundTrip(t *testing.T) {
 	s.Grid.Cells[2][2].Component = &components.SimpleAccelerator{SpeedBonus: 1}
 	s.Grid.Cells[4][4].IsCollector = true
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
-		Element: sim.ElementHydrogen, Mass: 1, Speed: 2, Direction: sim.DirEast,
+		Element: sim.ElementHydrogen, Mass: bignum.One(), Speed: 2, Direction: sim.DirEast,
 		Position: sim.Position{X: 1, Y: 0}, Load: 1,
 	})
 	s.CurrentLoad = 1
@@ -94,7 +95,7 @@ func TestGameStateRoundTrip(t *testing.T) {
 		t.Fatalf("unmarshal: %v", err)
 	}
 
-	if loaded.USD != s.USD {
+	if !loaded.USD.Eq(s.USD) {
 		t.Fatalf("USD mismatch: got %v want %v", loaded.USD, s.USD)
 	}
 	if loaded.Research[sim.ElementHydrogen] != 7 {

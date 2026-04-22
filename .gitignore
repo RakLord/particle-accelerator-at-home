@@ -4,6 +4,7 @@
 /dist/
 
 # Go
+/game
 *.exe
 *.test
 *.out

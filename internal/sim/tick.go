@@ -49,7 +49,7 @@ func (s *GameState) advanceSubjects() {
 			continue
 		}
 		if collected {
-			s.USD += collectValue(sub, s.Research[sub.Element])
+			s.USD = s.USD.Add(collectValue(sub, s.Research[sub.Element]))
 			s.Research[sub.Element]++
 			s.CurrentLoad -= sub.Load
 			continue

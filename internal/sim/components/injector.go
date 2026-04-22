@@ -1,6 +1,9 @@
 package components
 
-import "particleaccelerator/internal/sim"
+import (
+	"particleaccelerator/internal/bignum"
+	"particleaccelerator/internal/sim"
+)
 
 const KindInjector sim.ComponentKind = "injector"
 
@@ -25,7 +28,7 @@ func (inj *Injector) MaybeSpawn(pos sim.Position) (sim.Subject, bool) {
 	inj.TickCounter = 0
 	return sim.Subject{
 		Element:     inj.Element,
-		Mass:        1.0,
+		Mass:        bignum.One(),
 		Speed:       1,
 		Direction:   inj.Direction,
 		InDirection: inj.Direction, // spawn cell renders as straight pass-through

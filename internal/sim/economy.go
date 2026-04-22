@@ -1,6 +1,10 @@
 package sim
 
-import "errors"
+import (
+	"errors"
+
+	"particleaccelerator/internal/bignum"
+)
 
 type Element string
 
@@ -14,25 +18,25 @@ const (
 type ElementInfo struct {
 	Name              string
 	Symbol            string
-	Multiplier        float64
+	Multiplier        bignum.Decimal
 	UnlocksFrom       Element
 	ResearchThreshold int
-	UnlockCost        float64
+	UnlockCost        bignum.Decimal
 }
 
 var ElementCatalog = map[Element]ElementInfo{
 	ElementHydrogen: {
 		Name:       "Hydrogen",
 		Symbol:     "H",
-		Multiplier: 1.0,
+		Multiplier: bignum.MustParse("1"),
 	},
 	ElementHelium: {
 		Name:              "Helium",
 		Symbol:            "He",
-		Multiplier:        2.5,
+		Multiplier:        bignum.MustParse("2.5"),
 		UnlocksFrom:       ElementHydrogen,
 		ResearchThreshold: 10,
-		UnlockCost:        500,
+		UnlockCost:        bignum.MustParse("500"),
 	},
 }
 
@@ -42,20 +46,21 @@ var CatalogOrder = []Element{ElementHydrogen, ElementHelium}
 // Value formula constants. See docs/features/value-formula.md.
 // ResearchK is exported so the UI can reproduce the research bonus curve
 // in the Periodic Table without recomputing `collectValue`.
-const (
-	speedValueK           = 1.0
-	magValueK             = 0.5
-	ResearchK     float64 = 50.0
+var (
+	speedValueK = bignum.MustParse("1")
+	magValueK   = bignum.MustParse("0.5")
+	ResearchK   = bignum.MustParse("50")
 )
 
 // collectValue is the $USD awarded when a Subject is collected. The research
 // count is the Element's research level at the moment of collection — pass the
 // pre-increment value so the first collection earns the base multiplier.
 // See docs/features/value-formula.md.
-func collectValue(s Subject, research int) float64 {
+func collectValue(s Subject, research int) bignum.Decimal {
 	info := ElementCatalog[s.Element]
-	base := s.Mass*float64(s.Speed)*speedValueK + s.Magnetism*magValueK
-	return base * info.Multiplier * (1 + float64(research)/ResearchK)
+	base := s.Mass.MulInt(s.Speed).Mul(speedValueK).Add(s.Magnetism.Mul(magValueK))
+	researchBonus := bignum.One().Add(bignum.FromInt(research).Div(ResearchK))
+	return base.Mul(info.Multiplier).Mul(researchBonus)
 }
 
 var (
@@ -100,10 +105,10 @@ func PurchaseElement(s *GameState, e Element) error {
 	if info.UnlocksFrom != "" && s.Research[info.UnlocksFrom] < info.ResearchThreshold {
 		return ErrResearchTooLow
 	}
-	if s.USD < info.UnlockCost {
+	if s.USD.LT(info.UnlockCost) {
 		return ErrInsufficientFunds
 	}
-	s.USD -= info.UnlockCost
+	s.USD = s.USD.Sub(info.UnlockCost)
 	if s.UnlockedElements == nil {
 		s.UnlockedElements = map[Element]bool{}
 	}

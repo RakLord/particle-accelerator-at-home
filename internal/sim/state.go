@@ -1,5 +1,7 @@
 package sim
 
+import "particleaccelerator/internal/bignum"
+
 const (
 	DefaultMaxLoad = 16
 	// DefaultTickRate: interpolation is live (see docs/features/smooth-motion.md)
@@ -11,7 +13,7 @@ const (
 type GameState struct {
 	Layer            Layer
 	Grid             *Grid
-	USD              float64
+	USD              bignum.Decimal
 	Research         map[Element]int
 	UnlockedElements map[Element]bool
 	MaxLoad          int

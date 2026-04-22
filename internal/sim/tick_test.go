@@ -1,12 +1,16 @@
 package sim
 
-import "testing"
+import (
+	"testing"
+
+	"particleaccelerator/internal/bignum"
+)
 
 func TestTickMovesSubject(t *testing.T) {
 	s := NewGameState()
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:   ElementHydrogen,
-		Mass:      1,
+		Mass:      bignum.One(),
 		Speed:     SpeedDivisor, // one cell per tick
 		Direction: DirEast,
 		Position:  Position{X: 1, Y: 2},
@@ -28,7 +32,7 @@ func TestCollectorAwardsUSD(t *testing.T) {
 	s.Grid.Cells[2][2].IsCollector = true
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:   ElementHydrogen,
-		Mass:      2,
+		Mass:      bignum.FromInt(2),
 		Speed:     SpeedDivisor,
 		Direction: DirEast,
 		Position:  Position{X: 1, Y: 2},
@@ -40,8 +44,8 @@ func TestCollectorAwardsUSD(t *testing.T) {
 		t.Fatalf("expected subject removed after collection, got %d", len(s.Grid.Subjects))
 	}
 	// collectValue = Mass * Speed * speedK = 2 * SpeedDivisor * 1 (Hydrogen mult 1.0, research 0).
-	wantUSD := float64(2 * SpeedDivisor)
-	if s.USD != wantUSD {
+	wantUSD := bignum.FromInt(2 * SpeedDivisor)
+	if !s.USD.Eq(wantUSD) {
 		t.Fatalf("expected USD %v, got %v", wantUSD, s.USD)
 	}
 	if s.Research[ElementHydrogen] != 1 {
@@ -176,5 +180,5 @@ func TestTickPathRecordsAcrossRotator(t *testing.T) {
 // import cycle with the components package.
 type testRightTurn struct{}
 
-func (*testRightTurn) Kind() ComponentKind         { return ComponentKind("test_right_turn") }
-func (*testRightTurn) Apply(s Subject) Subject      { s.Direction = s.Direction.Right(); return s }
+func (*testRightTurn) Kind() ComponentKind     { return ComponentKind("test_right_turn") }
+func (*testRightTurn) Apply(s Subject) Subject { s.Direction = s.Direction.Right(); return s }

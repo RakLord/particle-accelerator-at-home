@@ -5,6 +5,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 
+	"particleaccelerator/internal/bignum"
 	"particleaccelerator/internal/sim"
 	"particleaccelerator/internal/ui"
 )
@@ -13,8 +14,8 @@ const (
 	codexModalW = 640
 	codexModalH = 440
 
-	codexRowH  = 60
-	codexRowGap = 8
+	codexRowH          = 60
+	codexRowGap        = 8
 	codexHeaderOffsetY = 52
 
 	codexActionW = 180
@@ -84,8 +85,8 @@ func drawPeriodicTable(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 
 		// Effective multiplier (base × research bonus).
 		research := s.Research[e]
-		effective := info.Multiplier * (1 + float64(research)/sim.ResearchK)
-		drawText(dst, fmt.Sprintf("×%.2f", effective), mx+320, y+22, colorText)
+		effective := info.Multiplier.Mul(bignum.One().Add(bignum.FromInt(research).Div(sim.ResearchK)))
+		drawText(dst, formatMultiplier(effective), mx+320, y+22, colorText)
 
 		// Status / action column.
 		ax, ay, aw, ah := codexActionRect(i)
@@ -95,7 +96,7 @@ func drawPeriodicTable(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 		case sim.IsElementPurchasable(s, e):
 			fillRect(dst, ax, ay, aw, ah, colorPurchaseActive)
 			strokeRect(dst, ax, ay, aw, ah, 1, colorTextMuted)
-			drawTextCentered(dst, fmt.Sprintf("Unlock for $%.0f", info.UnlockCost), ax, ay, aw, ah, colorText)
+			drawTextCentered(dst, "Unlock for "+formatUSD(info.UnlockCost), ax, ay, aw, ah, colorText)
 		default:
 			need := info.ResearchThreshold - s.Research[info.UnlocksFrom]
 			drawText(dst, fmt.Sprintf("Locked · %d more %s research", need, sim.ElementCatalog[info.UnlocksFrom].Symbol), mx+440, y+22, colorTextMuted)
@@ -112,4 +113,3 @@ func drawPeriodicTable(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 	strokeRect(dst, cx, cy, closeBtnW, closeBtnH, 1, colorTextMuted)
 	drawTextCentered(dst, "Close", cx, cy, closeBtnW, closeBtnH, colorText)
 }
-

@@ -1,10 +1,9 @@
 package render
 
 import (
-	"fmt"
-
 	"github.com/hajimehoshi/ebiten/v2"
 
+	"particleaccelerator/internal/bignum"
 	"particleaccelerator/internal/sim"
 	"particleaccelerator/internal/ui"
 )
@@ -21,14 +20,26 @@ const (
 	codexBtnY = settingsBtnY
 )
 
-func drawHeader(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
+func drawHeader(dst *ebiten.Image, s *sim.GameState, u *ui.UIState, incomePerSecond bignum.Decimal) {
 	fillRect(dst, 0, 0, screenW, headerH, colorHeaderBG)
 
-	drawText(dst, formatUSD(s.USD), 16, (headerH-13)/2, colorText)
+	usdText := formatUSD(s.USD)
+	usdX := 16
+	_, usdH := measureText(usdText)
+	usdY := (headerH - usdH) / 2
+	drawText(dst, usdText, usdX, usdY, colorText)
+	usdW, _ := measureText(usdText)
+
+	rateText := formatIncomeRate(incomePerSecond)
+	rateX := usdX + usdW + 12
+	_, rateH := measureTextSmall(rateText)
+	rateY := (headerH - rateH) / 2
+	drawTextSmall(dst, rateText, rateX, rateY, colorHeaderIncome)
+	rateW, _ := measureTextSmall(rateText)
 
 	if u.AutosaveError != "" {
 		msg := "Save error: " + u.AutosaveError
-		drawText(dst, msg, 160, (headerH-13)/2, colorResetArmed)
+		drawText(dst, msg, rateX+rateW+24, usdY, colorResetArmed)
 	}
 
 	fillRect(dst, codexBtnX, codexBtnY, codexBtnW, codexBtnH, colorButton)
@@ -38,26 +49,4 @@ func drawHeader(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 	fillRect(dst, settingsBtnX, settingsBtnY, settingsBtnW, settingsBtnH, colorButton)
 	strokeRect(dst, settingsBtnX, settingsBtnY, settingsBtnW, settingsBtnH, 1, colorTextMuted)
 	drawTextCentered(dst, "Settings", settingsBtnX, settingsBtnY, settingsBtnW, settingsBtnH, colorText)
-}
-
-func formatUSD(v float64) string {
-	// Simple comma-grouped integer dollars for MVP.
-	whole := int64(v)
-	neg := whole < 0
-	if neg {
-		whole = -whole
-	}
-	digits := fmt.Sprintf("%d", whole)
-	out := make([]byte, 0, len(digits)+len(digits)/3+2)
-	out = append(out, '$')
-	if neg {
-		out = append(out, '-')
-	}
-	for i, r := range digits {
-		if i > 0 && (len(digits)-i)%3 == 0 {
-			out = append(out, ',')
-		}
-		out = append(out, byte(r))
-	}
-	return string(out)
 }

@@ -1,6 +1,7 @@
 package input
 
 import (
+	"particleaccelerator/internal/bignum"
 	"particleaccelerator/internal/sim"
 	"particleaccelerator/internal/sim/components"
 	"particleaccelerator/internal/ui"
@@ -41,7 +42,7 @@ func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 		cell.Component = &components.MeshGrid{}
 		cell.IsCollector = false
 	case ui.ToolMagnetiser:
-		cell.Component = &components.Magnetiser{Bonus: 1}
+		cell.Component = &components.Magnetiser{Bonus: bignum.One()}
 		cell.IsCollector = false
 	case ui.ToolRotator:
 		cell.Component = &components.Rotator{Turn: components.TurnRight}

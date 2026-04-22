@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"particleaccelerator/internal/bignum"
 	"particleaccelerator/internal/save"
 )
 
@@ -50,9 +51,38 @@ func TestGameStateRoundTripUnlockedElements(t *testing.T) {
 	}
 }
 
-func TestLoadLegacySaveDefaultsUnlockedElements(t *testing.T) {
-	// Simulate a pre-Phase-2 save: envelope v1 state payload with no
-	// UnlockedElements field. The nil-guard in Load() must default Hydrogen on.
+func TestLoadV2SaveDefaultsUnlockedElements(t *testing.T) {
+	// Simulate a current-version save payload with no UnlockedElements field.
+	// The nil-guard in Load() must default Hydrogen on.
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	t.Setenv("HOME", dir)
+
+	legacyState := `{"Grid":{"Cells":[[{},{},{},{},{}],[{},{},{},{},{}],[{},{},{},{},{}],[{},{},{},{},{}],[{},{},{},{},{}]],"Subjects":null},"USD":100,"Research":{"hydrogen":3},"MaxLoad":16,"CurrentLoad":0,"TickRate":10,"Ticks":0}`
+	env := `{"version":2,"state":` + legacyState + `}`
+	if err := save.Write(saveKey, env); err != nil {
+		t.Fatalf("seed current save: %v", err)
+	}
+
+	loaded, ok, err := Load()
+	if err != nil || !ok {
+		t.Fatalf("Load current save: ok=%v err=%v", ok, err)
+	}
+	if !loaded.UnlockedElements[ElementHydrogen] {
+		t.Fatalf("save should default Hydrogen to unlocked")
+	}
+	if loaded.UnlockedElements[ElementHelium] {
+		t.Fatalf("save should not unlock Helium")
+	}
+	if !loaded.USD.Eq(bignum.FromInt(100)) {
+		t.Fatalf("USD mismatch: got %v want 100", loaded.USD)
+	}
+	if loaded.Research[ElementHydrogen] != 3 {
+		t.Fatalf("research mismatch: got %d want 3", loaded.Research[ElementHydrogen])
+	}
+}
+
+func TestLoadRejectsV1Save(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", dir)
 	t.Setenv("HOME", dir)
@@ -60,17 +90,14 @@ func TestLoadLegacySaveDefaultsUnlockedElements(t *testing.T) {
 	legacyState := `{"Grid":{"Cells":[[{},{},{},{},{}],[{},{},{},{},{}],[{},{},{},{},{}],[{},{},{},{},{}],[{},{},{},{},{}]],"Subjects":null},"USD":100,"Research":{"hydrogen":3},"MaxLoad":16,"CurrentLoad":0,"TickRate":10,"Ticks":0}`
 	env := `{"version":1,"state":` + legacyState + `}`
 	if err := save.Write(saveKey, env); err != nil {
-		t.Fatalf("seed legacy save: %v", err)
+		t.Fatalf("seed v1 save: %v", err)
 	}
 
-	loaded, ok, err := Load()
-	if err != nil || !ok {
-		t.Fatalf("Load legacy: ok=%v err=%v", ok, err)
+	_, ok, err := Load()
+	if err == nil {
+		t.Fatalf("expected version 1 save to be rejected")
 	}
-	if !loaded.UnlockedElements[ElementHydrogen] {
-		t.Fatalf("legacy save should default Hydrogen to unlocked")
-	}
-	if loaded.UnlockedElements[ElementHelium] {
-		t.Fatalf("legacy save should not unlock Helium")
+	if ok {
+		t.Fatalf("expected ok=false for rejected save")
 	}
 }

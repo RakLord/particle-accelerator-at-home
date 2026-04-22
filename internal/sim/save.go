@@ -9,7 +9,7 @@ import (
 
 const (
 	saveKey        = "state"
-	currentVersion = 1
+	currentVersion = 2
 )
 
 type saveEnvelope struct {

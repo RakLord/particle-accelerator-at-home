@@ -23,19 +23,40 @@ func fillCircle(dst *ebiten.Image, cx, cy float32, r float32, c color.Color) {
 
 // drawText renders text at the given top-left position.
 func drawText(dst *ebiten.Image, s string, x, y int, c color.Color) {
+	drawTextFace(dst, s, x, y, fontBody, c)
+}
+
+func drawTextSmall(dst *ebiten.Image, s string, x, y int, c color.Color) {
+	drawTextFace(dst, s, x, y, fontSmall, c)
+}
+
+func drawTextFace(dst *ebiten.Image, s string, x, y int, face text.Face, c color.Color) {
 	op := &text.DrawOptions{}
 	op.GeoM.Translate(float64(x), float64(y))
 	op.ColorScale.ScaleWithColor(c)
-	text.Draw(dst, s, font7x13, op)
+	text.Draw(dst, s, face, op)
+}
+
+func measureText(s string) (w, h int) {
+	return measureTextFace(s, fontBody)
+}
+
+func measureTextSmall(s string) (w, h int) {
+	return measureTextFace(s, fontSmall)
+}
+
+func measureTextFace(s string, face text.Face) (w, h int) {
+	tw, th := text.Measure(s, face, 0)
+	return int(math.Ceil(tw)), int(math.Ceil(th))
 }
 
 // drawTextCentered renders text centered within (x, y, w, h).
 func drawTextCentered(dst *ebiten.Image, s string, x, y, w, h int, c color.Color) {
 	op := &text.DrawOptions{}
-	tw, th := text.Measure(s, font7x13, 0)
+	tw, th := text.Measure(s, fontBody, 0)
 	op.GeoM.Translate(float64(x)+(float64(w)-tw)/2, float64(y)+(float64(h)-th)/2)
 	op.ColorScale.ScaleWithColor(c)
-	text.Draw(dst, s, font7x13, op)
+	text.Draw(dst, s, fontBody, op)
 }
 
 func contains(px, py, x, y, w, h int) bool {

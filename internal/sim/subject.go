@@ -1,5 +1,7 @@
 package sim
 
+import "particleaccelerator/internal/bignum"
+
 type Direction uint8
 
 const (
@@ -32,9 +34,9 @@ type Position struct {
 
 type Subject struct {
 	Element   Element
-	Mass      float64
+	Mass      bignum.Decimal
 	Speed     int
-	Magnetism float64
+	Magnetism bignum.Decimal
 	Direction Direction
 	Position  Position
 	Load      int

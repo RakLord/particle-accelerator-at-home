@@ -1,13 +1,16 @@
 package components
 
-import "particleaccelerator/internal/sim"
+import (
+	"particleaccelerator/internal/bignum"
+	"particleaccelerator/internal/sim"
+)
 
 const KindMagnetiser sim.ComponentKind = "magnetiser"
 
 // Magnetiser adds to the Subject's Magnetism when the Subject is inside its
 // speed band. See docs/features/component-magnetiser.md.
 type Magnetiser struct {
-	Bonus float64
+	Bonus bignum.Decimal
 }
 
 const magnetiserMinSpeed = 1
@@ -18,7 +21,7 @@ func (m *Magnetiser) Apply(s sim.Subject) sim.Subject {
 	if s.Speed < magnetiserMinSpeed {
 		return s
 	}
-	s.Magnetism += m.Bonus
+	s.Magnetism = s.Magnetism.Add(m.Bonus)
 	return s
 }
 
