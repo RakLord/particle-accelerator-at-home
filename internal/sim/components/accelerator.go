@@ -2,13 +2,11 @@ package components
 
 import "particleaccelerator/internal/sim"
 
-const KindAccelerator sim.ComponentKind = "accelerator"
-
 type SimpleAccelerator struct {
 	SpeedBonus int
 }
 
-func (*SimpleAccelerator) Kind() sim.ComponentKind { return KindAccelerator }
+func (*SimpleAccelerator) Kind() sim.ComponentKind { return sim.KindAccelerator }
 
 func (a *SimpleAccelerator) Apply(s sim.Subject) sim.Subject {
 	s.Speed += a.SpeedBonus
@@ -16,5 +14,5 @@ func (a *SimpleAccelerator) Apply(s sim.Subject) sim.Subject {
 }
 
 func init() {
-	sim.RegisterComponent(KindAccelerator, func() sim.Component { return &SimpleAccelerator{} })
+	sim.RegisterComponent(sim.KindAccelerator, func() sim.Component { return &SimpleAccelerator{} })
 }

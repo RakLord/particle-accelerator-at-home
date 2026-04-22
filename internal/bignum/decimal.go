@@ -335,6 +335,20 @@ func (d Decimal) Float64() float64 {
 	return v
 }
 
+// Ceil returns the smallest integer Decimal >= d. For non-negative d this
+// rounds upward (1.3 -> 2). For negative d, ceiling truncates toward zero
+// (-0.3 -> 0, -1.7 -> -1). Values with exponent >= 16 already exceed
+// float64 significand precision and are treated as integers.
+func (d Decimal) Ceil() Decimal {
+	if d.IsZero() {
+		return d
+	}
+	if d.exponent >= 16 {
+		return d
+	}
+	return FromFloat64(math.Ceil(d.Float64()))
+}
+
 func Max(a, b Decimal) Decimal {
 	if a.GTE(b) {
 		return a

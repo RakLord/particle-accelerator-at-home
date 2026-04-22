@@ -2,8 +2,6 @@ package components
 
 import "particleaccelerator/internal/sim"
 
-const KindRotator sim.ComponentKind = "rotator"
-
 type RotatorTurn uint8
 
 const (
@@ -15,7 +13,7 @@ type Rotator struct {
 	Turn RotatorTurn
 }
 
-func (*Rotator) Kind() sim.ComponentKind { return KindRotator }
+func (*Rotator) Kind() sim.ComponentKind { return sim.KindRotator }
 
 func (r *Rotator) Apply(s sim.Subject) sim.Subject {
 	switch r.Turn {
@@ -28,5 +26,5 @@ func (r *Rotator) Apply(s sim.Subject) sim.Subject {
 }
 
 func init() {
-	sim.RegisterComponent(KindRotator, func() sim.Component { return &Rotator{} })
+	sim.RegisterComponent(sim.KindRotator, func() sim.Component { return &Rotator{} })
 }

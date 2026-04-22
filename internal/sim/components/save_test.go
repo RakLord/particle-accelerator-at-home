@@ -101,7 +101,7 @@ func TestGameStateRoundTrip(t *testing.T) {
 	if loaded.Research[sim.ElementHydrogen] != 7 {
 		t.Fatalf("research mismatch: %d", loaded.Research[sim.ElementHydrogen])
 	}
-	if loaded.Grid.Cells[0][0].Component.Kind() != components.KindInjector {
+	if loaded.Grid.Cells[0][0].Component.Kind() != sim.KindInjector {
 		t.Fatalf("injector kind lost")
 	}
 	if inj, ok := loaded.Grid.Cells[0][0].Component.(*components.Injector); !ok || inj.TickCounter != 12 {
@@ -112,5 +112,48 @@ func TestGameStateRoundTrip(t *testing.T) {
 	}
 	if len(loaded.Grid.Subjects) != 1 || loaded.Grid.Subjects[0].Position != (sim.Position{X: 1, Y: 0}) {
 		t.Fatalf("subject lost or malformed")
+	}
+}
+
+func TestLoadV2SeedsOwnedFromGridComponents(t *testing.T) {
+	// Migration path: a save that predates the Owned field must be
+	// grandfathered in by seeding Owned from the grid contents. This test
+	// exercises the Component.Kind() arm of the migration (the sim package
+	// covers the IsCollector arm on its own).
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	t.Setenv("HOME", dir)
+
+	s := sim.NewGameState()
+	s.Owned = nil // Force the migration path on reload.
+	s.Grid.Cells[0][0].Component = &components.Injector{
+		Direction: sim.DirEast, SpawnInterval: 30, Element: sim.ElementHydrogen,
+	}
+	s.Grid.Cells[1][0].Component = &components.SimpleAccelerator{SpeedBonus: 1}
+	s.Grid.Cells[2][0].Component = &components.SimpleAccelerator{SpeedBonus: 1}
+	s.Grid.Cells[3][0].Component = &components.Magnetiser{Bonus: bignum.One()}
+	s.Grid.Cells[4][0].IsCollector = true
+
+	if err := s.Save(); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	loaded, ok, err := sim.Load()
+	if err != nil || !ok {
+		t.Fatalf("Load: ok=%v err=%v", ok, err)
+	}
+	expected := map[sim.ComponentKind]int{
+		sim.KindInjector:    1,
+		sim.KindAccelerator: 2,
+		sim.KindMagnetiser:  1,
+		sim.KindCollector:   1,
+	}
+	for kind, want := range expected {
+		if got := loaded.Owned[kind]; got != want {
+			t.Errorf("Owned[%s] after migration: got %d want %d", kind, got, want)
+		}
+	}
+	if loaded.Owned[sim.KindRotator] != 0 {
+		t.Errorf("Owned[rotator]: got %d want 0", loaded.Owned[sim.KindRotator])
 	}
 }

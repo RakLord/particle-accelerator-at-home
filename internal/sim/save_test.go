@@ -82,6 +82,59 @@ func TestLoadV2SaveDefaultsUnlockedElements(t *testing.T) {
 	}
 }
 
+func TestSaveLoadPreservesOwned(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	t.Setenv("HOME", dir)
+
+	s := NewGameState()
+	s.Owned = map[ComponentKind]int{
+		KindInjector:    3,
+		KindAccelerator: 7,
+		KindCollector:   2,
+	}
+	if err := s.Save(); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	loaded, ok, err := Load()
+	if err != nil || !ok {
+		t.Fatalf("Load: ok=%v err=%v", ok, err)
+	}
+	for kind, want := range s.Owned {
+		if got := loaded.Owned[kind]; got != want {
+			t.Errorf("Owned[%s]: got %d want %d", kind, got, want)
+		}
+	}
+}
+
+func TestLoadV2SaveSeedsOwnedCollectorsFromGrid(t *testing.T) {
+	// Craft a v2 save with two Collector cells and no `owned` field.
+	// Collectors don't go through componentRegistry (they're cell.IsCollector),
+	// so this test doesn't need the components package imported. The
+	// Component.Kind() path is exercised in the components_test package.
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	t.Setenv("HOME", dir)
+
+	row0 := `[{"is_collector":true},{},{"is_collector":true},{},{}]`
+	empty := `[{},{},{},{},{}]`
+	grid := `{"Cells":[` + row0 + `,` + empty + `,` + empty + `,` + empty + `,` + empty + `],"Subjects":null}`
+	state := `{"Layer":"genesis","Grid":` + grid + `,"USD":"0","Research":{},"UnlockedElements":{"hydrogen":true},"MaxLoad":16,"CurrentLoad":0,"TickRate":10,"Ticks":0}`
+	env := `{"version":2,"state":` + state + `}`
+	if err := save.Write(saveKey, env); err != nil {
+		t.Fatalf("seed save: %v", err)
+	}
+
+	loaded, ok, err := Load()
+	if err != nil || !ok {
+		t.Fatalf("Load: ok=%v err=%v", ok, err)
+	}
+	if loaded.Owned[KindCollector] != 2 {
+		t.Errorf("Owned[collector] after migration: got %d want 2", loaded.Owned[KindCollector])
+	}
+}
+
 func TestLoadRejectsV1Save(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", dir)

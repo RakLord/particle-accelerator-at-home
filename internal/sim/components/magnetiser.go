@@ -5,8 +5,6 @@ import (
 	"particleaccelerator/internal/sim"
 )
 
-const KindMagnetiser sim.ComponentKind = "magnetiser"
-
 // Magnetiser adds to the Subject's Magnetism when the Subject is inside its
 // speed band. See docs/features/component-magnetiser.md.
 type Magnetiser struct {
@@ -15,7 +13,7 @@ type Magnetiser struct {
 
 const magnetiserMinSpeed = 1
 
-func (*Magnetiser) Kind() sim.ComponentKind { return KindMagnetiser }
+func (*Magnetiser) Kind() sim.ComponentKind { return sim.KindMagnetiser }
 
 func (m *Magnetiser) Apply(s sim.Subject) sim.Subject {
 	if s.Speed < magnetiserMinSpeed {
@@ -26,5 +24,5 @@ func (m *Magnetiser) Apply(s sim.Subject) sim.Subject {
 }
 
 func init() {
-	sim.RegisterComponent(KindMagnetiser, func() sim.Component { return &Magnetiser{} })
+	sim.RegisterComponent(sim.KindMagnetiser, func() sim.Component { return &Magnetiser{} })
 }

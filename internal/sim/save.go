@@ -91,6 +91,11 @@ func Load() (*GameState, bool, error) {
 		return nil, false, fmt.Errorf("sim: unsupported save version %d", env.Version)
 	}
 	state := NewGameState()
+	// Clear Owned before unmarshaling so a save that predates the field
+	// deserializes with Owned == nil — the signal the migration below uses
+	// to seed inventory from the grid. New saves include the `owned` field
+	// (even if empty) and reach the post-unmarshal state as intended.
+	state.Owned = nil
 	if err := json.Unmarshal(env.State, state); err != nil {
 		return nil, false, err
 	}
@@ -105,6 +110,25 @@ func Load() (*GameState, bool, error) {
 	}
 	if state.Layer == "" {
 		state.Layer = LayerGenesis
+	}
+	// Saves from before the component-cost feature lack the Owned field.
+	// Seed it from whatever is already on the grid so long-time players
+	// don't lose the components they've placed. See
+	// docs/adr/0005-component-cost-and-inventory.md for the additive-save
+	// policy.
+	if state.Owned == nil {
+		state.Owned = map[ComponentKind]int{}
+		for y := range state.Grid.Cells {
+			for x := range state.Grid.Cells[y] {
+				c := state.Grid.Cells[y][x]
+				if c.Component != nil {
+					state.Owned[c.Component.Kind()]++
+				}
+				if c.IsCollector {
+					state.Owned[KindCollector]++
+				}
+			}
+		}
 	}
 	// Recompute CurrentLoad from subjects-in-flight to avoid drift.
 	state.CurrentLoad = 0

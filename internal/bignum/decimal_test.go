@@ -92,3 +92,38 @@ func TestFormatShort(t *testing.T) {
 		t.Fatalf("short fallback format: got %q want %q", got, "1.23e39")
 	}
 }
+
+func TestCeil(t *testing.T) {
+	cases := []struct {
+		in   string
+		want string
+	}{
+		{"0", "0"},
+		{"5", "5"},
+		{"1.3", "2"},
+		{"1.0001", "2"},
+		{"99.999", "100"},
+		{"-0.3", "0"},
+		{"-1.7", "-1"},
+		{"-5", "-5"},
+		{"1.23e20", "1.23e20"}, // huge exponent: already integer
+	}
+	for _, tc := range cases {
+		got := MustParse(tc.in).Ceil()
+		want := MustParse(tc.want)
+		if !got.Eq(want) {
+			t.Errorf("Ceil(%s) = %s, want %s", tc.in, got, want)
+		}
+	}
+}
+
+func TestCeilIsWholeNumber(t *testing.T) {
+	// For practical cost values, Ceil() should be idempotent.
+	inputs := []string{"0", "1", "1.5", "17.9", "1.23e3", "9.999e5"}
+	for _, s := range inputs {
+		d := MustParse(s).Ceil()
+		if !d.Eq(d.Ceil()) {
+			t.Errorf("Ceil(%s) not idempotent", s)
+		}
+	}
+}

@@ -55,6 +55,12 @@ func drawPalette(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 		y := paletteButtonY(i)
 		locked := e.tool == ui.ToolInjectorHelium && !sim.IsElementUnlocked(s, sim.ElementHelium)
 
+		kind := kindForTool(e.tool)
+		unaffordable := kind != "" &&
+			sim.CountAvailable(s, kind) == 0 &&
+			!sim.CanPurchase(s, kind)
+		dimmed := locked || unaffordable
+
 		bg := colorButton
 		if u.Selected == e.tool {
 			bg = colorSelected
@@ -63,14 +69,14 @@ func drawPalette(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 		strokeRect(dst, paletteBtnX, y, paletteBtnW, paletteBtnH, 1, colorTextMuted)
 
 		swatch := toolColor(e.tool)
-		if locked {
+		if dimmed {
 			swatch = colorButton
 		}
 		fillRect(dst, paletteBtnX+12, y+12, 32, 32, swatch)
 		strokeRect(dst, paletteBtnX+12, y+12, 32, 32, 1, colorTextMuted)
 
 		labelColor := colorText
-		if locked {
+		if dimmed {
 			labelColor = colorTextMuted
 		}
 		drawText(dst, e.label, paletteBtnX+60, y+14, labelColor)
@@ -88,23 +94,51 @@ func drawPalette(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 }
 
 // subLabel returns the secondary status line for a palette entry, or "" when
-// there's nothing to show. Currently only the Helium Injector has state.
+// there's nothing to show. Helium Injector has its own lock-status line;
+// every other purchasable tool shows "have: N · $cost".
 func subLabel(s *sim.GameState, t ui.Tool) string {
-	if t != ui.ToolInjectorHelium {
+	if t == ui.ToolInjectorHelium {
+		if !sim.IsElementUnlocked(s, sim.ElementHelium) {
+			if sim.IsElementPurchasable(s, sim.ElementHelium) {
+				return "Purchase in Codex"
+			}
+			info := sim.ElementCatalog[sim.ElementHelium]
+			need := info.ResearchThreshold - s.Research[info.UnlocksFrom]
+			if need < 0 {
+				need = 0
+			}
+			return "Locked · need " + itoa(need) + " more H research"
+		}
+		// Helium unlocked: fall through to the inventory line.
+	}
+	kind := kindForTool(t)
+	if kind == "" {
 		return ""
 	}
-	if sim.IsElementUnlocked(s, sim.ElementHelium) {
-		return "Unlocked"
+	have := sim.CountAvailable(s, kind)
+	cost := sim.ComponentCost(s, kind)
+	return "have: " + itoa(have) + " · next: " + formatUSD(cost)
+}
+
+// kindForTool mirrors input.toolKind but is duplicated here because the input
+// package isn't a dependency of render. Both injector tools share a single
+// kind for inventory/cost accounting.
+func kindForTool(t ui.Tool) sim.ComponentKind {
+	switch t {
+	case ui.ToolInjectorHydrogen, ui.ToolInjectorHelium:
+		return sim.KindInjector
+	case ui.ToolAccelerator:
+		return sim.KindAccelerator
+	case ui.ToolMeshGrid:
+		return sim.KindMeshGrid
+	case ui.ToolMagnetiser:
+		return sim.KindMagnetiser
+	case ui.ToolRotator:
+		return sim.KindRotator
+	case ui.ToolCollector:
+		return sim.KindCollector
 	}
-	if sim.IsElementPurchasable(s, sim.ElementHelium) {
-		return "Purchase in Codex"
-	}
-	info := sim.ElementCatalog[sim.ElementHelium]
-	need := info.ResearchThreshold - s.Research[info.UnlocksFrom]
-	if need < 0 {
-		need = 0
-	}
-	return "Locked · need " + itoa(need) + " more H research"
+	return ""
 }
 
 func toolColor(t ui.Tool) color.Color {

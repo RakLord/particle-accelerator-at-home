@@ -5,8 +5,6 @@ import (
 	"particleaccelerator/internal/sim"
 )
 
-const KindInjector sim.ComponentKind = "injector"
-
 // Injector is a source: it spawns Subjects every SpawnInterval ticks in its
 // configured Direction. It implements sim.Spawner; Apply is a no-op so a
 // Subject passing over an Injector is unaffected.
@@ -17,7 +15,7 @@ type Injector struct {
 	TickCounter   int
 }
 
-func (*Injector) Kind() sim.ComponentKind         { return KindInjector }
+func (*Injector) Kind() sim.ComponentKind         { return sim.KindInjector }
 func (*Injector) Apply(s sim.Subject) sim.Subject { return s }
 
 func (inj *Injector) MaybeSpawn(pos sim.Position) (sim.Subject, bool) {
@@ -42,5 +40,5 @@ func (inj *Injector) MaybeSpawn(pos sim.Position) (sim.Subject, bool) {
 }
 
 func init() {
-	sim.RegisterComponent(KindInjector, func() sim.Component { return &Injector{} })
+	sim.RegisterComponent(sim.KindInjector, func() sim.Component { return &Injector{} })
 }

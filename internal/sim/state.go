@@ -16,10 +16,15 @@ type GameState struct {
 	USD              bignum.Decimal
 	Research         map[Element]int
 	UnlockedElements map[Element]bool
-	MaxLoad          int
-	CurrentLoad      int
-	TickRate         int
-	Ticks            uint64
+	// Owned is the total number of each component kind the player has ever
+	// purchased. Monotonic: incremented by PurchaseComponent; never
+	// decreased by Erase (removed components return to the available pool,
+	// not the shop). Available = Owned - count-placed-on-grid.
+	Owned       map[ComponentKind]int `json:"owned,omitempty"`
+	MaxLoad     int
+	CurrentLoad int
+	TickRate    int
+	Ticks       uint64
 }
 
 func NewGameState() *GameState {
@@ -28,8 +33,21 @@ func NewGameState() *GameState {
 		Grid:             NewGrid(),
 		Research:         map[Element]int{},
 		UnlockedElements: map[Element]bool{ElementHydrogen: true},
+		Owned:            starterInventory(),
 		MaxLoad:          DefaultMaxLoad,
 		TickRate:         DefaultTickRate,
+	}
+}
+
+// starterInventory is the set of components a brand-new game begins with so
+// the player can build the first loop without spending $USD. Tuning these
+// numbers is a design lever — see docs/features/component-cost.md.
+func starterInventory() map[ComponentKind]int {
+	return map[ComponentKind]int{
+		KindInjector:    1,
+		KindAccelerator: 2,
+		KindRotator:     1,
+		KindCollector:   1,
 	}
 }
 
