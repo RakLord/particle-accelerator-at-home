@@ -11,12 +11,12 @@ const meshGridMinSpeed = 2
 
 func (*MeshGrid) Kind() sim.ComponentKind { return sim.KindMeshGrid }
 
-func (*MeshGrid) Apply(s sim.Subject) sim.Subject {
+func (*MeshGrid) Apply(s sim.Subject) (sim.Subject, bool) {
 	if s.Speed < meshGridMinSpeed {
-		return s
+		return s, false
 	}
 	s.Speed /= 2
-	return s
+	return s, false
 }
 
 func init() {

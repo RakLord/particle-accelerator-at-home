@@ -9,19 +9,19 @@ const (
 	ToolAccelerator
 	ToolMeshGrid
 	ToolMagnetiser
-	ToolRotator
+	ToolElbow
 	ToolCollector
 	ToolErase
 )
 
 type UIState struct {
-	Selected          Tool
-	SettingsOpen      bool
-	CodexOpen         bool
-	SavePending       bool
-	LastSaveNotice    string
-	CodexNotice       string
-	ResetArmed        bool
+	Selected       Tool
+	SettingsOpen   bool
+	CodexOpen      bool
+	SavePending    bool
+	LastSaveNotice string
+	CodexNotice    string
+	ResetArmed     bool
 	// AutosaveError is the most recent autosave error message, or empty if
 	// the last autosave succeeded. Rendered in the header so silent failure
 	// isn't possible.

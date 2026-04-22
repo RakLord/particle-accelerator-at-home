@@ -10,7 +10,10 @@ import (
 
 func TestAcceleratorIncreasesSpeed(t *testing.T) {
 	s := sim.NewGameState()
-	s.Grid.Cells[2][2].Component = &components.SimpleAccelerator{SpeedBonus: 2 * sim.SpeedDivisor}
+	s.Grid.Cells[2][2].Component = &components.SimpleAccelerator{
+		SpeedBonus:  2 * sim.SpeedDivisor,
+		Orientation: sim.DirEast,
+	}
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,
 		Mass:        bignum.One(),
@@ -28,9 +31,12 @@ func TestAcceleratorIncreasesSpeed(t *testing.T) {
 	}
 }
 
-func TestRotatorChangesDirection(t *testing.T) {
+func TestAcceleratorRejectsSideEntry(t *testing.T) {
 	s := sim.NewGameState()
-	s.Grid.Cells[2][2].Component = &components.Rotator{Turn: components.TurnRight}
+	s.Grid.Cells[2][2].Component = &components.SimpleAccelerator{
+		SpeedBonus:  2 * sim.SpeedDivisor,
+		Orientation: sim.DirNorth,
+	}
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,
 		Mass:        bignum.One(),
@@ -42,8 +48,52 @@ func TestRotatorChangesDirection(t *testing.T) {
 	})
 	s.CurrentLoad = 1
 	s.Tick()
-	if got := s.Grid.Subjects[0].Direction; got != sim.DirSouth {
-		t.Fatalf("expected DirSouth after right turn, got %v", got)
+	if len(s.Grid.Subjects) != 0 {
+		t.Fatalf("expected subject destroyed on side entry, got %d subjects", len(s.Grid.Subjects))
+	}
+	if s.CurrentLoad != 0 {
+		t.Fatalf("expected CurrentLoad 0 after destruction, got %d", s.CurrentLoad)
+	}
+}
+
+func TestElbowChangesDirection(t *testing.T) {
+	s := sim.NewGameState()
+	s.Grid.Cells[2][2].Component = &components.Rotator{Orientation: sim.DirNorth}
+	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
+		Element:     sim.ElementHydrogen,
+		Mass:        bignum.One(),
+		Speed:       sim.SpeedDivisor,
+		Direction:   sim.DirEast,
+		InDirection: sim.DirEast,
+		Position:    sim.Position{X: 1, Y: 2},
+		Load:        1,
+	})
+	s.CurrentLoad = 1
+	s.Tick()
+	if got := s.Grid.Subjects[0].Direction; got != sim.DirNorth {
+		t.Fatalf("expected DirNorth after elbow turn, got %v", got)
+	}
+}
+
+func TestElbowRejectsDisconnectedEntry(t *testing.T) {
+	s := sim.NewGameState()
+	s.Grid.Cells[2][2].Component = &components.Rotator{Orientation: sim.DirNorth}
+	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
+		Element:     sim.ElementHydrogen,
+		Mass:        bignum.One(),
+		Speed:       sim.SpeedDivisor,
+		Direction:   sim.DirWest,
+		InDirection: sim.DirWest,
+		Position:    sim.Position{X: 3, Y: 2},
+		Load:        1,
+	})
+	s.CurrentLoad = 1
+	s.Tick()
+	if len(s.Grid.Subjects) != 0 {
+		t.Fatalf("expected subject destroyed on disconnected elbow entry, got %d subjects", len(s.Grid.Subjects))
+	}
+	if s.CurrentLoad != 0 {
+		t.Fatalf("expected CurrentLoad 0 after destruction, got %d", s.CurrentLoad)
 	}
 }
 

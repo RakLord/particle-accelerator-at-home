@@ -135,19 +135,19 @@ func TestDoubleSpeedAdvancesHalfAsOften(t *testing.T) {
 }
 
 // A single tick that crosses multiple cells (Speed ≥ 2·SpeedDivisor) records
-// all entered cells in Path, including rotator turns.
+// all entered cells in Path, including elbow turns.
 func TestTickPathRecordsAcrossRotator(t *testing.T) {
 	s := NewGameState()
-	// Place a right-turning rotator in the middle of the row.
+	// Place a north-facing elbow in the middle of the row.
 	// Note: sim package can't import components, so we use a minimal inline
 	// stand-in via a closure component below.
-	s.Grid.Cells[0][2].Component = &testRightTurn{}
+	s.Grid.Cells[1][2].Component = &testRightTurn{}
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:     ElementHydrogen,
 		Speed:       3 * SpeedDivisor, // cross three cells in one tick
 		Direction:   DirEast,
 		InDirection: DirEast,
-		Position:    Position{X: 0, Y: 0},
+		Position:    Position{X: 0, Y: 1},
 		Load:        1,
 	})
 	s.CurrentLoad = 1
@@ -155,10 +155,10 @@ func TestTickPathRecordsAcrossRotator(t *testing.T) {
 
 	sub := s.Grid.Subjects[0]
 	wantPath := []Position{
-		{X: 0, Y: 0},
-		{X: 1, Y: 0},
-		{X: 2, Y: 0}, // rotator turns East -> South here
-		{X: 2, Y: 1},
+		{X: 0, Y: 1},
+		{X: 1, Y: 1},
+		{X: 2, Y: 1}, // elbow turns East -> North here
+		{X: 2, Y: 0},
 	}
 	if len(sub.Path) != len(wantPath) {
 		t.Fatalf("Path length: got %d want %d (%v)", len(sub.Path), len(wantPath), sub.Path)
@@ -168,17 +168,20 @@ func TestTickPathRecordsAcrossRotator(t *testing.T) {
 			t.Fatalf("Path[%d]: got %v want %v", i, sub.Path[i], p)
 		}
 	}
-	if sub.Direction != DirSouth {
-		t.Fatalf("Direction after rotator: got %v want DirSouth", sub.Direction)
+	if sub.Direction != DirNorth {
+		t.Fatalf("Direction after elbow: got %v want DirNorth", sub.Direction)
 	}
-	if sub.Position != (Position{X: 2, Y: 1}) {
-		t.Fatalf("Position after tick: got %v want (2,1)", sub.Position)
+	if sub.Position != (Position{X: 2, Y: 0}) {
+		t.Fatalf("Position after tick: got %v want (2,0)", sub.Position)
 	}
 }
 
-// testRightTurn is a minimal in-sim rotator used by path tests, avoiding an
+// testRightTurn is a minimal in-sim elbow used by path tests, avoiding an
 // import cycle with the components package.
 type testRightTurn struct{}
 
-func (*testRightTurn) Kind() ComponentKind     { return ComponentKind("test_right_turn") }
-func (*testRightTurn) Apply(s Subject) Subject { s.Direction = s.Direction.Right(); return s }
+func (*testRightTurn) Kind() ComponentKind { return ComponentKind("test_right_turn") }
+func (*testRightTurn) Apply(s Subject) (Subject, bool) {
+	s.Direction = DirNorth
+	return s, false
+}

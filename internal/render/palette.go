@@ -27,7 +27,7 @@ var paletteEntries = []paletteEntry{
 	{ui.ToolAccelerator, "Accelerator (+1 Speed)"},
 	{ui.ToolMeshGrid, "Mesh Grid (×½ Speed)"},
 	{ui.ToolMagnetiser, "Magnetiser (+1 Mag)"},
-	{ui.ToolRotator, "Rotator (turn)"},
+	{ui.ToolElbow, "Elbow (turn)"},
 	{ui.ToolCollector, "Collector (endpoint)"},
 	{ui.ToolErase, "Erase"},
 }
@@ -68,12 +68,20 @@ func drawPalette(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 		fillRect(dst, paletteBtnX, y, paletteBtnW, paletteBtnH, bg)
 		strokeRect(dst, paletteBtnX, y, paletteBtnW, paletteBtnH, 1, colorTextMuted)
 
-		swatch := toolColor(e.tool)
-		if dimmed {
-			swatch = colorButton
+		iconX, iconY, iconSize := paletteBtnX+12, y+12, 32
+		if sprite := tileSpriteForTool(e.tool); sprite != nil {
+			drawSpriteFitted(dst, sprite, iconX, iconY, iconSize, iconSize)
+			if dimmed {
+				fillRect(dst, iconX, iconY, iconSize, iconSize, colorOverlay)
+			}
+		} else {
+			swatch := toolColor(e.tool)
+			if dimmed {
+				swatch = colorButton
+			}
+			fillRect(dst, iconX, iconY, iconSize, iconSize, swatch)
 		}
-		fillRect(dst, paletteBtnX+12, y+12, 32, 32, swatch)
-		strokeRect(dst, paletteBtnX+12, y+12, 32, 32, 1, colorTextMuted)
+		strokeRect(dst, iconX, iconY, iconSize, iconSize, 1, colorTextMuted)
 
 		labelColor := colorText
 		if dimmed {
@@ -133,7 +141,7 @@ func kindForTool(t ui.Tool) sim.ComponentKind {
 		return sim.KindMeshGrid
 	case ui.ToolMagnetiser:
 		return sim.KindMagnetiser
-	case ui.ToolRotator:
+	case ui.ToolElbow:
 		return sim.KindRotator
 	case ui.ToolCollector:
 		return sim.KindCollector
@@ -153,7 +161,7 @@ func toolColor(t ui.Tool) color.Color {
 		return colorMeshGrid
 	case ui.ToolMagnetiser:
 		return colorMagnetiser
-	case ui.ToolRotator:
+	case ui.ToolElbow:
 		return colorRotator
 	case ui.ToolCollector:
 		return colorCollector

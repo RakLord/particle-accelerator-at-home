@@ -50,7 +50,7 @@ type Subject struct {
 	// SpeedDivisor as the fraction through the current cell from its inbound
 	// edge midpoint (t=0) to its outbound edge midpoint (t=1), passing through
 	// the cell center at t=0.5 for straight cells, or along a quarter arc for
-	// rotator cells.
+	// elbow-turn cells.
 	InDirection      Direction  `json:"-"` // direction subject entered its current cell from; persists until next crossing
 	PrevInDirection  Direction  `json:"-"` // snapshot of InDirection at tick start
 	PrevPosition     Position   `json:"-"` // snapshot of Position at tick start (== Path[0] when Path is non-empty)

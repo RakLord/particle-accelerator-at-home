@@ -3,14 +3,22 @@ package components
 import "particleaccelerator/internal/sim"
 
 type SimpleAccelerator struct {
-	SpeedBonus int
+	SpeedBonus  int
+	Orientation sim.Direction
 }
 
 func (*SimpleAccelerator) Kind() sim.ComponentKind { return sim.KindAccelerator }
 
-func (a *SimpleAccelerator) Apply(s sim.Subject) sim.Subject {
+func (a *SimpleAccelerator) Apply(s sim.Subject) (sim.Subject, bool) {
+	if isVertical(a.Orientation) != isVertical(s.InDirection) {
+		return s, true
+	}
 	s.Speed += a.SpeedBonus
-	return s
+	return s, false
+}
+
+func isVertical(d sim.Direction) bool {
+	return d == sim.DirNorth || d == sim.DirSouth
 }
 
 func init() {

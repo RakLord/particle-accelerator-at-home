@@ -23,7 +23,7 @@ func toolKind(t ui.Tool) sim.ComponentKind {
 		return sim.KindMeshGrid
 	case ui.ToolMagnetiser:
 		return sim.KindMagnetiser
-	case ui.ToolRotator:
+	case ui.ToolElbow:
 		return sim.KindRotator
 	case ui.ToolCollector:
 		return sim.KindCollector
@@ -79,7 +79,7 @@ func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 		}
 		cell.IsCollector = false
 	case ui.ToolAccelerator:
-		cell.Component = &components.SimpleAccelerator{SpeedBonus: 1}
+		cell.Component = &components.SimpleAccelerator{SpeedBonus: 1, Orientation: sim.DirNorth}
 		cell.IsCollector = false
 	case ui.ToolMeshGrid:
 		cell.Component = &components.MeshGrid{}
@@ -87,8 +87,8 @@ func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 	case ui.ToolMagnetiser:
 		cell.Component = &components.Magnetiser{Bonus: bignum.One()}
 		cell.IsCollector = false
-	case ui.ToolRotator:
-		cell.Component = &components.Rotator{Turn: components.TurnRight}
+	case ui.ToolElbow:
+		cell.Component = &components.Rotator{Orientation: sim.DirNorth}
 		cell.IsCollector = false
 	case ui.ToolCollector:
 		cell.Component = nil
@@ -107,8 +107,7 @@ func Erase(s *sim.GameState, pos sim.Position) {
 	cell.IsCollector = false
 }
 
-// Reconfigure cycles the configuration of whatever is already at pos:
-// Injector → next direction; Rotator → flip turn. No-op for other kinds.
+// Reconfigure cycles the orientation of directional tiles already at pos.
 func Reconfigure(s *sim.GameState, pos sim.Position) {
 	if !inBounds(pos) {
 		return
@@ -117,12 +116,10 @@ func Reconfigure(s *sim.GameState, pos sim.Position) {
 	switch c := cell.Component.(type) {
 	case *components.Injector:
 		c.Direction = (c.Direction + 1) % 4
+	case *components.SimpleAccelerator:
+		c.Orientation = (c.Orientation + 1) % 4
 	case *components.Rotator:
-		if c.Turn == components.TurnLeft {
-			c.Turn = components.TurnRight
-		} else {
-			c.Turn = components.TurnLeft
-		}
+		c.Orientation = (c.Orientation + 1) % 4
 	}
 }
 

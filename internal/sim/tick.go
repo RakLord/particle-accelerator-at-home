@@ -83,7 +83,7 @@ func (s *GameState) stepSubject(sub *Subject) (collected, lost bool) {
 			return false, true
 		}
 		// Record how we arrived at the new cell BEFORE Apply, so arrival direction
-		// is preserved even if the cell's Component turns us (rotator).
+		// is preserved even if the cell's Component turns us (elbow).
 		arrival := sub.Direction
 		sub.Position = Position{X: nx, Y: ny}
 		sub.InDirection = arrival
@@ -91,7 +91,11 @@ func (s *GameState) stepSubject(sub *Subject) (collected, lost bool) {
 		if cell.Component != nil {
 			// Apply takes Subject by value; the returned copy shares the Path slice
 			// header. No Apply impl may overwrite Path/motion-snapshot fields.
-			*sub = cell.Component.Apply(*sub)
+			var destroyed bool
+			*sub, destroyed = cell.Component.Apply(*sub)
+			if destroyed {
+				return false, true
+			}
 		}
 		sub.Path = append(sub.Path, sub.Position)
 		if cell.IsCollector {

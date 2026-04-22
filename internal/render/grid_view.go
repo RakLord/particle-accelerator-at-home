@@ -18,13 +18,17 @@ func drawGrid(dst *ebiten.Image, s *sim.GameState, alpha float64, trail []trailS
 		for cx := range sim.GridSize {
 			x, y, w, h := cellRect(cx, cy)
 			cell := s.Grid.Cells[cy][cx]
+			drawSpriteFitted(dst, sprites.emptyTile, x, y, w, h)
 			if cell.Component != nil {
-				fillRect(dst, x+2, y+2, w-4, h-4, componentColor(cell.Component))
-				drawComponentGlyph(dst, cell.Component, x, y, w, h)
+				if sprite := tileSpriteForComponent(cell.Component); sprite != nil {
+					drawSpriteCenteredRotated(dst, sprite, x, y, w, h, tileRotationForComponent(cell.Component))
+				} else {
+					fillRect(dst, x+18, y+18, w-36, h-36, componentColor(cell.Component))
+					drawComponentGlyph(dst, cell.Component, x, y, w, h)
+				}
 			}
 			if cell.IsCollector {
-				fillRect(dst, x+2, y+2, w-4, h-4, colorCollector)
-				drawTextCentered(dst, "OUT", x, y, w, h, colorText)
+				drawSpriteFitted(dst, sprites.collector, x, y, w, h)
 			}
 		}
 	}
@@ -44,7 +48,7 @@ func drawGrid(dst *ebiten.Image, s *sim.GameState, alpha float64, trail []trailS
 	// Trail (below live Subjects so the current particle sits on top).
 	drawTrail(dst, trail)
 
-	// Subjects: interpolated along recorded Path with quarter arcs through rotators.
+	// Subjects: interpolated along recorded Path with quarter arcs through elbows.
 	for _, sub := range s.Grid.Subjects {
 		cx, cy := subjectPixel(sub, alpha)
 		fillCircle(dst, cx, cy, 10, subjectColor(sub.Element))
@@ -95,10 +99,7 @@ func drawComponentGlyph(dst *ebiten.Image, c sim.Component, x, y, w, h int) {
 	case *components.Magnetiser:
 		drawTextCentered(dst, "M", x, y, w, h, colorText)
 	case *components.Rotator:
-		cx := float32(x) + float32(w)/2
-		cy := float32(y) + float32(h)/2
-		r := float32(w) * 0.28
-		drawCircularArrow(dst, cx, cy, r, v.Turn == components.TurnRight, colorText)
+		drawTextCentered(dst, "L", x, y, w, h, colorText)
 	}
 }
 

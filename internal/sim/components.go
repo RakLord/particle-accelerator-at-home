@@ -4,12 +4,14 @@ import "fmt"
 
 type ComponentKind string
 
-// Component is the universal `(Subject) → Subject` transform that every
-// placeable cell implements. Concrete Components live in the
-// `internal/sim/components` subpackage and self-register via init().
+// Component is the universal cell behaviour every placeable tile implements.
+// Concrete Components live in the `internal/sim/components` subpackage and
+// self-register via init().
 type Component interface {
 	Kind() ComponentKind
-	Apply(s Subject) Subject
+	// Apply transforms the Subject after it enters the cell. When lost is true,
+	// the Subject is destroyed by the Component and removed from the grid.
+	Apply(s Subject) (Subject, bool)
 }
 
 // Spawner is an optional capability Components can implement to emit new

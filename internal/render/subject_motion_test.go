@@ -36,12 +36,12 @@ func TestSubjectPixelStraightInCell(t *testing.T) {
 	}
 }
 
-// At a turn boundary (rotator at Path[0] leaving in a different direction), the
+// At a turn boundary (elbow at Path[0] leaving in a different direction), the
 // subject's rendered position sits along a quarter arc, not on the L-shaped
 // corner through the cell center.
 func TestSubjectPixelArcThroughRotator(t *testing.T) {
 	// Subject sits in cell (2,2). Arrived moving East; current direction is
-	// South (as if a right-rotator applied last tick). It's mid-cell
+	// South (as if an elbow applied last tick). It's mid-cell
 	// (StepProgress=5, no new crossings).
 	sub := sim.Subject{
 		Direction:        sim.DirSouth,

@@ -111,7 +111,7 @@ func TestPlaceFromToolOverwriteReturnsOld(t *testing.T) {
 	input.PlaceFromTool(s, u, pos) // buys Accelerator, places it
 	availAccAfterA := sim.CountAvailable(s, sim.KindAccelerator)
 
-	u.Selected = ui.ToolRotator
+	u.Selected = ui.ToolElbow
 	input.PlaceFromTool(s, u, pos) // buys Rotator, overwrites cell
 	availAccAfterB := sim.CountAvailable(s, sim.KindAccelerator)
 
@@ -131,7 +131,7 @@ func TestPlaceFromToolOverwriteReturnsOld(t *testing.T) {
 func TestReconfigureIsFree(t *testing.T) {
 	s, u := newTestState()
 	s.USD = bignum.FromInt(1000)
-	u.Selected = ui.ToolRotator
+	u.Selected = ui.ToolElbow
 	pos := sim.Position{X: 0, Y: 0}
 	input.PlaceFromTool(s, u, pos)
 
@@ -148,12 +148,14 @@ func TestReconfigureIsFree(t *testing.T) {
 		t.Fatalf("Owned changed on Reconfigure: before=%d after=%d",
 			ownedBefore, s.Owned[sim.KindRotator])
 	}
-	// Sanity: Reconfigure actually mutated the rotator's Turn.
+	// Sanity: Reconfigure actually mutated the elbow's Orientation.
 	r, ok := s.Grid.Cells[pos.Y][pos.X].Component.(*components.Rotator)
 	if !ok {
 		t.Fatalf("expected Rotator at placed cell")
 	}
-	_ = r
+	if r.Orientation == sim.DirNorth {
+		t.Fatalf("expected elbow orientation to change after reconfigure")
+	}
 }
 
 func TestPlaceHeliumInjectorLockedIsNoOp(t *testing.T) {

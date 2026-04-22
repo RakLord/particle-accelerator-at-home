@@ -21,7 +21,11 @@ func TestMeshGridHalvesSpeed(t *testing.T) {
 	}
 	mg := &MeshGrid{}
 	for _, c := range cases {
-		got := mg.Apply(sim.Subject{Speed: c.in}).Speed
+		out, lost := mg.Apply(sim.Subject{Speed: c.in})
+		if lost {
+			t.Fatal("mesh grid should never destroy subjects")
+		}
+		got := out.Speed
 		if got != c.out {
 			t.Fatalf("Speed %d: got %d want %d", c.in, got, c.out)
 		}
@@ -38,7 +42,10 @@ func TestMeshGridPreservesOtherFields(t *testing.T) {
 		Direction: sim.DirWest,
 		Position:  sim.Position{X: 1, Y: 2},
 	}
-	out := mg.Apply(in)
+	out, lost := mg.Apply(in)
+	if lost {
+		t.Fatal("mesh grid should never destroy subjects")
+	}
 	if out.Element != in.Element || !out.Mass.Eq(in.Mass) || !out.Magnetism.Eq(in.Magnetism) ||
 		out.Direction != in.Direction || out.Position != in.Position {
 		t.Fatalf("MeshGrid mutated unrelated fields: %+v", out)

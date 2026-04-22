@@ -44,8 +44,8 @@ func TestCellRoundTrip(t *testing.T) {
 		{},
 		{IsCollector: true},
 		{Component: &components.Injector{Direction: sim.DirSouth, SpawnInterval: 20, Element: sim.ElementHydrogen, TickCounter: 5}},
-		{Component: &components.SimpleAccelerator{SpeedBonus: 3}},
-		{Component: &components.Rotator{Turn: components.TurnLeft}},
+		{Component: &components.SimpleAccelerator{SpeedBonus: 3, Orientation: sim.DirWest}},
+		{Component: &components.Rotator{Orientation: sim.DirSouth}},
 		{Component: &components.MeshGrid{}},
 		{Component: &components.Magnetiser{Bonus: bignum.MustParse("1.5")}},
 	}
@@ -67,6 +67,18 @@ func TestCellRoundTrip(t *testing.T) {
 		if c.Component != nil && got.Component.Kind() != c.Component.Kind() {
 			t.Fatalf("cell %d kind mismatch: %s vs %s", i, got.Component.Kind(), c.Component.Kind())
 		}
+		switch want := c.Component.(type) {
+		case *components.SimpleAccelerator:
+			gotAcc, ok := got.Component.(*components.SimpleAccelerator)
+			if !ok || gotAcc.Orientation != want.Orientation || gotAcc.SpeedBonus != want.SpeedBonus {
+				t.Fatalf("cell %d accelerator mismatch: got %#v want %#v", i, got.Component, want)
+			}
+		case *components.Rotator:
+			gotElbow, ok := got.Component.(*components.Rotator)
+			if !ok || gotElbow.Orientation != want.Orientation {
+				t.Fatalf("cell %d elbow mismatch: got %#v want %#v", i, got.Component, want)
+			}
+		}
 	}
 }
 
@@ -77,7 +89,7 @@ func TestGameStateRoundTrip(t *testing.T) {
 	s.Grid.Cells[0][0].Component = &components.Injector{
 		Direction: sim.DirEast, SpawnInterval: 30, Element: sim.ElementHydrogen, TickCounter: 12,
 	}
-	s.Grid.Cells[2][2].Component = &components.SimpleAccelerator{SpeedBonus: 1}
+	s.Grid.Cells[2][2].Component = &components.SimpleAccelerator{SpeedBonus: 1, Orientation: sim.DirNorth}
 	s.Grid.Cells[4][4].IsCollector = true
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element: sim.ElementHydrogen, Mass: bignum.One(), Speed: 2, Direction: sim.DirEast,
@@ -107,6 +119,9 @@ func TestGameStateRoundTrip(t *testing.T) {
 	if inj, ok := loaded.Grid.Cells[0][0].Component.(*components.Injector); !ok || inj.TickCounter != 12 {
 		t.Fatalf("injector TickCounter lost")
 	}
+	if acc, ok := loaded.Grid.Cells[2][2].Component.(*components.SimpleAccelerator); !ok || acc.Orientation != sim.DirNorth {
+		t.Fatalf("accelerator orientation lost: %#v", loaded.Grid.Cells[2][2].Component)
+	}
 	if !loaded.Grid.Cells[4][4].IsCollector {
 		t.Fatalf("collector flag lost")
 	}
@@ -129,8 +144,8 @@ func TestLoadV2SeedsOwnedFromGridComponents(t *testing.T) {
 	s.Grid.Cells[0][0].Component = &components.Injector{
 		Direction: sim.DirEast, SpawnInterval: 30, Element: sim.ElementHydrogen,
 	}
-	s.Grid.Cells[1][0].Component = &components.SimpleAccelerator{SpeedBonus: 1}
-	s.Grid.Cells[2][0].Component = &components.SimpleAccelerator{SpeedBonus: 1}
+	s.Grid.Cells[1][0].Component = &components.SimpleAccelerator{SpeedBonus: 1, Orientation: sim.DirNorth}
+	s.Grid.Cells[2][0].Component = &components.SimpleAccelerator{SpeedBonus: 1, Orientation: sim.DirEast}
 	s.Grid.Cells[3][0].Component = &components.Magnetiser{Bonus: bignum.One()}
 	s.Grid.Cells[4][0].IsCollector = true
 
