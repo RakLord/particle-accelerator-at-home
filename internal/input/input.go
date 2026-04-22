@@ -2,31 +2,49 @@ package input
 
 import (
 	"particleaccelerator/internal/sim"
+	"particleaccelerator/internal/sim/components"
 	"particleaccelerator/internal/ui"
 )
 
 const defaultSpawnInterval = 30
 
 // PlaceFromTool writes the currently-selected Tool into the cell at pos.
-// An existing component at pos is overwritten.
+// An existing component at pos is overwritten. Placing a Helium Injector
+// while Helium is locked is a no-op.
 func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 	if !inBounds(pos) {
 		return
 	}
 	cell := &s.Grid.Cells[pos.Y][pos.X]
 	switch u.Selected {
-	case ui.ToolInjector:
-		cell.Component = &sim.Injector{
+	case ui.ToolInjectorHydrogen:
+		cell.Component = &components.Injector{
 			Direction:     sim.DirEast,
 			SpawnInterval: defaultSpawnInterval,
 			Element:       sim.ElementHydrogen,
 		}
 		cell.IsCollector = false
+	case ui.ToolInjectorHelium:
+		if !sim.IsElementUnlocked(s, sim.ElementHelium) {
+			return
+		}
+		cell.Component = &components.Injector{
+			Direction:     sim.DirEast,
+			SpawnInterval: defaultSpawnInterval,
+			Element:       sim.ElementHelium,
+		}
+		cell.IsCollector = false
 	case ui.ToolAccelerator:
-		cell.Component = &sim.SimpleAccelerator{SpeedBonus: 1}
+		cell.Component = &components.SimpleAccelerator{SpeedBonus: 1}
+		cell.IsCollector = false
+	case ui.ToolMeshGrid:
+		cell.Component = &components.MeshGrid{}
+		cell.IsCollector = false
+	case ui.ToolMagnetiser:
+		cell.Component = &components.Magnetiser{Bonus: 1}
 		cell.IsCollector = false
 	case ui.ToolRotator:
-		cell.Component = &sim.Rotator{Turn: sim.TurnRight}
+		cell.Component = &components.Rotator{Turn: components.TurnRight}
 		cell.IsCollector = false
 	case ui.ToolCollector:
 		cell.Component = nil
@@ -54,13 +72,13 @@ func Reconfigure(s *sim.GameState, pos sim.Position) {
 	}
 	cell := &s.Grid.Cells[pos.Y][pos.X]
 	switch c := cell.Component.(type) {
-	case *sim.Injector:
+	case *components.Injector:
 		c.Direction = (c.Direction + 1) % 4
-	case *sim.Rotator:
-		if c.Turn == sim.TurnLeft {
-			c.Turn = sim.TurnRight
+	case *components.Rotator:
+		if c.Turn == components.TurnLeft {
+			c.Turn = components.TurnRight
 		} else {
-			c.Turn = sim.TurnLeft
+			c.Turn = components.TurnLeft
 		}
 	}
 }

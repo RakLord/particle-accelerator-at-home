@@ -7,9 +7,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 
 	"particleaccelerator/internal/sim"
+	"particleaccelerator/internal/sim/components"
 )
 
-func drawGrid(dst *ebiten.Image, s *sim.GameState) {
+func drawGrid(dst *ebiten.Image, s *sim.GameState, alpha float64, trail []trailSample) {
 	fillRect(dst, gridAreaX, gridAreaY, gridAreaW, gridAreaH, colorBG)
 
 	// Cells (background + component fill + collector overlay).
@@ -40,22 +41,38 @@ func drawGrid(dst *ebiten.Image, s *sim.GameState) {
 		vector.StrokeLine(dst, xLeft, y, xRight, y, 1, colorGridLine, false)
 	}
 
-	// Subjects on top.
+	// Trail (below live Subjects so the current particle sits on top).
+	drawTrail(dst, trail)
+
+	// Subjects: interpolated along recorded Path with quarter arcs through rotators.
 	for _, sub := range s.Grid.Subjects {
-		x, y, w, h := cellRect(sub.Position.X, sub.Position.Y)
-		cx := float32(x) + float32(w)/2
-		cy := float32(y) + float32(h)/2
-		fillCircle(dst, cx, cy, 10, colorSubject)
+		cx, cy := subjectPixel(sub, alpha)
+		fillCircle(dst, cx, cy, 10, subjectColor(sub.Element))
 	}
 }
 
+func subjectColor(e sim.Element) color.Color {
+	switch e {
+	case sim.ElementHelium:
+		return colorSubjectHelium
+	}
+	return colorSubject
+}
+
 func componentColor(c sim.Component) color.Color {
-	switch c.(type) {
-	case *sim.Injector:
+	switch v := c.(type) {
+	case *components.Injector:
+		if v.Element == sim.ElementHelium {
+			return colorInjectorHelium
+		}
 		return colorInjector
-	case *sim.SimpleAccelerator:
+	case *components.SimpleAccelerator:
 		return colorAccelerator
-	case *sim.Rotator:
+	case *components.MeshGrid:
+		return colorMeshGrid
+	case *components.Magnetiser:
+		return colorMagnetiser
+	case *components.Rotator:
 		return colorRotator
 	}
 	return colorButton
@@ -65,15 +82,23 @@ func componentColor(c sim.Component) color.Color {
 // for Rotator. Accelerator gets a simple label.
 func drawComponentGlyph(dst *ebiten.Image, c sim.Component, x, y, w, h int) {
 	switch v := c.(type) {
-	case *sim.Injector:
-		drawTextCentered(dst, "IN "+arrowFor(v.Direction), x, y, w, h, colorText)
-	case *sim.SimpleAccelerator:
+	case *components.Injector:
+		symbol := sim.ElementCatalog[v.Element].Symbol
+		if symbol == "" {
+			symbol = "?"
+		}
+		drawTextCentered(dst, symbol+" "+arrowFor(v.Direction), x, y, w, h, colorText)
+	case *components.SimpleAccelerator:
 		drawTextCentered(dst, "+"+itoa(v.SpeedBonus), x, y, w, h, colorText)
-	case *sim.Rotator:
+	case *components.MeshGrid:
+		drawTextCentered(dst, "×½", x, y, w, h, colorText)
+	case *components.Magnetiser:
+		drawTextCentered(dst, "M", x, y, w, h, colorText)
+	case *components.Rotator:
 		cx := float32(x) + float32(w)/2
 		cy := float32(y) + float32(h)/2
 		r := float32(w) * 0.28
-		drawCircularArrow(dst, cx, cy, r, v.Turn == sim.TurnRight, colorText)
+		drawCircularArrow(dst, cx, cy, r, v.Turn == components.TurnRight, colorText)
 	}
 }
 

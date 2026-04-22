@@ -7,6 +7,9 @@ import (
 
 	"particleaccelerator/internal/render"
 	"particleaccelerator/internal/sim"
+	// Blank import triggers each Component's init() to register with sim.
+	// Without this, Load() can't reconstruct saved cells.
+	_ "particleaccelerator/internal/sim/components"
 	"particleaccelerator/internal/ui"
 )
 

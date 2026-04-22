@@ -14,6 +14,11 @@ const (
 	settingsBtnH = 32
 	settingsBtnX = screenW - settingsBtnW - 12
 	settingsBtnY = (headerH - settingsBtnH) / 2
+
+	codexBtnW = 112
+	codexBtnH = 32
+	codexBtnX = settingsBtnX - codexBtnW - 8
+	codexBtnY = settingsBtnY
 )
 
 func drawHeader(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
@@ -25,6 +30,10 @@ func drawHeader(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 		msg := "Save error: " + u.AutosaveError
 		drawText(dst, msg, 160, (headerH-13)/2, colorResetArmed)
 	}
+
+	fillRect(dst, codexBtnX, codexBtnY, codexBtnW, codexBtnH, colorButton)
+	strokeRect(dst, codexBtnX, codexBtnY, codexBtnW, codexBtnH, 1, colorTextMuted)
+	drawTextCentered(dst, "Codex", codexBtnX, codexBtnY, codexBtnW, codexBtnH, colorText)
 
 	fillRect(dst, settingsBtnX, settingsBtnY, settingsBtnW, settingsBtnH, colorButton)
 	strokeRect(dst, settingsBtnX, settingsBtnY, settingsBtnW, settingsBtnH, 1, colorTextMuted)

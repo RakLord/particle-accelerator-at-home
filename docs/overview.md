@@ -34,8 +34,7 @@ Every Accelerator Component is conceptually a pure function `(Subject) → Subje
 
 ## Simulation model
 - **Fixed logical tick rate**, user-configurable. Logical state advances only on ticks. This keeps the simulation deterministic for saves and offline progress. The constant lives at `sim.DefaultTickRate`.
-  - **Target**: 60 Hz with render-side interpolation (Subjects lerp between `PrevPosition` and `Position` by the fractional tick).
-  - **Current (Phase 1)**: 10 Hz with **tick-granular rendering** — Subjects snap to their logical cell, no interpolation. At 60 Hz + Speed=1, a Subject would cross the 5×5 grid in ~80 ms and teleport; interpolation is Phase 3 work, so we run the simulation slower meanwhile. Raise the default back to 60 once interpolation lands in `internal/render`.
+  - Render-side interpolation is live (see `docs/features/smooth-motion.md`): Subjects glide between ticks along a recorded per-tick `Path`, with quarter arcs through rotator cells. A `sim.SpeedDivisor` of 10 means base `Speed=1` traverses one cell every 10 ticks; the tick rate itself stays at 10 Hz for now.
 - Multiple Subjects may be on-grid simultaneously, capped by **Max Load**.
 - Collision handling (two Subjects in the same cell on the same tick) is TBD; MVP rule: ignore, both pass through.
 
@@ -57,7 +56,7 @@ Collected $USD is a function of: `Mass`, `Speed`, `Magnetism`, the Element's bas
 1. **Per-Component tiers** — e.g. Simple Accelerator T1 → T3 (`+1` → `+3` Speed). Bought with $USD.
 2. **Per-Element research** — collecting Subjects of an Element levels up its research, multiplying that Element's collected value. Research also gates heavier Elements.
 3. **Global upgrades** — cross-cutting $USD sinks ("all Collectors +10%", "Injectors fire 2× as fast", etc.).
-4. **Prestige layer (future)** — resets $USD and grid; awards a permanent meta-currency that buys, among other things, **Max Load** and **grid size** upgrades.
+4. **Reset layers (future)** — the game has multiple nested prestige layers. The base layer is **Genesis** (the game as shipped today); ascending to the next layer resets Genesis and awards a meta-currency. Each layer has its own Elements, Components, and currency context; meta-currency carries across. Layer names beyond Genesis are TBD. Represented in code as `sim.Layer` with `sim.LayerGenesis` seeded on `NewGameState`.
 
 ## Periodic Table (codex)
 Dedicated screen listing every known Element with: research level, best stats (max Speed seen, max Mass, max collected value), unlock status, and cost to unlock the next.
@@ -82,25 +81,25 @@ Dedicated screen listing every known Element with: research level, best stats (m
 ## Scope & phasing
 MVP-first. Each phase ends with a playable build.
 
-**Phase 1 — Core loop playable**
+**Phase 1 — Core loop playable (completed)**
 - Components: Injector, Simple Accelerator, Rotator, Collector
 - One Element (Hydrogen)
 - $USD economy with per-Component upgrades
 - Save/load (no offline yet)
 - 5×5 fixed grid
 
-**Phase 2 — Depth**
+**Phase 2 — Depth (in progress)**
 - Components: Mesh Grid, Magnetiser
 - Speed bands
-- Second Element
-- Per-Element research + Periodic Table screen
+- Second Element (Helium) with research-gated, $USD-purchasable unlock
+- Per-Element research multiplier + Periodic Table (Codex) screen
 
 **Phase 3 — Polish**
 - Global upgrades
 - Offline progress
 - More Elements
 - Two-layer sprite rendering
-- Render-side tick interpolation (lerp Subject position between ticks so the default tick rate can return to 60 Hz without visually teleporting)
+- ~~Render-side tick interpolation~~ — live (`docs/features/smooth-motion.md`). Raising `DefaultTickRate` back to 60 is now a gameplay decision, not a rendering blocker.
 
 **Phase 4 — Prestige**
 - Reset layer

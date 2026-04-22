@@ -57,18 +57,6 @@ func (c *Cell) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func newComponentByKind(kind ComponentKind) (Component, error) {
-	switch kind {
-	case KindInjector:
-		return &Injector{}, nil
-	case KindAccelerator:
-		return &SimpleAccelerator{}, nil
-	case KindRotator:
-		return &Rotator{}, nil
-	}
-	return nil, fmt.Errorf("sim: unknown component kind %q", kind)
-}
-
 // Save serializes the current GameState into the versioned envelope and
 // writes it through internal/save.
 func (s *GameState) Save() error {
@@ -112,10 +100,21 @@ func Load() (*GameState, bool, error) {
 	if state.Research == nil {
 		state.Research = map[Element]int{}
 	}
+	if state.UnlockedElements == nil {
+		state.UnlockedElements = map[Element]bool{ElementHydrogen: true}
+	}
+	if state.Layer == "" {
+		state.Layer = LayerGenesis
+	}
 	// Recompute CurrentLoad from subjects-in-flight to avoid drift.
 	state.CurrentLoad = 0
-	for _, sub := range state.Grid.Subjects {
+	for i := range state.Grid.Subjects {
+		sub := &state.Grid.Subjects[i]
 		state.CurrentLoad += sub.Load
+		// Transient motion snapshots aren't persisted; default InDirection to
+		// Direction so the first render after load doesn't pick up a spurious
+		// zero-value arc through the current cell.
+		sub.InDirection = sub.Direction
 	}
 	return state, true, nil
 }

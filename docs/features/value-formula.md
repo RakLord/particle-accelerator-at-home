@@ -1,30 +1,38 @@
 # Value formula (on collection)
 
-**Status:** MVP placeholder — revisit in Phase 2/3.
+**Status:** live — Phase 2 constants in place. Balance pass still pending.
 
-## Current (Phase 1 MVP)
+## Current formula
 
 ```
-$USD awarded = Mass × Speed × elementMultiplier(Element)
+value = (Mass × Speed × speedK + Magnetism × magK) × elementMultiplier(Element) × (1 + research / researchK)
 ```
 
-Magnetism is accepted by the function signature but multiplied by 0, so that Phase 2's Magnetiser does not require a signature change across saves and tests.
+Constants (see `internal/sim/economy.go`):
 
-Element multipliers (Phase 1 has Hydrogen only):
+| Name        | Value | Notes                                       |
+|-------------|-------|---------------------------------------------|
+| `speedK`    | 1.0   | Gain on the Mass × Speed axis.              |
+| `magK`      | 0.5   | Gain on the Magnetism axis.                 |
+| `researchK` | 50    | Research count that doubles the multiplier. |
 
-| Element   | Multiplier |
-|-----------|------------|
-| Hydrogen  | 1.0        |
+`research` is snapshotted **before** the collection's own increment, so the first subject of a new Element earns the base multiplier.
+
+Element multipliers:
+
+| Element  | Symbol | Base multiplier |
+|----------|--------|-----------------|
+| Hydrogen | H      | 1.0             |
+| Helium   | He     | 2.5             |
 
 ## Deferred
 
-- Per-Element **research level** multiplier (Phase 2).
-- **Global upgrade** multipliers (Phase 3).
-- Non-zero **Magnetism** coefficient (Phase 2, with Magnetiser).
-- Balancing pass once multiple Elements exist.
+- **Global upgrade** multipliers (Phase 3 — cross-cutting $USD sinks).
+- Per-Component tiers beyond the current `+1` (Phase 3).
+- Balancing pass once Phase 2 content is live. Expect `magK` and `researchK` to move.
 
 ## Design constraint (from `docs/overview.md`)
 
 > Each input axis should feel individually meaningful — no single axis dominating.
 
-The MVP formula deliberately collapses to `Mass × Speed` because Phase 1 only has those two axes to vary. Proper balancing waits for Phase 2 (speed bands + Magnetism + research) where the multi-axis trade-off actually exists.
+The Phase 2 formula keeps the three gameplay axes (Speed, Magnetism, research) independently multiplicative or additive so that a build optimising any one of them still pays off. The per-Element multiplier is the fourth knob and is the lever progression uses.

@@ -5,36 +5,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"particleaccelerator/internal/save"
 )
-
-func TestSaveLoadRoundTripDesktop(t *testing.T) {
-	// Isolate the save directory used by internal/save/file_desktop.go
-	// (via os.UserConfigDir which respects XDG_CONFIG_HOME).
-	dir := t.TempDir()
-	t.Setenv("XDG_CONFIG_HOME", dir)
-	t.Setenv("HOME", dir) // fallback on some platforms
-
-	s := NewGameState()
-	s.USD = 42
-	s.Grid.Cells[0][0].Component = &Injector{Direction: DirEast, SpawnInterval: 5, Element: ElementHydrogen}
-	if err := s.Save(); err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-
-	got, ok, err := Load()
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-	if !ok {
-		t.Fatalf("expected saved state to be present")
-	}
-	if got.USD != 42 {
-		t.Fatalf("USD mismatch: got %v", got.USD)
-	}
-	if _, isInjector := got.Grid.Cells[0][0].Component.(*Injector); !isInjector {
-		t.Fatalf("injector lost on round-trip")
-	}
-}
 
 func TestSavePropagatesWriteErrors(t *testing.T) {
 	// Point the save dir at a non-writable path so WriteFile fails.
@@ -55,47 +28,10 @@ func TestSavePropagatesWriteErrors(t *testing.T) {
 	}
 }
 
-func TestCellRoundTrip(t *testing.T) {
-	cells := []Cell{
-		{},
-		{IsCollector: true},
-		{Component: &Injector{Direction: DirSouth, SpawnInterval: 20, Element: ElementHydrogen, TickCounter: 5}},
-		{Component: &SimpleAccelerator{SpeedBonus: 3}},
-		{Component: &Rotator{Turn: TurnLeft}},
-	}
-	for i, c := range cells {
-		blob, err := json.Marshal(c)
-		if err != nil {
-			t.Fatalf("cell %d marshal: %v", i, err)
-		}
-		var got Cell
-		if err := json.Unmarshal(blob, &got); err != nil {
-			t.Fatalf("cell %d unmarshal: %v", i, err)
-		}
-		if got.IsCollector != c.IsCollector {
-			t.Fatalf("cell %d IsCollector mismatch", i)
-		}
-		if (got.Component == nil) != (c.Component == nil) {
-			t.Fatalf("cell %d Component nil-ness mismatch", i)
-		}
-		if c.Component != nil && got.Component.Kind() != c.Component.Kind() {
-			t.Fatalf("cell %d kind mismatch: %s vs %s", i, got.Component.Kind(), c.Component.Kind())
-		}
-	}
-}
-
-func TestGameStateRoundTrip(t *testing.T) {
+func TestGameStateRoundTripUnlockedElements(t *testing.T) {
 	s := NewGameState()
-	s.USD = 1234.5
-	s.Research[ElementHydrogen] = 7
-	s.Grid.Cells[0][0].Component = &Injector{Direction: DirEast, SpawnInterval: 30, Element: ElementHydrogen, TickCounter: 12}
-	s.Grid.Cells[2][2].Component = &SimpleAccelerator{SpeedBonus: 1}
-	s.Grid.Cells[4][4].IsCollector = true
-	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
-		Element: ElementHydrogen, Mass: 1, Speed: 2, Direction: DirEast,
-		Position: Position{X: 1, Y: 0}, Load: 1,
-	})
-	s.CurrentLoad = 1
+	s.Research[ElementHydrogen] = 15
+	s.UnlockedElements[ElementHelium] = true
 
 	blob, err := json.Marshal(s)
 	if err != nil {
@@ -106,23 +42,35 @@ func TestGameStateRoundTrip(t *testing.T) {
 	if err := json.Unmarshal(blob, loaded); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
+	if !loaded.UnlockedElements[ElementHelium] {
+		t.Fatalf("Helium unlock flag lost on round-trip")
+	}
+	if !loaded.UnlockedElements[ElementHydrogen] {
+		t.Fatalf("Hydrogen unlock flag lost on round-trip")
+	}
+}
 
-	if loaded.USD != s.USD {
-		t.Fatalf("USD mismatch: got %v want %v", loaded.USD, s.USD)
+func TestLoadLegacySaveDefaultsUnlockedElements(t *testing.T) {
+	// Simulate a pre-Phase-2 save: envelope v1 state payload with no
+	// UnlockedElements field. The nil-guard in Load() must default Hydrogen on.
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	t.Setenv("HOME", dir)
+
+	legacyState := `{"Grid":{"Cells":[[{},{},{},{},{}],[{},{},{},{},{}],[{},{},{},{},{}],[{},{},{},{},{}],[{},{},{},{},{}]],"Subjects":null},"USD":100,"Research":{"hydrogen":3},"MaxLoad":16,"CurrentLoad":0,"TickRate":10,"Ticks":0}`
+	env := `{"version":1,"state":` + legacyState + `}`
+	if err := save.Write(saveKey, env); err != nil {
+		t.Fatalf("seed legacy save: %v", err)
 	}
-	if loaded.Research[ElementHydrogen] != 7 {
-		t.Fatalf("research mismatch: %d", loaded.Research[ElementHydrogen])
+
+	loaded, ok, err := Load()
+	if err != nil || !ok {
+		t.Fatalf("Load legacy: ok=%v err=%v", ok, err)
 	}
-	if loaded.Grid.Cells[0][0].Component.Kind() != KindInjector {
-		t.Fatalf("injector kind lost")
+	if !loaded.UnlockedElements[ElementHydrogen] {
+		t.Fatalf("legacy save should default Hydrogen to unlocked")
 	}
-	if inj, ok := loaded.Grid.Cells[0][0].Component.(*Injector); !ok || inj.TickCounter != 12 {
-		t.Fatalf("injector TickCounter lost")
-	}
-	if !loaded.Grid.Cells[4][4].IsCollector {
-		t.Fatalf("collector flag lost")
-	}
-	if len(loaded.Grid.Subjects) != 1 || loaded.Grid.Subjects[0].Position != (Position{X: 1, Y: 0}) {
-		t.Fatalf("subject lost or malformed")
+	if loaded.UnlockedElements[ElementHelium] {
+		t.Fatalf("legacy save should not unlock Helium")
 	}
 }

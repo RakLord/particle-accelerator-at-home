@@ -8,7 +8,7 @@ import (
 
 const (
 	modalW = 360
-	modalH = 280
+	modalH = 320
 
 	saveBtnW  = 160
 	saveBtnH  = 40
@@ -16,6 +16,10 @@ const (
 	resetBtnH = 40
 	closeBtnW = 80
 	closeBtnH = 32
+
+	trailsRowW = 240
+	trailsRowH = 32
+	trailsBoxS = 20 // checkbox square side
 )
 
 func modalX() int { return (screenW - modalW) / 2 }
@@ -29,6 +33,9 @@ func resetBtnY() int { return modalY() + 120 }
 
 func closeBtnX() int { return modalX() + modalW - closeBtnW - 12 }
 func closeBtnY() int { return modalY() + modalH - closeBtnH - 12 }
+
+func trailsRowX() int { return modalX() + (modalW-trailsRowW)/2 }
+func trailsRowY() int { return modalY() + 200 }
 
 func drawSettings(dst *ebiten.Image, u *ui.UIState) {
 	fillRect(dst, 0, 0, screenW, screenH, colorOverlay)
@@ -62,6 +69,18 @@ func drawSettings(dst *ebiten.Image, u *ui.UIState) {
 	} else if u.ResetArmed {
 		drawTextCentered(dst, "This wipes your save.", x, ry+resetBtnH+8, modalW, 16, colorTextMuted)
 	}
+
+	// Particle trails toggle (checkbox + label, toggled by click anywhere on the row).
+	trx, try_ := trailsRowX(), trailsRowY()
+	fillRect(dst, trx, try_, trailsRowW, trailsRowH, colorButton)
+	strokeRect(dst, trx, try_, trailsRowW, trailsRowH, 1, colorTextMuted)
+	boxX := trx + 8
+	boxY := try_ + (trailsRowH-trailsBoxS)/2
+	strokeRect(dst, boxX, boxY, trailsBoxS, trailsBoxS, 1, colorText)
+	if u.TrailsEnabled {
+		fillRect(dst, boxX+4, boxY+4, trailsBoxS-8, trailsBoxS-8, colorText)
+	}
+	drawText(dst, "Particle trails (T)", boxX+trailsBoxS+10, try_+10, colorText)
 
 	// Close
 	cx, cy := closeBtnX(), closeBtnY()

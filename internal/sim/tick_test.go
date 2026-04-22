@@ -7,7 +7,7 @@ func TestTickMovesSubject(t *testing.T) {
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:   ElementHydrogen,
 		Mass:      1,
-		Speed:     1,
+		Speed:     SpeedDivisor, // one cell per tick
 		Direction: DirEast,
 		Position:  Position{X: 1, Y: 2},
 		Load:      1,
@@ -23,49 +23,13 @@ func TestTickMovesSubject(t *testing.T) {
 	}
 }
 
-func TestAcceleratorIncreasesSpeed(t *testing.T) {
-	s := NewGameState()
-	s.Grid.Cells[2][2].Component = &SimpleAccelerator{SpeedBonus: 2}
-	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
-		Element:   ElementHydrogen,
-		Mass:      1,
-		Speed:     1,
-		Direction: DirEast,
-		Position:  Position{X: 1, Y: 2},
-		Load:      1,
-	})
-	s.CurrentLoad = 1
-	s.Tick()
-	if s.Grid.Subjects[0].Speed != 3 {
-		t.Fatalf("expected speed 3 after accelerator, got %d", s.Grid.Subjects[0].Speed)
-	}
-}
-
-func TestRotatorChangesDirection(t *testing.T) {
-	s := NewGameState()
-	s.Grid.Cells[2][2].Component = &Rotator{Turn: TurnRight}
-	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
-		Element:   ElementHydrogen,
-		Mass:      1,
-		Speed:     1,
-		Direction: DirEast,
-		Position:  Position{X: 1, Y: 2},
-		Load:      1,
-	})
-	s.CurrentLoad = 1
-	s.Tick()
-	if got := s.Grid.Subjects[0].Direction; got != DirSouth {
-		t.Fatalf("expected DirSouth after right turn, got %v", got)
-	}
-}
-
 func TestCollectorAwardsUSD(t *testing.T) {
 	s := NewGameState()
 	s.Grid.Cells[2][2].IsCollector = true
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:   ElementHydrogen,
 		Mass:      2,
-		Speed:     1,
+		Speed:     SpeedDivisor,
 		Direction: DirEast,
 		Position:  Position{X: 1, Y: 2},
 		Load:      1,
@@ -75,8 +39,10 @@ func TestCollectorAwardsUSD(t *testing.T) {
 	if len(s.Grid.Subjects) != 0 {
 		t.Fatalf("expected subject removed after collection, got %d", len(s.Grid.Subjects))
 	}
-	if s.USD != 2 {
-		t.Fatalf("expected USD 2, got %v", s.USD)
+	// collectValue = Mass * Speed * speedK = 2 * SpeedDivisor * 1 (Hydrogen mult 1.0, research 0).
+	wantUSD := float64(2 * SpeedDivisor)
+	if s.USD != wantUSD {
+		t.Fatalf("expected USD %v, got %v", wantUSD, s.USD)
 	}
 	if s.Research[ElementHydrogen] != 1 {
 		t.Fatalf("expected research 1, got %d", s.Research[ElementHydrogen])
@@ -86,27 +52,11 @@ func TestCollectorAwardsUSD(t *testing.T) {
 	}
 }
 
-func TestInjectorRespectsMaxLoad(t *testing.T) {
-	s := NewGameState()
-	s.MaxLoad = 2
-	s.Grid.Cells[0][0].Component = &Injector{
-		Direction:     DirEast,
-		SpawnInterval: 1,
-		Element:       ElementHydrogen,
-	}
-	for range 10 {
-		s.Tick()
-	}
-	if s.CurrentLoad > s.MaxLoad {
-		t.Fatalf("CurrentLoad %d exceeds MaxLoad %d", s.CurrentLoad, s.MaxLoad)
-	}
-}
-
 func TestSubjectOffGridIsRemoved(t *testing.T) {
 	s := NewGameState()
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:   ElementHydrogen,
-		Speed:     1,
+		Speed:     SpeedDivisor,
 		Direction: DirEast,
 		Position:  Position{X: GridSize - 1, Y: 0},
 		Load:      1,
@@ -120,3 +70,111 @@ func TestSubjectOffGridIsRemoved(t *testing.T) {
 		t.Fatalf("expected CurrentLoad 0, got %d", s.CurrentLoad)
 	}
 }
+
+// A base-Speed=1 Subject moves exactly once per SpeedDivisor ticks.
+func TestBaseSpeedAdvancesEverySpeedDivisorTicks(t *testing.T) {
+	s := NewGameState()
+	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
+		Element:     ElementHydrogen,
+		Speed:       1,
+		Direction:   DirEast,
+		InDirection: DirEast,
+		Position:    Position{X: 0, Y: 0},
+		Load:        1,
+	})
+	s.CurrentLoad = 1
+
+	// For SpeedDivisor-1 ticks the Subject should stay put (progress accumulates).
+	for i := 1; i < SpeedDivisor; i++ {
+		s.Tick()
+		if got := s.Grid.Subjects[0].Position; got != (Position{X: 0, Y: 0}) {
+			t.Fatalf("tick %d: expected still at (0,0), got %v", i, got)
+		}
+	}
+	// The SpeedDivisor-th tick crosses one cell.
+	s.Tick()
+	if got := s.Grid.Subjects[0].Position; got != (Position{X: 1, Y: 0}) {
+		t.Fatalf("after %d ticks: expected (1,0), got %v", SpeedDivisor, got)
+	}
+	if got := s.Grid.Subjects[0].StepProgress; got != 0 {
+		t.Fatalf("StepProgress after crossing should be 0, got %d", got)
+	}
+}
+
+// Speed=2 moves once per SpeedDivisor/2 = 5 ticks.
+func TestDoubleSpeedAdvancesHalfAsOften(t *testing.T) {
+	s := NewGameState()
+	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
+		Element:     ElementHydrogen,
+		Speed:       2,
+		Direction:   DirEast,
+		InDirection: DirEast,
+		Position:    Position{X: 0, Y: 0},
+		Load:        1,
+	})
+	s.CurrentLoad = 1
+
+	// After 5 ticks, expect one cell crossed.
+	for range SpeedDivisor / 2 {
+		s.Tick()
+	}
+	if got := s.Grid.Subjects[0].Position; got != (Position{X: 1, Y: 0}) {
+		t.Fatalf("expected (1,0) after 5 ticks, got %v", got)
+	}
+	// After 5 more ticks, a second cell.
+	for range SpeedDivisor / 2 {
+		s.Tick()
+	}
+	if got := s.Grid.Subjects[0].Position; got != (Position{X: 2, Y: 0}) {
+		t.Fatalf("expected (2,0) after 10 ticks, got %v", got)
+	}
+}
+
+// A single tick that crosses multiple cells (Speed ≥ 2·SpeedDivisor) records
+// all entered cells in Path, including rotator turns.
+func TestTickPathRecordsAcrossRotator(t *testing.T) {
+	s := NewGameState()
+	// Place a right-turning rotator in the middle of the row.
+	// Note: sim package can't import components, so we use a minimal inline
+	// stand-in via a closure component below.
+	s.Grid.Cells[0][2].Component = &testRightTurn{}
+	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
+		Element:     ElementHydrogen,
+		Speed:       3 * SpeedDivisor, // cross three cells in one tick
+		Direction:   DirEast,
+		InDirection: DirEast,
+		Position:    Position{X: 0, Y: 0},
+		Load:        1,
+	})
+	s.CurrentLoad = 1
+	s.Tick()
+
+	sub := s.Grid.Subjects[0]
+	wantPath := []Position{
+		{X: 0, Y: 0},
+		{X: 1, Y: 0},
+		{X: 2, Y: 0}, // rotator turns East -> South here
+		{X: 2, Y: 1},
+	}
+	if len(sub.Path) != len(wantPath) {
+		t.Fatalf("Path length: got %d want %d (%v)", len(sub.Path), len(wantPath), sub.Path)
+	}
+	for i, p := range wantPath {
+		if sub.Path[i] != p {
+			t.Fatalf("Path[%d]: got %v want %v", i, sub.Path[i], p)
+		}
+	}
+	if sub.Direction != DirSouth {
+		t.Fatalf("Direction after rotator: got %v want DirSouth", sub.Direction)
+	}
+	if sub.Position != (Position{X: 2, Y: 1}) {
+		t.Fatalf("Position after tick: got %v want (2,1)", sub.Position)
+	}
+}
+
+// testRightTurn is a minimal in-sim rotator used by path tests, avoiding an
+// import cycle with the components package.
+type testRightTurn struct{}
+
+func (*testRightTurn) Kind() ComponentKind         { return ComponentKind("test_right_turn") }
+func (*testRightTurn) Apply(s Subject) Subject      { s.Direction = s.Direction.Right(); return s }

@@ -1,18 +1,112 @@
 package sim
 
+import "errors"
+
 type Element string
 
 const (
 	ElementHydrogen Element = "hydrogen"
+	ElementHelium   Element = "helium"
 )
 
-var elementMultipliers = map[Element]float64{
-	ElementHydrogen: 1.0,
+// ElementInfo is the per-Element metadata used for value, UI, and unlock gating.
+// Add new Elements by appending here and to CatalogOrder.
+type ElementInfo struct {
+	Name              string
+	Symbol            string
+	Multiplier        float64
+	UnlocksFrom       Element
+	ResearchThreshold int
+	UnlockCost        float64
 }
 
-// collectValue is the $USD awarded when a Subject is collected.
-// Magnetism accepted by the signature but coefficient-zero until Phase 2.
+var ElementCatalog = map[Element]ElementInfo{
+	ElementHydrogen: {
+		Name:       "Hydrogen",
+		Symbol:     "H",
+		Multiplier: 1.0,
+	},
+	ElementHelium: {
+		Name:              "Helium",
+		Symbol:            "He",
+		Multiplier:        2.5,
+		UnlocksFrom:       ElementHydrogen,
+		ResearchThreshold: 10,
+		UnlockCost:        500,
+	},
+}
+
+// CatalogOrder is the deterministic display order for the Periodic Table.
+var CatalogOrder = []Element{ElementHydrogen, ElementHelium}
+
+// Value formula constants. See docs/features/value-formula.md.
+// ResearchK is exported so the UI can reproduce the research bonus curve
+// in the Periodic Table without recomputing `collectValue`.
+const (
+	speedValueK           = 1.0
+	magValueK             = 0.5
+	ResearchK     float64 = 50.0
+)
+
+// collectValue is the $USD awarded when a Subject is collected. The research
+// count is the Element's research level at the moment of collection — pass the
+// pre-increment value so the first collection earns the base multiplier.
 // See docs/features/value-formula.md.
-func collectValue(s Subject) float64 {
-	return s.Mass * float64(s.Speed) * elementMultipliers[s.Element]
+func collectValue(s Subject, research int) float64 {
+	info := ElementCatalog[s.Element]
+	base := s.Mass*float64(s.Speed)*speedValueK + s.Magnetism*magValueK
+	return base * info.Multiplier * (1 + float64(research)/ResearchK)
+}
+
+var (
+	ErrElementUnknown      = errors.New("sim: unknown element")
+	ErrElementAlreadyOwned = errors.New("sim: element already owned")
+	ErrResearchTooLow      = errors.New("sim: research threshold not met")
+	ErrInsufficientFunds   = errors.New("sim: insufficient USD")
+)
+
+// IsElementUnlocked reports whether the player has purchased the Element.
+func IsElementUnlocked(s *GameState, e Element) bool {
+	return s.UnlockedElements[e]
+}
+
+// IsElementPurchasable reports whether the Element can be bought right now:
+// not already owned, and the prerequisite research threshold is met.
+func IsElementPurchasable(s *GameState, e Element) bool {
+	if s.UnlockedElements[e] {
+		return false
+	}
+	info, ok := ElementCatalog[e]
+	if !ok {
+		return false
+	}
+	if info.UnlocksFrom != "" && s.Research[info.UnlocksFrom] < info.ResearchThreshold {
+		return false
+	}
+	return true
+}
+
+// PurchaseElement deducts UnlockCost and flips the UnlockedElements flag.
+// Returns a sentinel error on any of: unknown element, already owned, research
+// too low, or insufficient USD.
+func PurchaseElement(s *GameState, e Element) error {
+	info, ok := ElementCatalog[e]
+	if !ok {
+		return ErrElementUnknown
+	}
+	if s.UnlockedElements[e] {
+		return ErrElementAlreadyOwned
+	}
+	if info.UnlocksFrom != "" && s.Research[info.UnlocksFrom] < info.ResearchThreshold {
+		return ErrResearchTooLow
+	}
+	if s.USD < info.UnlockCost {
+		return ErrInsufficientFunds
+	}
+	s.USD -= info.UnlockCost
+	if s.UnlockedElements == nil {
+		s.UnlockedElements = map[Element]bool{}
+	}
+	s.UnlockedElements[e] = true
+	return nil
 }
