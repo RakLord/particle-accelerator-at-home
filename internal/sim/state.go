@@ -15,6 +15,7 @@ type GameState struct {
 	Grid             *Grid
 	USD              bignum.Decimal
 	Research         map[Element]int
+	BestStats        map[Element]ElementBestStats
 	UnlockedElements map[Element]bool
 	// Owned is the total number of each component kind the player has ever
 	// purchased. Monotonic: incremented by PurchaseComponent; never
@@ -27,11 +28,18 @@ type GameState struct {
 	Ticks       uint64
 }
 
+type ElementBestStats struct {
+	MaxSpeed          int            `json:"max_speed,omitempty"`
+	MaxMass           bignum.Decimal `json:"max_mass,omitempty"`
+	MaxCollectedValue bignum.Decimal `json:"max_collected_value,omitempty"`
+}
+
 func NewGameState() *GameState {
 	return &GameState{
 		Layer:            LayerGenesis,
 		Grid:             NewGrid(),
 		Research:         map[Element]int{},
+		BestStats:        map[Element]ElementBestStats{},
 		UnlockedElements: map[Element]bool{ElementHydrogen: true},
 		Owned:            starterInventory(),
 		MaxLoad:          DefaultMaxLoad,

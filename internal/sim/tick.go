@@ -1,5 +1,7 @@
 package sim
 
+import "particleaccelerator/internal/bignum"
+
 // SpeedDivisor is the number of StepProgress units equal to one cell of
 // movement. With the default SpeedDivisor=10, a Subject with base Speed=1
 // moves one cell every 10 ticks; Speed=20 moves two cells per tick.
@@ -49,7 +51,9 @@ func (s *GameState) advanceSubjects() {
 			continue
 		}
 		if collected {
-			s.USD = s.USD.Add(collectValue(sub, s.Research[sub.Element]))
+			value := collectValue(sub, s.Research[sub.Element])
+			s.USD = s.USD.Add(value)
+			s.recordCollectionBestStats(sub, value)
 			s.Research[sub.Element]++
 			s.CurrentLoad -= sub.Load
 			continue
@@ -57,6 +61,23 @@ func (s *GameState) advanceSubjects() {
 		alive = append(alive, sub)
 	}
 	g.Subjects = alive
+}
+
+func (s *GameState) recordCollectionBestStats(sub Subject, value bignum.Decimal) {
+	if s.BestStats == nil {
+		s.BestStats = map[Element]ElementBestStats{}
+	}
+	stats := s.BestStats[sub.Element]
+	if sub.Speed > stats.MaxSpeed {
+		stats.MaxSpeed = sub.Speed
+	}
+	if sub.Mass.GT(stats.MaxMass) {
+		stats.MaxMass = sub.Mass
+	}
+	if value.GT(stats.MaxCollectedValue) {
+		stats.MaxCollectedValue = value
+	}
+	s.BestStats[sub.Element] = stats
 }
 
 // stepSubject accumulates Speed into StepProgress and advances the Subject one

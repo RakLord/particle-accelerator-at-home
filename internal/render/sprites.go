@@ -15,27 +15,50 @@ import (
 )
 
 type tileSprites struct {
-	emptyTile   *ebiten.Image
-	injector    *ebiten.Image
-	accelerator *ebiten.Image
-	meshGrid    *ebiten.Image
-	magnetiser  *ebiten.Image
-	elbow       *ebiten.Image
-	collector   *ebiten.Image
+	emptyTile    *ebiten.Image
+	injector     *ebiten.Image
+	accelerator  *ebiten.Image
+	acceleratorB *ebiten.Image
+	acceleratorT *ebiten.Image
+	meshGrid     *ebiten.Image
+	magnetiser   *ebiten.Image
+	elbow        *ebiten.Image
+	elbowB       *ebiten.Image
+	elbowT       *ebiten.Image
+	collector    *ebiten.Image
 }
 
 var sprites = mustLoadTileSprites()
 
 func mustLoadTileSprites() tileSprites {
 	return tileSprites{
-		emptyTile:   mustLoadTileSprite("images/tiles/empty_tile.png"),
-		injector:    mustLoadTileSprite("images/tiles/injector.png"),
-		accelerator: mustLoadTileSprite("images/tiles/accelerator.png"),
-		meshGrid:    mustLoadTileSprite("images/tiles/mesh_grid.png"),
-		magnetiser:  mustLoadTileSprite("images/tiles/magnetiser.png"),
-		elbow:       mustLoadTileSprite("images/tiles/rotator_cw.png"),
-		collector:   mustLoadTileSprite("images/tiles/collector.png"),
+		emptyTile:    mustLoadTileSprite("images/tiles/empty_tile.png"),
+		injector:     mustLoadTileSprite("images/tiles/injector.png"),
+		accelerator:  mustLoadTileSprite("images/tiles/accelerator.png"),
+		acceleratorB: mustLoadTileSprite("images/tiles/accelerator_b.png"),
+		acceleratorT: mustLoadTileSprite("images/tiles/accelerator_t.png"),
+		meshGrid:     mustLoadTileSprite("images/tiles/mesh_grid.png"),
+		magnetiser:   mustLoadTileSprite("images/tiles/magnetiser.png"),
+		elbow:        mustLoadTileSprite("images/tiles/rotator_cw.png"),
+		elbowB:       mustLoadTileSprite("images/tiles/rotator_cw_b.png"),
+		elbowT:       mustLoadTileSprite("images/tiles/rotator_cw_t.png"),
+		collector:    mustLoadTileSprite("images/tiles/collector.png"),
 	}
+}
+
+type splitTileSprites struct {
+	bottom *ebiten.Image
+	top    *ebiten.Image
+}
+
+func splitTileSpritesForComponent(c sim.Component) splitTileSprites {
+	switch c.(type) {
+	case *components.SimpleAccelerator:
+		return splitTileSprites{bottom: sprites.acceleratorB, top: sprites.acceleratorT}
+	case *components.Rotator:
+		return splitTileSprites{bottom: sprites.elbowB, top: sprites.elbowT}
+	}
+	return splitTileSprites{}
 }
 
 func mustLoadTileSprite(path string) *ebiten.Image {

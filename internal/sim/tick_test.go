@@ -51,8 +51,52 @@ func TestCollectorAwardsUSD(t *testing.T) {
 	if s.Research[ElementHydrogen] != 1 {
 		t.Fatalf("expected research 1, got %d", s.Research[ElementHydrogen])
 	}
+	stats := s.BestStats[ElementHydrogen]
+	if stats.MaxSpeed != SpeedDivisor {
+		t.Fatalf("expected MaxSpeed %d, got %d", SpeedDivisor, stats.MaxSpeed)
+	}
+	if !stats.MaxMass.Eq(bignum.FromInt(2)) {
+		t.Fatalf("expected MaxMass 2, got %v", stats.MaxMass)
+	}
+	if !stats.MaxCollectedValue.Eq(wantUSD) {
+		t.Fatalf("expected MaxCollectedValue %v, got %v", wantUSD, stats.MaxCollectedValue)
+	}
 	if s.CurrentLoad != 0 {
 		t.Fatalf("expected CurrentLoad 0, got %d", s.CurrentLoad)
+	}
+}
+
+func TestBestStatsUpdateOnCollectionOnly(t *testing.T) {
+	s := NewGameState()
+	s.Grid.Cells[2][2].IsCollector = true
+	s.Grid.Subjects = append(s.Grid.Subjects,
+		Subject{
+			Element:   ElementHydrogen,
+			Mass:      bignum.FromInt(2),
+			Speed:     SpeedDivisor,
+			Direction: DirEast,
+			Position:  Position{X: 1, Y: 2},
+			Load:      1,
+		},
+		Subject{
+			Element:   ElementHydrogen,
+			Mass:      bignum.FromInt(9),
+			Speed:     SpeedDivisor * 2,
+			Direction: DirEast,
+			Position:  Position{X: 0, Y: 0},
+			Load:      1,
+		},
+	)
+	s.CurrentLoad = 2
+
+	s.Tick()
+
+	stats := s.BestStats[ElementHydrogen]
+	if stats.MaxSpeed != SpeedDivisor {
+		t.Fatalf("off-grid subject should not update MaxSpeed: got %d want %d", stats.MaxSpeed, SpeedDivisor)
+	}
+	if !stats.MaxMass.Eq(bignum.FromInt(2)) {
+		t.Fatalf("off-grid subject should not update MaxMass: got %v want 2", stats.MaxMass)
 	}
 }
 

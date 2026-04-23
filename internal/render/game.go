@@ -38,6 +38,12 @@ type Game struct {
 	// Particle trail samples, rendered below live Subjects. Session-scoped
 	// (not persisted) and cleared when the user toggles trails off.
 	trail []trailSample
+
+	// Codex interaction state is render-local session state. It controls which
+	// element card is shown while the Codex overlay is open and is intentionally
+	// not persisted.
+	codexHovered sim.Element
+	codexPinned  sim.Element
 }
 
 func New(s *sim.GameState, u *ui.UIState, save SaveFn, reset ResetFn) *Game {
@@ -103,6 +109,7 @@ func (g *Game) handleInput() {
 		return
 	}
 	if g.ui.CodexOpen {
+		g.updateCodexHover(mx, my)
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			g.handleCodexClick(mx, my)
 		}
@@ -120,6 +127,8 @@ func (g *Game) handleInput() {
 		if contains(mx, my, codexBtnX, codexBtnY, codexBtnW, codexBtnH) {
 			g.ui.CodexOpen = true
 			g.ui.CodexNotice = ""
+			g.codexHovered = ""
+			g.codexPinned = ""
 			return
 		}
 	}
@@ -213,7 +222,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		drawSettings(screen, g.ui)
 	}
 	if g.ui.CodexOpen {
-		drawPeriodicTable(screen, g.state, g.ui)
+		drawPeriodicTable(screen, g.state, g.ui, g.currentCodexFocus())
 	}
 }
 
@@ -237,15 +246,49 @@ func (g *Game) handleCodexClick(mx, my int) {
 	if contains(mx, my, codexCloseX(), codexCloseY(), closeBtnW, closeBtnH) {
 		g.ui.CodexOpen = false
 		g.ui.CodexNotice = ""
+		g.codexHovered = ""
+		g.codexPinned = ""
 		return
 	}
-	if e, ok := codexActionAt(g.state, mx, my); ok {
-		if err := sim.PurchaseElement(g.state, e); err != nil {
-			g.ui.CodexNotice = "Unlock failed: " + err.Error()
+	if e := g.currentCodexFocus(); e != "" {
+		bx, by, bw, bh := codexUnlockButtonRect()
+		if contains(mx, my, bx, by, bw, bh) && sim.IsElementPurchasable(g.state, e) {
+			if err := sim.PurchaseElement(g.state, e); err != nil {
+				g.ui.CodexNotice = "Unlock failed: " + err.Error()
+				return
+			}
+			g.ui.CodexNotice = sim.ElementCatalog[e].Name + " unlocked"
 			return
 		}
-		g.ui.CodexNotice = sim.ElementCatalog[e].Name + " unlocked"
 	}
+	if e, ok := codexElementAt(mx, my); ok {
+		if g.codexPinned == e {
+			g.codexPinned = ""
+		} else {
+			g.codexPinned = e
+		}
+		g.codexHovered = e
+		return
+	}
+	if e := g.currentCodexFocus(); e != "" && contains(mx, my, codexCardX(), codexCardY(), codexCardW, codexCardH) {
+		g.codexHovered = e
+		return
+	}
+	if !contains(mx, my, codexPanelX(), codexPanelY(), codexPanelW(), codexPanelH()) {
+		g.codexHovered = ""
+	}
+}
+
+func (g *Game) updateCodexHover(mx, my int) {
+	if e, ok := codexElementAt(mx, my); ok {
+		g.codexHovered = e
+		return
+	}
+	g.codexHovered = ""
+}
+
+func (g *Game) currentCodexFocus() sim.Element {
+	return codexFocusedElement(g.codexHovered, g.codexPinned)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {

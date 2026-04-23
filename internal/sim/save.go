@@ -105,6 +105,9 @@ func Load() (*GameState, bool, error) {
 	if state.Research == nil {
 		state.Research = map[Element]int{}
 	}
+	if state.BestStats == nil {
+		state.BestStats = map[Element]ElementBestStats{}
+	}
 	if state.UnlockedElements == nil {
 		state.UnlockedElements = map[Element]bool{ElementHydrogen: true}
 	}

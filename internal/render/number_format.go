@@ -18,3 +18,7 @@ func formatIncomeRate(v bignum.Decimal) string {
 func formatMultiplier(v bignum.Decimal) string {
 	return "×" + v.Format(numberDisplayMode, 2)
 }
+
+func formatNumber(v bignum.Decimal) string {
+	return v.Format(numberDisplayMode, 2)
+}

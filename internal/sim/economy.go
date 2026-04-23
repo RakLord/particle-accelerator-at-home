@@ -16,8 +16,11 @@ const (
 // ElementInfo is the per-Element metadata used for value, UI, and unlock gating.
 // Add new Elements by appending here and to CatalogOrder.
 type ElementInfo struct {
+	AtomicNumber      int
 	Name              string
 	Symbol            string
+	Period            int
+	Group             int
 	Multiplier        bignum.Decimal
 	UnlocksFrom       Element
 	ResearchThreshold int
@@ -26,13 +29,19 @@ type ElementInfo struct {
 
 var ElementCatalog = map[Element]ElementInfo{
 	ElementHydrogen: {
-		Name:       "Hydrogen",
-		Symbol:     "H",
-		Multiplier: bignum.MustParse("1"),
+		AtomicNumber: 1,
+		Name:         "Hydrogen",
+		Symbol:       "H",
+		Period:       1,
+		Group:        1,
+		Multiplier:   bignum.MustParse("1"),
 	},
 	ElementHelium: {
+		AtomicNumber:      2,
 		Name:              "Helium",
 		Symbol:            "He",
+		Period:            1,
+		Group:             18,
 		Multiplier:        bignum.MustParse("2.5"),
 		UnlocksFrom:       ElementHydrogen,
 		ResearchThreshold: 10,

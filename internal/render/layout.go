@@ -64,6 +64,8 @@ var (
 	uiFontSource = mustLoadUIFontSource()
 	fontBody     = &text.GoTextFace{Source: uiFontSource, Size: 14}
 	fontSmall    = &text.GoTextFace{Source: uiFontSource, Size: 12}
+	fontTitle    = &text.GoTextFace{Source: uiFontSource, Size: 22}
+	fontDisplay  = &text.GoTextFace{Source: uiFontSource, Size: 44}
 )
 
 func mustLoadUIFontSource() *text.GoTextFaceSource {

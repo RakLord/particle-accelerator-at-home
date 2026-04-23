@@ -33,6 +33,11 @@ func TestGameStateRoundTripUnlockedElements(t *testing.T) {
 	s := NewGameState()
 	s.Research[ElementHydrogen] = 15
 	s.UnlockedElements[ElementHelium] = true
+	s.BestStats[ElementHydrogen] = ElementBestStats{
+		MaxSpeed:          11,
+		MaxMass:           bignum.FromInt(7),
+		MaxCollectedValue: bignum.FromInt(99),
+	}
 
 	blob, err := json.Marshal(s)
 	if err != nil {
@@ -48,6 +53,16 @@ func TestGameStateRoundTripUnlockedElements(t *testing.T) {
 	}
 	if !loaded.UnlockedElements[ElementHydrogen] {
 		t.Fatalf("Hydrogen unlock flag lost on round-trip")
+	}
+	stats := loaded.BestStats[ElementHydrogen]
+	if stats.MaxSpeed != 11 {
+		t.Fatalf("Hydrogen MaxSpeed lost on round-trip: got %d", stats.MaxSpeed)
+	}
+	if !stats.MaxMass.Eq(bignum.FromInt(7)) {
+		t.Fatalf("Hydrogen MaxMass lost on round-trip: got %v", stats.MaxMass)
+	}
+	if !stats.MaxCollectedValue.Eq(bignum.FromInt(99)) {
+		t.Fatalf("Hydrogen MaxCollectedValue lost on round-trip: got %v", stats.MaxCollectedValue)
 	}
 }
 
@@ -79,6 +94,9 @@ func TestLoadV2SaveDefaultsUnlockedElements(t *testing.T) {
 	}
 	if loaded.Research[ElementHydrogen] != 3 {
 		t.Fatalf("research mismatch: got %d want 3", loaded.Research[ElementHydrogen])
+	}
+	if loaded.BestStats == nil {
+		t.Fatalf("save should default BestStats map")
 	}
 }
 

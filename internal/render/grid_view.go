@@ -13,14 +13,24 @@ import (
 func drawGrid(dst *ebiten.Image, s *sim.GameState, alpha float64, trail []trailSample) {
 	fillRect(dst, gridAreaX, gridAreaY, gridAreaW, gridAreaH, colorBG)
 
-	// Cells (background + component fill + collector overlay).
+	// Cells: background pass.
+	for cy := range sim.GridSize {
+		for cx := range sim.GridSize {
+			x, y, w, h := cellRect(cx, cy)
+			drawSpriteFitted(dst, sprites.emptyTile, x, y, w, h)
+		}
+	}
+
+	// Component pass below live Subjects. Split sprites draw only their bottom
+	// half here; legacy one-piece sprites keep their previous ordering.
 	for cy := range sim.GridSize {
 		for cx := range sim.GridSize {
 			x, y, w, h := cellRect(cx, cy)
 			cell := s.Grid.Cells[cy][cx]
-			drawSpriteFitted(dst, sprites.emptyTile, x, y, w, h)
 			if cell.Component != nil {
-				if sprite := tileSpriteForComponent(cell.Component); sprite != nil {
+				if split := splitTileSpritesForComponent(cell.Component); split.bottom != nil {
+					drawSpriteCenteredRotated(dst, split.bottom, x, y, w, h, tileRotationForComponent(cell.Component))
+				} else if sprite := tileSpriteForComponent(cell.Component); sprite != nil {
 					drawSpriteCenteredRotated(dst, sprite, x, y, w, h, tileRotationForComponent(cell.Component))
 				} else {
 					fillRect(dst, x+18, y+18, w-36, h-36, componentColor(cell.Component))
@@ -52,6 +62,22 @@ func drawGrid(dst *ebiten.Image, s *sim.GameState, alpha float64, trail []trailS
 	for _, sub := range s.Grid.Subjects {
 		cx, cy := subjectPixel(sub, alpha)
 		fillCircle(dst, cx, cy, 10, subjectColor(sub.Element))
+	}
+
+	// Top-half overlay for split component art so Subjects render inside the tube.
+	for cy := range sim.GridSize {
+		for cx := range sim.GridSize {
+			cell := s.Grid.Cells[cy][cx]
+			if cell.Component == nil {
+				continue
+			}
+			split := splitTileSpritesForComponent(cell.Component)
+			if split.top == nil {
+				continue
+			}
+			x, y, w, h := cellRect(cx, cy)
+			drawSpriteCenteredRotated(dst, split.top, x, y, w, h, tileRotationForComponent(cell.Component))
+		}
 	}
 }
 

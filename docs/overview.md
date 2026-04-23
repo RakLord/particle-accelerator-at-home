@@ -59,7 +59,7 @@ Collected $USD is a function of: `Mass`, `Speed`, `Magnetism`, the Element's bas
 4. **Reset layers (future)** — the game has multiple nested prestige layers. The base layer is **Genesis** (the game as shipped today); ascending to the next layer resets Genesis and awards a meta-currency. Each layer has its own Elements, Components, and currency context; meta-currency carries across. Layer names beyond Genesis are TBD. Represented in code as `sim.Layer` with `sim.LayerGenesis` seeded on `NewGameState`.
 
 ## Periodic Table (codex)
-Dedicated screen listing every known Element with: research level, best stats (max Speed seen, max Mass, max collected value), unlock status, and cost to unlock the next.
+Dedicated screen styled as a real periodic table. Hovering or selecting an Element opens a centered stat card showing research level, best stats (max Speed, max Mass, max collected value), unlock status, and cost to unlock the next.
 
 ## Grid
 - Starts **5×5**.
@@ -88,7 +88,7 @@ MVP-first. Each phase ends with a playable build.
 - Save/load (no offline yet)
 - 5×5 fixed grid
 
-**Phase 2 — Depth (in progress)**
+**Phase 2 — Depth (completed)**
 - Components: Mesh Grid, Magnetiser
 - Speed bands
 - Second Element (Helium) with research-gated, $USD-purchasable unlock

@@ -52,11 +52,15 @@ func measureTextFace(s string, face text.Face) (w, h int) {
 
 // drawTextCentered renders text centered within (x, y, w, h).
 func drawTextCentered(dst *ebiten.Image, s string, x, y, w, h int, c color.Color) {
+	drawTextFaceCentered(dst, s, x, y, w, h, fontBody, c)
+}
+
+func drawTextFaceCentered(dst *ebiten.Image, s string, x, y, w, h int, face text.Face, c color.Color) {
 	op := &text.DrawOptions{}
-	tw, th := text.Measure(s, fontBody, 0)
+	tw, th := text.Measure(s, face, 0)
 	op.GeoM.Translate(float64(x)+(float64(w)-tw)/2, float64(y)+(float64(h)-th)/2)
 	op.ColorScale.ScaleWithColor(c)
-	text.Draw(dst, s, fontBody, op)
+	text.Draw(dst, s, face, op)
 }
 
 func contains(px, py, x, y, w, h int) bool {
