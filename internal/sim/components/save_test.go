@@ -49,6 +49,7 @@ func TestCellRoundTrip(t *testing.T) {
 		{Component: &components.Pipe{Orientation: sim.DirEast}},
 		{Component: &components.MeshGrid{Orientation: sim.DirWest}},
 		{Component: &components.Magnetiser{}},
+		{Component: &components.Compressor{}},
 	}
 	for i, c := range cells {
 		blob, err := json.Marshal(c)
@@ -101,7 +102,7 @@ func TestGameStateRoundTrip(t *testing.T) {
 	s.Grid.Cells[3][3].Component = &components.MeshGrid{Orientation: sim.DirSouth}
 	s.Grid.Cells[4][4].IsCollector = true
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
-		Element: sim.ElementHydrogen, Mass: bignum.One(), Speed: 2, Direction: sim.DirEast,
+		Element: sim.ElementHydrogen, Mass: bignum.One(), Speed: sim.SpeedFromInt(2), Direction: sim.DirEast,
 		Position: sim.Position{X: 1, Y: 0}, Load: 1,
 	})
 	s.CurrentLoad = 1

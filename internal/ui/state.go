@@ -16,6 +16,7 @@ const (
 	ToolResonator
 	ToolCatalyst
 	ToolDuplicator
+	ToolCompressor
 )
 
 type UIState struct {

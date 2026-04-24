@@ -15,7 +15,7 @@ Current bignum-backed fields:
 - Element unlock costs in `sim.ElementCatalog`
 - `components.Magnetiser.Bonus`
 
-Discrete simulation fields remain plain integers: `Speed`, `Load`, research counts, coordinates, `TickRate`, and tick counters.
+Discrete simulation fields remain integer-backed: `Speed` is fixed-point hundredths, while `Load`, research counts, coordinates, `TickRate`, and tick counters remain plain integers.
 
 ## Arithmetic model
 

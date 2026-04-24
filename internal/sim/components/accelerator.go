@@ -12,7 +12,7 @@ type SimpleAccelerator struct {
 
 // acceleratorSpeedByTier is the per-tier Speed bonus. Index 0 unused;
 // index N is the bonus at tier N. See docs/features/component-tiers.md.
-var acceleratorSpeedByTier = []int{0, 1, 2, 3}
+var acceleratorSpeedByTier = []sim.Speed{0, sim.SpeedFromInt(1), sim.SpeedFromInt(2), sim.SpeedFromInt(3)}
 
 func (*SimpleAccelerator) Kind() sim.ComponentKind { return sim.KindAccelerator }
 
@@ -21,7 +21,7 @@ func (a *SimpleAccelerator) Apply(ctx sim.ApplyContext, s sim.Subject) (sim.Subj
 		return s, true
 	}
 	tier := sim.ClampTier(ctx.Tiers, sim.KindAccelerator, len(acceleratorSpeedByTier)-1)
-	s.Speed += acceleratorSpeedByTier[tier] + ctx.Modifiers.AcceleratorSpeedBonus
+	s.Speed += acceleratorSpeedByTier[tier] + sim.SpeedFromInt(ctx.Modifiers.AcceleratorSpeedBonus)
 	return s, false
 }
 

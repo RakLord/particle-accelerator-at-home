@@ -9,7 +9,7 @@ type Resonator struct{}
 
 // resonatorBonusPerNeighbourByTier is the per-neighbour Speed bonus at each
 // tier. Index 0 unused.
-var resonatorBonusPerNeighbourByTier = []int{0, 1, 2, 3}
+var resonatorBonusPerNeighbourByTier = []sim.Speed{0, sim.SpeedFromInt(1), sim.SpeedFromInt(2), sim.SpeedFromInt(3)}
 
 func (*Resonator) Kind() sim.ComponentKind { return sim.KindResonator }
 
@@ -19,7 +19,7 @@ func (r *Resonator) Apply(ctx sim.ApplyContext, s sim.Subject) (sim.Subject, boo
 		return s, false
 	}
 	tier := sim.ClampTier(ctx.Tiers, sim.KindResonator, len(resonatorBonusPerNeighbourByTier)-1)
-	s.Speed += neighbours * resonatorBonusPerNeighbourByTier[tier]
+	s.Speed += sim.Speed(neighbours) * resonatorBonusPerNeighbourByTier[tier]
 	return s, false
 }
 

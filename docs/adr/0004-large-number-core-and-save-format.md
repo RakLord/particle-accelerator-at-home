@@ -34,7 +34,7 @@ The replacement needs to stay fast enough for per-tick economy math, be easy to 
 - `ElementInfo.UnlockCost`
 - `components.Magnetiser.Bonus`
 
-Structural integers remain native integers: `Speed`, `Load`, research counts, grid coordinates, `TickRate`, and tick counters. They drive discrete simulation flow rather than large-value progression.
+Structural fields remain integer-backed: `Speed` is fixed-point hundredths, while `Load`, research counts, grid coordinates, `TickRate`, and tick counters remain native integers. They drive discrete simulation flow rather than large-value progression.
 
 **4. Persist bignums as canonical scientific strings.**
 - JSON encodes a bignum as a string such as `"2.5e3"` or `"1e0"`.

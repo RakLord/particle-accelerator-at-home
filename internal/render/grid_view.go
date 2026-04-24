@@ -108,9 +108,20 @@ func drawSpriteLayers(dst *ebiten.Image, layers []spriteLayer, x, y, w, h int) {
 }
 
 func subjectColor(e sim.Element) color.Color {
-	switch e {
-	case sim.ElementHelium:
-		return colorSubjectHelium
+	palette := [...]color.RGBA{
+		colorSubject,
+		colorSubjectHelium,
+		{0xff, 0x9f, 0x6e, 0xff},
+		{0xff, 0xcf, 0x70, 0xff},
+		{0x9f, 0xe8, 0x72, 0xff},
+		{0x6f, 0xe0, 0xb0, 0xff},
+		{0x73, 0xde, 0xff, 0xff},
+		{0x82, 0xb7, 0xff, 0xff},
+		{0xb2, 0x94, 0xff, 0xff},
+		{0xf0, 0x90, 0xff, 0xff},
+	}
+	if info, ok := sim.ElementCatalog[e]; ok && info.AtomicNumber > 0 {
+		return palette[(info.AtomicNumber-1)%len(palette)]
 	}
 	return colorSubject
 }

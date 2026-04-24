@@ -28,7 +28,7 @@ func TestAcceleratorAddsTierBonusToSpeed(t *testing.T) {
 		s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 			Element:     sim.ElementHydrogen,
 			Mass:        bignum.One(),
-			Speed:       sim.SpeedDivisor, // crosses exactly one cell, arriving at (2,2)
+			Speed:       sim.SpeedFromInt(sim.SpeedDivisor), // crosses exactly one cell, arriving at (2,2)
 			Direction:   sim.DirEast,
 			InDirection: sim.DirEast,
 			Position:    sim.Position{X: 1, Y: 2},
@@ -36,7 +36,7 @@ func TestAcceleratorAddsTierBonusToSpeed(t *testing.T) {
 		})
 		s.CurrentLoad = 1
 		s.Tick()
-		want := sim.SpeedDivisor + c.wantAdd
+		want := sim.SpeedFromInt(sim.SpeedDivisor + c.wantAdd)
 		if got := s.Grid.Subjects[0].Speed; got != want {
 			t.Fatalf("tier %d: got speed %d want %d", c.tier, got, want)
 		}
@@ -51,7 +51,7 @@ func TestAcceleratorRejectsSideEntry(t *testing.T) {
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,
 		Mass:        bignum.One(),
-		Speed:       sim.SpeedDivisor,
+		Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
 		Direction:   sim.DirEast,
 		InDirection: sim.DirEast,
 		Position:    sim.Position{X: 1, Y: 2},
@@ -73,7 +73,7 @@ func TestElbowChangesDirection(t *testing.T) {
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,
 		Mass:        bignum.One(),
-		Speed:       sim.SpeedDivisor,
+		Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
 		Direction:   sim.DirEast,
 		InDirection: sim.DirEast,
 		Position:    sim.Position{X: 1, Y: 2},
@@ -115,7 +115,7 @@ func TestPipePassesSubjectStraightThrough(t *testing.T) {
 			s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 				Element:     sim.ElementHydrogen,
 				Mass:        bignum.One(),
-				Speed:       sim.SpeedDivisor,
+				Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
 				Direction:   c.dir,
 				InDirection: c.dir,
 				Position:    entryPos,
@@ -140,7 +140,7 @@ func TestPipeRejectsPerpendicularEntry(t *testing.T) {
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,
 		Mass:        bignum.One(),
-		Speed:       sim.SpeedDivisor,
+		Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
 		Direction:   sim.DirSouth,
 		InDirection: sim.DirSouth,
 		Position:    sim.Position{X: 2, Y: 1},
@@ -162,7 +162,7 @@ func TestElbowRejectsDisconnectedEntry(t *testing.T) {
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,
 		Mass:        bignum.One(),
-		Speed:       sim.SpeedDivisor,
+		Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
 		Direction:   sim.DirWest,
 		InDirection: sim.DirWest,
 		Position:    sim.Position{X: 3, Y: 2},
@@ -231,6 +231,12 @@ func TestInjectorUsesGlobalInjectionElement(t *testing.T) {
 	if got := s.Grid.Subjects[0].Element; got != sim.ElementHelium {
 		t.Fatalf("spawned Element = %q, want %q", got, sim.ElementHelium)
 	}
+	if got, want := s.Grid.Subjects[0].Mass, sim.ElementCatalog[sim.ElementHelium].BaseMass; !got.Eq(want) {
+		t.Fatalf("spawned Mass = %v, want %v", got, want)
+	}
+	if got, want := s.Grid.Subjects[0].Speed, sim.ElementCatalog[sim.ElementHelium].BaseSpeed; got != want {
+		t.Fatalf("spawned Speed = %d, want %d", got, want)
+	}
 
 	s.InjectionElement = sim.ElementHydrogen
 	s.InjectionCooldownRemaining = 0
@@ -240,6 +246,37 @@ func TestInjectorUsesGlobalInjectionElement(t *testing.T) {
 	}
 	if got := s.Grid.Subjects[1].Element; got != sim.ElementHydrogen {
 		t.Fatalf("spawned Element after selection change = %q, want %q", got, sim.ElementHydrogen)
+	}
+}
+
+func TestInjectorUsesElementBaseSpawnStats(t *testing.T) {
+	inj := &components.Injector{Direction: sim.DirEast}
+
+	hydrogen, ok := inj.Spawn(sim.NewTestApplyContext(), sim.Position{})
+	if !ok {
+		t.Fatalf("expected Hydrogen spawn")
+	}
+	if got, want := hydrogen.Mass, sim.ElementCatalog[sim.ElementHydrogen].BaseMass; !got.Eq(want) {
+		t.Fatalf("Hydrogen Mass = %v, want %v", got, want)
+	}
+	if got, want := hydrogen.Speed, sim.ElementCatalog[sim.ElementHydrogen].BaseSpeed; got != want {
+		t.Fatalf("Hydrogen Speed = %d, want %d", got, want)
+	}
+
+	ctx := sim.NewTestApplyContext()
+	ctx.InjectionElement = sim.ElementCalcium
+	calcium, ok := inj.Spawn(ctx, sim.Position{})
+	if !ok {
+		t.Fatalf("expected Calcium spawn")
+	}
+	if got, want := calcium.Mass, sim.ElementCatalog[sim.ElementCalcium].BaseMass; !got.Eq(want) {
+		t.Fatalf("Calcium Mass = %v, want %v", got, want)
+	}
+	if got, want := calcium.Speed, sim.ElementCatalog[sim.ElementCalcium].BaseSpeed; got != want {
+		t.Fatalf("Calcium Speed = %d, want %d", got, want)
+	}
+	if !calcium.Mass.GT(hydrogen.Mass) || calcium.Speed >= hydrogen.Speed {
+		t.Fatalf("expected Calcium to be heavier and slower than Hydrogen: H=%v/%d Ca=%v/%d", hydrogen.Mass, hydrogen.Speed, calcium.Mass, calcium.Speed)
 	}
 }
 
@@ -324,7 +361,7 @@ func TestAcceleratorSpeedBonusAppliesFromModifiers(t *testing.T) {
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,
 		Mass:        bignum.One(),
-		Speed:       sim.SpeedDivisor,
+		Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
 		Direction:   sim.DirEast,
 		InDirection: sim.DirEast,
 		Position:    sim.Position{X: 1, Y: 2},
@@ -333,7 +370,7 @@ func TestAcceleratorSpeedBonusAppliesFromModifiers(t *testing.T) {
 	s.CurrentLoad = 1
 	s.Tick()
 	// T2 tier bonus (2), modifier adds 5, starting speed was SpeedDivisor.
-	want := sim.SpeedDivisor + 2 + 5
+	want := sim.SpeedFromInt(sim.SpeedDivisor + 2 + 5)
 	if got := s.Grid.Subjects[0].Speed; got != want {
 		t.Fatalf("accelerator with modifier bonus: got %d want %d", got, want)
 	}

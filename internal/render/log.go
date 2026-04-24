@@ -83,7 +83,7 @@ func drawLogRow(dst *ebiten.Image, entry sim.CollectionLogEntry, index, x, y, w 
 	drawTextSmall(dst, itoa(int(entry.Tick)), x+10, y+10, colorTextMuted)
 	drawTextSmall(dst, elementName, x+100, y+10, elementAccentColor(entry.Element))
 	drawTextSmall(dst, formatNumber(entry.Mass), x+230, y+10, colorText)
-	drawTextSmall(dst, itoa(entry.Speed), x+350, y+10, colorText)
+	drawTextSmall(dst, formatSpeed(entry.Speed), x+350, y+10, colorText)
 	drawTextSmall(dst, formatNumber(entry.Magnetism), x+450, y+10, colorText)
 	drawTextSmall(dst, itoa(entry.ResearchLevel), x+590, y+10, colorText)
 	drawTextSmall(dst, formatUSD(entry.Value), x+720, y+10, colorText)

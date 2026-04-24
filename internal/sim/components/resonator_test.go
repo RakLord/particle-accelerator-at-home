@@ -14,7 +14,7 @@ func TestResonatorIsolatedIsInert(t *testing.T) {
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,
 		Mass:        bignum.One(),
-		Speed:       sim.SpeedDivisor,
+		Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
 		Direction:   sim.DirEast,
 		InDirection: sim.DirEast,
 		Position:    sim.Position{X: 1, Y: 2},
@@ -22,8 +22,8 @@ func TestResonatorIsolatedIsInert(t *testing.T) {
 	})
 	s.CurrentLoad = 1
 	s.Tick()
-	if got := s.Grid.Subjects[0].Speed; got != sim.SpeedDivisor {
-		t.Fatalf("isolated Resonator should be inert: got speed %d want %d", got, sim.SpeedDivisor)
+	if got := s.Grid.Subjects[0].Speed; got != sim.SpeedFromInt(sim.SpeedDivisor) {
+		t.Fatalf("isolated Resonator should be inert: got speed %d want %d", got, sim.SpeedFromInt(sim.SpeedDivisor))
 	}
 }
 
@@ -52,7 +52,7 @@ func TestResonatorCountsOrthogonalNeighbours(t *testing.T) {
 		s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 			Element:     sim.ElementHydrogen,
 			Mass:        bignum.One(),
-			Speed:       sim.SpeedDivisor,
+			Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
 			Direction:   sim.DirEast,
 			InDirection: sim.DirEast,
 			Position:    sim.Position{X: 1, Y: 2},
@@ -61,7 +61,7 @@ func TestResonatorCountsOrthogonalNeighbours(t *testing.T) {
 		s.CurrentLoad = 1
 		s.Tick()
 		// T1 bonus is +1 per neighbour.
-		want := sim.SpeedDivisor + c.wantAdd
+		want := sim.SpeedFromInt(sim.SpeedDivisor + c.wantAdd)
 		if got := s.Grid.Subjects[0].Speed; got != want {
 			t.Fatalf("neighbours N=%v E=%v S=%v: got %d want %d", c.placeN, c.placeE, c.placeS, got, want)
 		}
@@ -79,7 +79,7 @@ func TestResonatorTiersScalePerNeighbour(t *testing.T) {
 		s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 			Element:     sim.ElementHydrogen,
 			Mass:        bignum.One(),
-			Speed:       sim.SpeedDivisor,
+			Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
 			Direction:   sim.DirEast,
 			InDirection: sim.DirEast,
 			Position:    sim.Position{X: 1, Y: 2},
@@ -87,7 +87,7 @@ func TestResonatorTiersScalePerNeighbour(t *testing.T) {
 		})
 		s.CurrentLoad = 1
 		s.Tick()
-		want := sim.SpeedDivisor + 2*int(tier)
+		want := sim.SpeedFromInt(sim.SpeedDivisor + 2*int(tier))
 		if got := s.Grid.Subjects[0].Speed; got != want {
 			t.Fatalf("tier %d with 2 neighbours: got %d want %d", tier, got, want)
 		}

@@ -8,7 +8,7 @@ import (
 )
 
 func TestCollectValueHydrogenBaseline(t *testing.T) {
-	sub := Subject{Element: ElementHydrogen, Mass: bignum.FromInt(2), Speed: 3}
+	sub := Subject{Element: ElementHydrogen, Mass: bignum.FromInt(2), Speed: SpeedFromInt(3)}
 	got := collectValue(sub, GlobalModifiers{}.Normalized())
 	want := bignum.FromInt(6) // speedK=1, Hydrogen multiplier 1.0, Mg=0
 	if !got.Eq(want) {
@@ -17,16 +17,69 @@ func TestCollectValueHydrogenBaseline(t *testing.T) {
 }
 
 func TestCollectValueHeliumMultiplier(t *testing.T) {
-	sub := Subject{Element: ElementHelium, Mass: bignum.One(), Speed: 1}
+	sub := Subject{Element: ElementHelium, Mass: bignum.One(), Speed: SpeedFromInt(1)}
 	got := collectValue(sub, GlobalModifiers{}.Normalized())
-	if !got.Eq(bignum.MustParse("2.5")) {
-		t.Fatalf("Helium baseline: got %v want 2.5", got)
+	if !got.Eq(bignum.MustParse("1.5")) {
+		t.Fatalf("Helium baseline: got %v want 1.5", got)
+	}
+}
+
+func TestElementCatalogFirstTwenty(t *testing.T) {
+	if len(CatalogOrder) != 20 {
+		t.Fatalf("CatalogOrder length = %d, want 20", len(CatalogOrder))
+	}
+
+	seen := map[Element]bool{}
+	for i, e := range CatalogOrder {
+		info, ok := ElementCatalog[e]
+		if !ok {
+			t.Fatalf("CatalogOrder[%d] = %q missing from ElementCatalog", i, e)
+		}
+		if seen[e] {
+			t.Fatalf("duplicate Element in CatalogOrder: %q", e)
+		}
+		seen[e] = true
+		if info.AtomicNumber != i+1 {
+			t.Fatalf("%s AtomicNumber = %d, want %d", info.Name, info.AtomicNumber, i+1)
+		}
+		if info.Symbol == "" || info.Name == "" {
+			t.Fatalf("%q has incomplete display metadata: %#v", e, info)
+		}
+		if info.Period < 1 || info.Period > 7 || info.Group < 1 || info.Group > 18 {
+			t.Fatalf("%s has invalid periodic position: period=%d group=%d", info.Name, info.Period, info.Group)
+		}
+		if info.BaseMass.IsZero() || info.BaseSpeed <= 0 || info.Multiplier.IsZero() {
+			t.Fatalf("%s has invalid gameplay stats: mass=%v speed=%d multiplier=%v", info.Name, info.BaseMass, info.BaseSpeed, info.Multiplier)
+		}
+		if e == ElementHydrogen {
+			continue
+		}
+		if !seen[info.UnlocksFrom] {
+			t.Fatalf("%s unlocks from %q, which does not precede it in CatalogOrder", info.Name, info.UnlocksFrom)
+		}
+		if info.ResearchThreshold <= 0 || info.UnlockCost.IsZero() {
+			t.Fatalf("%s has invalid unlock gate: research=%d cost=%v", info.Name, info.ResearchThreshold, info.UnlockCost)
+		}
+	}
+}
+
+func TestElementCatalogUsesScienceBasedSpawnStats(t *testing.T) {
+	h := ElementCatalog[ElementHydrogen]
+	ca := ElementCatalog[ElementCalcium]
+	if !h.BaseMass.Eq(bignum.MustParse("1.008")) {
+		t.Fatalf("Hydrogen BaseMass = %v, want 1.008", h.BaseMass)
+	}
+	if !ca.BaseMass.Eq(bignum.MustParse("40.078")) {
+		t.Fatalf("Calcium BaseMass = %v, want 40.078", ca.BaseMass)
+	}
+	if h.BaseSpeed <= ca.BaseSpeed {
+		t.Fatalf("Hydrogen should start faster than Calcium: H=%d Ca=%d", h.BaseSpeed, ca.BaseSpeed)
 	}
 }
 
 func TestCollectValueMagnetismCoefficient(t *testing.T) {
-	withMag := Subject{Element: ElementHydrogen, Mass: bignum.One(), Speed: 1, Magnetism: bignum.FromInt(4)}
-	without := Subject{Element: ElementHydrogen, Mass: bignum.One(), Speed: 1}
+	withMag := Subject{Element: ElementHydrogen, Mass: bignum.One(), Speed: SpeedFromInt(1), Magnetism: bignum.FromInt(4)}
+	without := Subject{Element: ElementHydrogen, Mass: bignum.One(), Speed: SpeedFromInt(1)}
 	mods := GlobalModifiers{}.Normalized()
 	got := collectValue(withMag, mods).Sub(collectValue(without, mods))
 	want := bignum.FromInt(2)
@@ -37,7 +90,7 @@ func TestCollectValueMagnetismCoefficient(t *testing.T) {
 
 func TestCollectValueBaseFormula(t *testing.T) {
 	// value = (Mass×Speed×speedK + Magnetism×magK) × ElementMultiplier × CollectorValueMul.
-	sub := Subject{Element: ElementHydrogen, Mass: bignum.FromInt(3), Speed: 4, Magnetism: bignum.FromInt(2)}
+	sub := Subject{Element: ElementHydrogen, Mass: bignum.FromInt(3), Speed: SpeedFromInt(4), Magnetism: bignum.FromInt(2)}
 	got := collectValue(sub, GlobalModifiers{}.Normalized())
 	// Hand-computed: 3×4×1 + 2×0.5 = 13; Hydrogen multiplier 1.0; value = 13.
 	want := bignum.FromInt(13)
@@ -47,7 +100,7 @@ func TestCollectValueBaseFormula(t *testing.T) {
 }
 
 func TestCollectValueCollectorMultiplier(t *testing.T) {
-	sub := Subject{Element: ElementHydrogen, Mass: bignum.FromInt(2), Speed: 3}
+	sub := Subject{Element: ElementHydrogen, Mass: bignum.FromInt(2), Speed: SpeedFromInt(3)}
 	base := collectValue(sub, GlobalModifiers{}.Normalized())
 	boosted := collectValue(sub, GlobalModifiers{CollectorValueMul: bignum.MustParse("1.5")}.Normalized())
 	want := base.Mul(bignum.MustParse("1.5"))
@@ -120,7 +173,7 @@ func TestPurchaseElement(t *testing.T) {
 	}
 
 	// Unknown element.
-	if err := PurchaseElement(s, Element("neon")); !errors.Is(err, ErrElementUnknown) {
+	if err := PurchaseElement(s, Element("unobtainium")); !errors.Is(err, ErrElementUnknown) {
 		t.Fatalf("expected ErrElementUnknown, got %v", err)
 	}
 }

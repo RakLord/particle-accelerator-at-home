@@ -49,7 +49,7 @@ type GlobalModifiers struct {
 func (m GlobalModifiers) Normalized() GlobalModifiers
 ```
 
-The Decimal-vs-int split is deliberate: `AcceleratorSpeedBonus` stays integer because Speed is integer in the simulation. `ResearchPerCollectBonus` stays integer because research is an int counter. Everything else is multiplicative and uses `bignum.Decimal` to compose over long play sessions (ADR 0004).
+The Decimal-vs-int split is deliberate: `AcceleratorSpeedBonus` stays integer because it represents whole displayed Speed units and is converted to fixed-point at application time. `ResearchPerCollectBonus` stays integer because research is an int counter. Everything else is multiplicative and uses `bignum.Decimal` to compose over long play sessions (ADR 0004).
 
 **2. `GameState.Modifiers` is derived from `GameState.PurchasedUpgrades`.**
 

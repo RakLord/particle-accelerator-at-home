@@ -30,9 +30,10 @@ var ComponentCatalog = map[ComponentKind]ComponentCostInfo{
 	KindPipe:        {Base: bignum.MustParse("8"), Growth: bignum.MustParse("1.15")},
 	KindCollector:   {Base: bignum.MustParse("50"), Growth: bignum.MustParse("1.25")},
 	// Phase 4 components — prices to be refined after playtest.
-	KindResonator:  {Base: bignum.MustParse("50"), Growth: bignum.MustParse("1.35")},
+	KindResonator:  {Base: bignum.MustParse("50"), Growth: bignum.MustParse("4")},
 	KindCatalyst:   {Base: bignum.MustParse("1000"), Growth: bignum.MustParse("12")},
 	KindDuplicator: {Base: bignum.MustParse("10000"), Growth: bignum.MustParse("125")},
+	KindCompressor: {Base: bignum.MustParse("7000"), Growth: bignum.MustParse("15"), SoftCapAt: bignum.MustParse("1575000"), SoftCapPower: 2},
 }
 
 // CostModifier is the extension point for prestige / research / event effects

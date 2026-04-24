@@ -34,7 +34,7 @@ func TestGameStateRoundTripUnlockedElements(t *testing.T) {
 	s.Research[ElementHydrogen] = 15
 	s.UnlockedElements[ElementHelium] = true
 	s.BestStats[ElementHydrogen] = ElementBestStats{
-		MaxSpeed:          11,
+		MaxSpeed:          SpeedFromInt(11),
 		MaxMass:           bignum.FromInt(7),
 		MaxCollectedValue: bignum.FromInt(99),
 	}
@@ -55,7 +55,7 @@ func TestGameStateRoundTripUnlockedElements(t *testing.T) {
 		t.Fatalf("Hydrogen unlock flag lost on round-trip")
 	}
 	stats := loaded.BestStats[ElementHydrogen]
-	if stats.MaxSpeed != 11 {
+	if stats.MaxSpeed != SpeedFromInt(11) {
 		t.Fatalf("Hydrogen MaxSpeed lost on round-trip: got %d", stats.MaxSpeed)
 	}
 	if !stats.MaxMass.Eq(bignum.FromInt(7)) {
@@ -97,6 +97,33 @@ func TestLoadV2SaveDefaultsUnlockedElements(t *testing.T) {
 	}
 	if loaded.BestStats == nil {
 		t.Fatalf("save should default BestStats map")
+	}
+}
+
+func TestLoadV2SaveMigratesSpeedsToFixedPoint(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	t.Setenv("HOME", dir)
+
+	grid := `{"Cells":[[{},{},{},{},{}],[{},{},{},{},{}],[{},{},{},{},{}],[{},{},{},{},{}],[{},{},{},{},{}]],"Subjects":[{"Element":"hydrogen","Mass":"1e0","Speed":2,"Direction":1,"Position":{"X":0,"Y":0},"Load":1}]}`
+	state := `{"Layer":"genesis","Grid":` + grid + `,"USD":"0","Research":{},"BestStats":{"hydrogen":{"max_speed":3}},"collection_log":[{"element":"hydrogen","mass":"1e0","speed":4,"value":"4e0"}],"UnlockedElements":{"hydrogen":true},"MaxLoad":16,"CurrentLoad":1,"TickRate":10,"Ticks":0}`
+	env := `{"version":2,"state":` + state + `}`
+	if err := save.Write(saveKey, env); err != nil {
+		t.Fatalf("seed v2 save: %v", err)
+	}
+
+	loaded, ok, err := Load()
+	if err != nil || !ok {
+		t.Fatalf("Load v2 save: ok=%v err=%v", ok, err)
+	}
+	if got := loaded.Grid.Subjects[0].Speed; got != SpeedFromInt(2) {
+		t.Fatalf("Subject Speed after migration: got %d want %d", got, SpeedFromInt(2))
+	}
+	if got := loaded.BestStats[ElementHydrogen].MaxSpeed; got != SpeedFromInt(3) {
+		t.Fatalf("BestStats MaxSpeed after migration: got %d want %d", got, SpeedFromInt(3))
+	}
+	if got := loaded.CollectionLog[0].Speed; got != SpeedFromInt(4) {
+		t.Fatalf("CollectionLog Speed after migration: got %d want %d", got, SpeedFromInt(4))
 	}
 }
 

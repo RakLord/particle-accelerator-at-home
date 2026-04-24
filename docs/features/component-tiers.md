@@ -14,9 +14,9 @@ Tier 1 is the baseline. Higher tiers produce stronger effects (more Speed, more 
 |---|---|---|---|---|
 | Simple Accelerator | yes | `+1` Speed | `+2` | `+3` |
 | Magnetiser | yes | `+1` Magnetism | `+2` | `+3` |
-| Mesh Grid | yes | `÷2` Speed (band ≥ 2) | `÷3` (band ≥ 3) | `÷4` (band ≥ 4) |
+| Mesh Grid | yes | `÷2` Speed | `÷3` | `÷4` |
 | Resonator | yes | `+1` Speed per neighbour | `+2` | `+3` |
-| Catalyst | yes | Mass `×1.5` (research ≥ 25) | `×2.0` | `×3.0` |
+| Catalyst | yes | Mass `× (1 + k·log₁₀(R−24))` when R ≥ 25; `k = 0.70` | `k = 0.95` | `k = 1.25` |
 | Duplicator | yes | Mass `×0.5` per output | `×0.6` | `×0.75` |
 | Injector | no | Per-instance config (direction, interval); Element is selected globally in the Codex |
 | Rotator / Elbow | no | Per-instance orientation |

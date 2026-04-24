@@ -9,7 +9,7 @@ import (
 
 const (
 	saveKey        = "state"
-	currentVersion = 2
+	currentVersion = 3
 )
 
 type saveEnvelope struct {
@@ -87,7 +87,7 @@ func Load() (*GameState, bool, error) {
 	if err := json.Unmarshal([]byte(raw), &env); err != nil {
 		return nil, false, err
 	}
-	if env.Version != currentVersion {
+	if env.Version != 2 && env.Version != currentVersion {
 		return nil, false, fmt.Errorf("sim: unsupported save version %d", env.Version)
 	}
 	state := NewGameState()
@@ -99,6 +99,9 @@ func Load() (*GameState, bool, error) {
 	state.InjectionElement = ""
 	if err := json.Unmarshal(env.State, state); err != nil {
 		return nil, false, err
+	}
+	if env.Version < 3 {
+		migrateV2Speeds(state)
 	}
 	if state.Grid == nil {
 		state.Grid = NewGrid()
@@ -160,6 +163,25 @@ func Load() (*GameState, bool, error) {
 		sub.InDirection = sub.Direction
 	}
 	return state, true, nil
+}
+
+func migrateV2Speeds(state *GameState) {
+	if state == nil {
+		return
+	}
+	for i := range state.CollectionLog {
+		state.CollectionLog[i].Speed = state.CollectionLog[i].Speed.ScaledFromLegacy()
+	}
+	for e, stats := range state.BestStats {
+		stats.MaxSpeed = stats.MaxSpeed.ScaledFromLegacy()
+		state.BestStats[e] = stats
+	}
+	if state.Grid == nil {
+		return
+	}
+	for i := range state.Grid.Subjects {
+		state.Grid.Subjects[i].Speed = state.Grid.Subjects[i].Speed.ScaledFromLegacy()
+	}
 }
 
 func legacyInjectionElement(state *GameState) Element {

@@ -14,6 +14,8 @@ import "embed"
 //go:embed images/tiles/accelerator_bottom.png
 //go:embed images/tiles/accelerator_top.png
 //go:embed images/tiles/mesh_grid_top.png
+//go:embed images/tiles/mesh_grid_hori.png
+//go:embed images/tiles/mesh_grid_vert.png
 //go:embed images/tiles/collector.png
 //go:embed images/tiles/injector.png
 //go:embed images/tiles/magnetiser_top.png
@@ -23,4 +25,5 @@ import "embed"
 //go:embed images/tiles/magnetiser_logo.png
 //go:embed images/tiles/pipe_logo.png
 //go:embed images/tiles/turn_logo.png
+//go:embed images/tiles/injector_logo.png
 var TileFS embed.FS

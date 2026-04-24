@@ -33,10 +33,16 @@ func (inj *Injector) MaybeSpawn(ctx sim.ApplyContext, pos sim.Position) (sim.Sub
 }
 
 func (inj *Injector) Spawn(ctx sim.ApplyContext, pos sim.Position) (sim.Subject, bool) {
+	e := ctx.InjectionElement
+	info, ok := sim.ElementCatalog[e]
+	if !ok {
+		e = sim.ElementHydrogen
+		info = sim.ElementCatalog[e]
+	}
 	return sim.Subject{
-		Element:     ctx.InjectionElement,
-		Mass:        bignum.One(),
-		Speed:       1,
+		Element:     e,
+		Mass:        info.BaseMass,
+		Speed:       info.BaseSpeed,
 		Direction:   inj.Direction,
 		InDirection: inj.Direction, // spawn cell renders as straight pass-through
 		Position:    pos,
@@ -44,7 +50,7 @@ func (inj *Injector) Spawn(ctx sim.ApplyContext, pos sim.Position) (sim.Subject,
 		// Start at the cell center visually (half-cell of progress already spent).
 		// This costs half a SpeedDivisor off the first step but keeps spawns from
 		// appearing on the cell's back edge.
-		StepProgress: sim.SpeedDivisor / 2,
+		StepProgress: sim.StepProgressPerCell / 2,
 	}, true
 }
 

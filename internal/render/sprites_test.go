@@ -25,23 +25,23 @@ func TestSpriteLayersForComponent(t *testing.T) {
 		}
 	})
 
-	t.Run("horizontal mesh uses horizontal pipe and rotated overlay", func(t *testing.T) {
+	t.Run("horizontal mesh uses horizontal pipe and horizontal overlay", func(t *testing.T) {
 		layers := spriteLayersForComponent(&components.MeshGrid{Orientation: sim.DirEast})
 		if len(layers.base) != 0 {
 			t.Fatalf("mesh base = %+v, want none", layers.base)
 		}
-		if len(layers.top) != 2 || layers.top[0].image != sprites.pipeHori || layers.top[1].image != sprites.meshGridTop {
-			t.Fatalf("mesh top = %+v, want pipeHori then meshGridTop", layers.top)
+		if len(layers.top) != 2 || layers.top[0].image != sprites.pipeHori || layers.top[1].image != sprites.meshGridHori {
+			t.Fatalf("mesh top = %+v, want pipeHori then meshGridHori", layers.top)
 		}
-		if layers.top[1].rotation != cardinalRotation(sim.DirEast) {
-			t.Fatalf("mesh rotation = %v, want %v", layers.top[1].rotation, cardinalRotation(sim.DirEast))
+		if layers.top[1].rotation != 0 {
+			t.Fatalf("mesh rotation = %v, want 0 (orientation baked into sprite)", layers.top[1].rotation)
 		}
 	})
 
-	t.Run("vertical mesh uses vertical pipe", func(t *testing.T) {
+	t.Run("vertical mesh uses vertical pipe and vertical overlay", func(t *testing.T) {
 		layers := spriteLayersForComponent(&components.MeshGrid{Orientation: sim.DirNorth})
-		if len(layers.top) != 2 || layers.top[0].image != sprites.pipeVert {
-			t.Fatalf("vertical mesh top = %+v, want pipeVert first", layers.top)
+		if len(layers.top) != 2 || layers.top[0].image != sprites.pipeVert || layers.top[1].image != sprites.meshGridVert {
+			t.Fatalf("vertical mesh top = %+v, want pipeVert then meshGridVert", layers.top)
 		}
 	})
 

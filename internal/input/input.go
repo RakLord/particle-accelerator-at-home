@@ -69,6 +69,9 @@ func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 	case ui.ToolDuplicator:
 		cell.Component = &components.Duplicator{Orientation: sim.DirWest}
 		cell.IsCollector = false
+	case ui.ToolCompressor:
+		cell.Component = &components.Compressor{}
+		cell.IsCollector = false
 	}
 }
 
@@ -113,6 +116,8 @@ func PickToolAt(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 		u.Selected = ui.ToolCatalyst
 	case *components.Duplicator:
 		u.Selected = ui.ToolDuplicator
+	case *components.Compressor:
+		u.Selected = ui.ToolCompressor
 	}
 }
 

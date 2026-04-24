@@ -11,7 +11,7 @@ func TestMagnetiserT1AddsBaseBonus(t *testing.T) {
 	m := &Magnetiser{}
 	ctx := sim.NewTestApplyContext()
 	// T1 bonus is +1 (from magnetiserBonusByTier[1]).
-	out, lost := m.Apply(ctx, sim.Subject{Speed: 2, Magnetism: bignum.MustParse("0.5")})
+	out, lost := m.Apply(ctx, sim.Subject{Speed: sim.SpeedFromInt(2), Magnetism: bignum.MustParse("0.5")})
 	if lost {
 		t.Fatal("magnetiser should never destroy subjects")
 	}
@@ -33,7 +33,7 @@ func TestMagnetiserTiersScale(t *testing.T) {
 		m := &Magnetiser{}
 		ctx := sim.NewTestApplyContext()
 		ctx.Tiers = testTierView(map[sim.ComponentKind]sim.Tier{sim.KindMagnetiser: c.tier})
-		out, lost := m.Apply(ctx, sim.Subject{Speed: 2, Magnetism: bignum.Zero()})
+		out, lost := m.Apply(ctx, sim.Subject{Speed: sim.SpeedFromInt(2), Magnetism: bignum.Zero()})
 		if lost {
 			t.Fatal("magnetiser should never destroy subjects")
 		}
@@ -48,7 +48,7 @@ func TestMagnetiserAppliesGlobalMultiplier(t *testing.T) {
 	ctx := sim.NewTestApplyContext()
 	ctx.Modifiers = sim.GlobalModifiers{MagnetiserBonusMul: bignum.MustParse("1.5")}.Normalized()
 	// T1 bonus (1) × modifier (1.5) = 1.5, added to starting 0.
-	out, lost := m.Apply(ctx, sim.Subject{Speed: 2, Magnetism: bignum.Zero()})
+	out, lost := m.Apply(ctx, sim.Subject{Speed: sim.SpeedFromInt(2), Magnetism: bignum.Zero()})
 	if lost {
 		t.Fatal("magnetiser should never destroy subjects")
 	}

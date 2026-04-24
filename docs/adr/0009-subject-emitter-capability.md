@@ -85,7 +85,7 @@ Alternative: reject the whole ApplySplit atomically if any extra can't fit. Reje
 
 **4. Extras bypass the cell they were emitted from.**
 
-Extras start positioned at the emitter's cell with `InDirection` set by the Splitter itself and `StepProgress` at the standard spawn value (`SpeedDivisor / 2`, matching Injector). They are not re-fed through the emitter's `Apply` on the same tick — that would loop. They travel on the next tick like any other Subject.
+Extras start positioned at the emitter's cell with `InDirection` set by the Splitter itself and `StepProgress` at the standard spawn value (`StepProgressPerCell / 2`, matching Injector). They are not re-fed through the emitter's `Apply` on the same tick — that would loop. They travel on the next tick like any other Subject.
 
 This matches how a real T-junction behaves: both output pipes are different paths, not another trip through the junction.
 

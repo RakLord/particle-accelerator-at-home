@@ -62,6 +62,13 @@ var ToolInfoCatalog = map[Tool]ToolInfo{
 			"Speed and Magnetism copy unchanged. " +
 			"At T1 total Mass is conserved — the win comes from parallelism. Higher tiers actively create Mass.",
 	},
+	ToolCompressor: {
+		Name:    "Compressor",
+		Tagline: "Inverse-Speed Mass multiplier. Rewards deliberately-slowed paths.",
+		Description: "At Speed 1.00 and above the Compressor is inert. Below 1.00 it multiplies Mass by the inverse of Speed — a Subject moving at 0.10 collects at ×10 Mass (T1). " +
+			"Tier scales the coefficient (×1.5 at T2, ×2 at T3), so the same slowdown is worth more over time. " +
+			"Pairs naturally with Mesh Grid: throttle a Subject into a slow lane, then stack Compressors to cash in.",
+	},
 	ToolElbow: {
 		Name:    "Elbow (turn)",
 		Tagline: "Redirects a Subject by 90°.",

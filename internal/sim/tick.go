@@ -2,9 +2,10 @@ package sim
 
 import "particleaccelerator/internal/bignum"
 
-// SpeedDivisor is the number of StepProgress units equal to one cell of
-// movement. With the default SpeedDivisor=10, a Subject with base Speed=1
-// moves one cell every 10 ticks; Speed=20 moves two cells per tick.
+// SpeedDivisor is the number of displayed Speed=1 ticks needed to cross one
+// cell. Fixed-point StepProgress crosses a cell at StepProgressPerCell.
+// With the default SpeedDivisor=10, a Subject with Speed=1 moves one cell
+// every 10 ticks; Speed=2 moves one cell every 5 ticks.
 // See docs/features/smooth-motion.md.
 const SpeedDivisor = 10
 
@@ -132,8 +133,8 @@ func (s *GameState) stepSubject(sub *Subject, pending *[]Subject) (collected, lo
 	sub.Path = append(sub.Path[:0], sub.Position)
 
 	sub.StepProgress += sub.Speed
-	for sub.StepProgress >= SpeedDivisor {
-		sub.StepProgress -= SpeedDivisor
+	for sub.StepProgress >= StepProgressPerCell {
+		sub.StepProgress -= StepProgressPerCell
 		dx, dy := sub.Direction.Step()
 		nx, ny := sub.Position.X+dx, sub.Position.Y+dy
 		if nx < 0 || nx >= GridSize || ny < 0 || ny >= GridSize {

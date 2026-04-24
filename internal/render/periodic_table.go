@@ -18,13 +18,13 @@ const (
 	codexPeriodLabelW = 20
 
 	codexCardW      = 380
-	codexCardH      = 334
+	codexCardH      = 382
 	codexUnlockBtnW = 220
 	codexUnlockBtnH = 40
 	codexCardStatsX = 28
 	codexCardValueX = 230
-	codexCardStatsY = 156
-	codexCardRowGap = 26
+	codexCardStatsY = 148
+	codexCardRowGap = 24
 	codexNoticeH    = 18
 )
 
@@ -190,15 +190,17 @@ func drawCodexCard(dst *ebiten.Image, s *sim.GameState, e sim.Element) {
 	drawTextFaceCentered(dst, "Period "+itoa(info.Period)+" · Group "+itoa(info.Group), x, y+118, codexCardW, 18, fontSmall, colorTextMuted)
 
 	drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+0*codexCardRowGap, "Research", itoa(s.Research[e]))
-	drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+1*codexCardRowGap, "Multiplier", formatMultiplier(sim.ElementCatalog[e].Multiplier))
+	drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+1*codexCardRowGap, "Base Mass", formatNumber(info.BaseMass))
+	drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+2*codexCardRowGap, "Base Speed", formatSpeed(info.BaseSpeed))
+	drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+3*codexCardRowGap, "Multiplier", formatMultiplier(info.Multiplier))
 
 	stats := s.BestStats[e]
 	if stats.MaxSpeed == 0 && stats.MaxMass.IsZero() && stats.MaxCollectedValue.IsZero() {
-		drawTextCentered(dst, "No codex records yet.", x, y+codexCardStatsY+2*codexCardRowGap+8, codexCardW, 18, colorTextMuted)
+		drawTextCentered(dst, "No codex records yet.", x, y+codexCardStatsY+4*codexCardRowGap+8, codexCardW, 18, colorTextMuted)
 	} else {
-		drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+2*codexCardRowGap, "Max Speed", itoa(stats.MaxSpeed))
-		drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+3*codexCardRowGap, "Max Mass", formatNumber(stats.MaxMass))
-		drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+4*codexCardRowGap, "Best Value", formatUSD(stats.MaxCollectedValue))
+		drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+4*codexCardRowGap, "Max Speed", formatSpeed(stats.MaxSpeed))
+		drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+5*codexCardRowGap, "Max Mass", formatNumber(stats.MaxMass))
+		drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+6*codexCardRowGap, "Best Value", formatUSD(stats.MaxCollectedValue))
 	}
 
 	if sim.IsElementUnlocked(s, e) {

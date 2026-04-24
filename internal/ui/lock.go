@@ -47,6 +47,8 @@ func KindForTool(t Tool) sim.ComponentKind {
 		return sim.KindCatalyst
 	case ToolDuplicator:
 		return sim.KindDuplicator
+	case ToolCompressor:
+		return sim.KindCompressor
 	}
 	return ""
 }
@@ -66,4 +68,5 @@ var PlaceableTools = []Tool{
 	ToolResonator,
 	ToolCatalyst,
 	ToolDuplicator,
+	ToolCompressor,
 }

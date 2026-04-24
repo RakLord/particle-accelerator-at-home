@@ -35,7 +35,7 @@ type Position struct {
 type Subject struct {
 	Element   Element
 	Mass      bignum.Decimal
-	Speed     int
+	Speed     Speed
 	Magnetism bignum.Decimal
 	Direction Direction
 	Position  Position
@@ -55,6 +55,6 @@ type Subject struct {
 	PrevInDirection  Direction  `json:"-"` // snapshot of InDirection at tick start
 	PrevPosition     Position   `json:"-"` // snapshot of Position at tick start (== Path[0] when Path is non-empty)
 	Path             []Position `json:"-"` // cells visited this tick, starting with PrevPosition
-	StepProgress     int        `json:"-"` // accumulator in [0, SpeedDivisor)
-	PrevStepProgress int        `json:"-"` // snapshot at tick start
+	StepProgress     Speed      `json:"-"` // accumulator in [0, StepProgressPerCell)
+	PrevStepProgress Speed      `json:"-"` // snapshot at tick start
 }

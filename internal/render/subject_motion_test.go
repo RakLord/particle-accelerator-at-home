@@ -24,13 +24,13 @@ func TestSubjectPixelStraightInCell(t *testing.T) {
 		PrevInDirection:  sim.DirEast,
 		Position:         sim.Position{X: 2, Y: 2},
 		Path:             []sim.Position{{X: 2, Y: 2}},
-		StepProgress:     5,
-		PrevStepProgress: 5,
-		Speed:            1,
+		StepProgress:     sim.StepProgressPerCell / 2,
+		PrevStepProgress: sim.StepProgressPerCell / 2,
+		Speed:            sim.SpeedFromInt(1),
 	}
 	gotX, gotY := subjectPixel(sub, 0)
 	cx, cy := cellCenterF(sub.Position)
-	// StepProgress=5 / SpeedDivisor=10 = 0.5 → cell center on a straight cell.
+	// StepProgress is half a cell, so a straight cell renders at its center.
 	if !approxEq(gotX, cx, 0.5) || !approxEq(gotY, cy, 0.5) {
 		t.Fatalf("center: got (%v,%v) want (%v,%v)", gotX, gotY, cx, cy)
 	}
@@ -49,9 +49,9 @@ func TestSubjectPixelArcThroughRotator(t *testing.T) {
 		PrevInDirection:  sim.DirEast,
 		Position:         sim.Position{X: 2, Y: 2},
 		Path:             []sim.Position{{X: 2, Y: 2}},
-		StepProgress:     5,
-		PrevStepProgress: 5,
-		Speed:            1,
+		StepProgress:     sim.StepProgressPerCell / 2,
+		PrevStepProgress: sim.StepProgressPerCell / 2,
+		Speed:            sim.SpeedFromInt(1),
 	}
 	gotX, gotY := subjectPixel(sub, 0)
 	cx, cy := cellCenterF(sub.Position)

@@ -1,6 +1,9 @@
 package render
 
-import "particleaccelerator/internal/bignum"
+import (
+	"particleaccelerator/internal/bignum"
+	"particleaccelerator/internal/sim"
+)
 
 const numberDisplayMode = bignum.DisplayScientific
 
@@ -21,4 +24,8 @@ func formatMultiplier(v bignum.Decimal) string {
 
 func formatNumber(v bignum.Decimal) string {
 	return v.Format(numberDisplayMode, 2)
+}
+
+func formatSpeed(v sim.Speed) string {
+	return v.Decimal().Format(numberDisplayMode, 2)
 }

@@ -24,7 +24,7 @@ Genre: incremental / idle. Platform: browser (Ebitengine → WASM → GitHub Pag
 Every Subject carries:
 - `Element`
 - `Mass` — derived from Element plus any modifiers applied en route
-- `Speed` — cells per tick
+- `Speed` — fixed-point movement rate; `Speed 1.00` crosses one cell every `sim.SpeedDivisor` ticks
 - `Magnetism`
 - `Charge` (reserved for future)
 - `Direction` — N/E/S/W
@@ -36,7 +36,7 @@ When adding or retuning Components, use `docs/features/component-creation-and-ba
 
 ## Simulation model
 - **Fixed logical tick rate**, user-configurable. Logical state advances only on ticks. This keeps the simulation deterministic for saves and offline progress. The constant lives at `sim.DefaultTickRate`.
-  - Render-side interpolation is live (see `docs/features/smooth-motion.md`): Subjects glide between ticks along a recorded per-tick `Path`, with quarter arcs through rotator cells. A `sim.SpeedDivisor` of 10 means base `Speed=1` traverses one cell every 10 ticks; the tick rate itself stays at 10 Hz for now.
+  - Render-side interpolation is live (see `docs/features/smooth-motion.md`): Subjects glide between ticks along a recorded per-tick `Path`, with quarter arcs through rotator cells. A `sim.SpeedDivisor` of 10 means displayed `Speed=1` traverses one cell every 10 ticks; the tick rate itself stays at 10 Hz for now.
 - Multiple Subjects may be on-grid simultaneously, capped by **Max Load**.
 - Collision handling (two Subjects in the same cell on the same tick) is TBD; MVP rule: ignore, both pass through.
 
@@ -53,6 +53,7 @@ When adding or retuning Components, use `docs/features/component-creation-and-ba
 - **Resonator** — neighbour-aware Speed boost (`docs/features/component-resonator.md`).
 - **Catalyst** — research-gated Mass multiplier (`docs/features/component-catalyst.md`).
 - **Duplicator** — T-junction that emits two Subjects (`docs/features/component-duplicator.md`).
+- **Compressor** — inverse-Speed Mass multiplier; rewards slowed paths (`docs/features/component-compressor.md`).
 
 ### Design principle — speed bands
 Some Components should only trigger (or change behaviour) within specific Speed ranges. This is what makes Mesh Grid a *tool* instead of a trap. Exact bands per Component live in the relevant feature doc.

@@ -21,7 +21,7 @@ var magnetiserBonusByTier = []bignum.Decimal{
 	bignum.FromInt(3),
 }
 
-const magnetiserMinSpeed = 1
+const magnetiserMinSpeed sim.Speed = sim.SpeedScale
 
 func (*Magnetiser) Kind() sim.ComponentKind { return sim.KindMagnetiser }
 

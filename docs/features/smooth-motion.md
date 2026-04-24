@@ -6,16 +6,16 @@
 
 Previously, Subjects snapped to their logical cell each tick. `DefaultTickRate=10 Hz` was a workaround for the resulting teleport visual. This feature adds:
 
-1. A sim-side **SpeedDivisor** so base `Speed=1` traverses one cell every 10 ticks (≈ 1 s) instead of one per tick — the previous speed felt too fast even when smoothed.
+1. A sim-side **SpeedDivisor** so displayed `Speed=1` traverses one cell every 10 ticks (≈ 1 s) instead of one per tick — the previous speed felt too fast even when smoothed.
 2. A render-side **alpha** (wall-clock fraction within the current sim tick) used to interpolate Subjects between ticks, including fractional in-cell glide during the 9 of 10 ticks where no cell boundary is crossed.
 3. **Quarter-arc rendering through rotator cells** so subjects curve around turns instead of L-cutting through the cell center.
 4. A toggleable **particle trail** (default on) that leaves a fading dot behind each Subject.
 
 ## Sim contract
 
-`sim.SpeedDivisor = 10`. Every tick, each Subject accumulates its `Speed` into `StepProgress`; every `SpeedDivisor` of accumulated progress corresponds to one cell of movement. A Subject with base `Speed=1` crosses one cell every 10 ticks; `Speed=10` crosses one per tick; `Speed=20` crosses two.
+`sim.SpeedDivisor = 10`. Speed is fixed-point hundredths: internal `100` displays as `Speed=1`. Every tick, each Subject accumulates its fixed-point `Speed` into `StepProgress`; every `sim.StepProgressPerCell` of accumulated progress corresponds to one cell of movement. A Subject with displayed `Speed=1` crosses one cell every 10 ticks; `Speed=10` crosses one per tick; `Speed=20` crosses two.
 
-Speed's meaning in the collection-value formula (`internal/sim/economy.go`) is **unchanged** — `collectValue` still reads `s.Speed` directly. SpeedDivisor is purely a movement-rate divisor; economy math is orthogonal.
+Speed's meaning in the collection-value formula (`internal/sim/economy.go`) is **unchanged** at the UI level — `collectValue` converts fixed-point `s.Speed` back to the displayed value before multiplying. SpeedDivisor is purely a movement-rate divisor; economy math is orthogonal.
 
 `stepSubject` (`internal/sim/tick.go`) snapshots the per-tick motion state before advancing:
 

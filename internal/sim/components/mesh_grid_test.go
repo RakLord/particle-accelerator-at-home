@@ -10,14 +10,14 @@ import (
 
 func TestMeshGridHalvesSpeed(t *testing.T) {
 	cases := []struct {
-		in, out int
+		in, out sim.Speed
 	}{
-		{6, 3},
-		{5, 2},
-		{4, 2},
-		{3, 1},
-		{2, 1},
-		{1, 1}, // band-gated: below meshGridMinSpeed, no-op
+		{sim.SpeedFromInt(6), sim.SpeedFromInt(3)},
+		{sim.SpeedFromInt(5), sim.SpeedFromRatio(5, 2)},
+		{sim.SpeedFromInt(4), sim.SpeedFromInt(2)},
+		{sim.SpeedFromInt(3), sim.SpeedFromRatio(3, 2)},
+		{sim.SpeedFromInt(2), sim.SpeedFromInt(1)},
+		{sim.SpeedFromInt(1), sim.SpeedFromRatio(1, 2)},
 		{0, 0},
 	}
 	mg := &MeshGrid{Orientation: sim.DirEast}
@@ -38,7 +38,7 @@ func TestMeshGridPreservesOtherFields(t *testing.T) {
 	in := sim.Subject{
 		Element:     sim.ElementHelium,
 		Mass:        bignum.FromInt(2),
-		Speed:       4,
+		Speed:       sim.SpeedFromInt(4),
 		Magnetism:   bignum.FromInt(3),
 		Direction:   sim.DirWest,
 		InDirection: sim.DirEast,
@@ -56,7 +56,7 @@ func TestMeshGridPreservesOtherFields(t *testing.T) {
 
 func TestMeshGridRejectsSideEntry(t *testing.T) {
 	mg := &MeshGrid{Orientation: sim.DirNorth}
-	_, lost := mg.Apply(sim.NewTestApplyContext(), sim.Subject{Speed: 4, InDirection: sim.DirEast})
+	_, lost := mg.Apply(sim.NewTestApplyContext(), sim.Subject{Speed: sim.SpeedFromInt(4), InDirection: sim.DirEast})
 	if !lost {
 		t.Fatal("expected mesh grid to reject side entry")
 	}
@@ -65,15 +65,15 @@ func TestMeshGridRejectsSideEntry(t *testing.T) {
 func TestMeshGridTiersChangeDivisor(t *testing.T) {
 	cases := []struct {
 		tier    sim.Tier
-		inSpeed int
-		want    int
+		inSpeed sim.Speed
+		want    sim.Speed
 	}{
-		{sim.BaseTier, 6, 3}, // T1 halves
-		{sim.Tier(2), 6, 2},  // T2 thirds
-		{sim.Tier(3), 8, 2},  // T3 quarters
-		// Below each tier's min-speed band, component is inert.
-		{sim.Tier(2), 2, 2}, // band is 3 at T2
-		{sim.Tier(3), 3, 3}, // band is 4 at T3
+		{sim.BaseTier, sim.SpeedFromInt(6), sim.SpeedFromInt(3)},     // T1 halves
+		{sim.Tier(2), sim.SpeedFromInt(6), sim.SpeedFromInt(2)},      // T2 thirds
+		{sim.Tier(3), sim.SpeedFromInt(8), sim.SpeedFromInt(2)},      // T3 quarters
+		{sim.Tier(2), sim.SpeedFromInt(2), sim.SpeedFromRatio(2, 3)}, // fractional output
+		{sim.Tier(3), sim.SpeedFromInt(3), sim.SpeedFromRatio(3, 4)}, // fractional output
+		{sim.BaseTier, sim.MinSpeed, sim.MinSpeed},                   // non-zero speeds never become trapped
 	}
 	for _, c := range cases {
 		mg := &MeshGrid{Orientation: sim.DirEast}

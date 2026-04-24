@@ -27,17 +27,20 @@ type tileSprites struct {
 	acceleratorBottom *ebiten.Image
 	acceleratorTop    *ebiten.Image
 	meshGridTop       *ebiten.Image
+	meshGridHori      *ebiten.Image
+	meshGridVert      *ebiten.Image
 
 	injector         *ebiten.Image
 	magnetiserTop    *ebiten.Image
 	magnetiserBottom *ebiten.Image
 	collector        *ebiten.Image
 
-	accelLogo  *ebiten.Image
-	meshLogo   *ebiten.Image
-	magnetLogo *ebiten.Image
-	pipeLogo   *ebiten.Image
-	turnLogo   *ebiten.Image
+	accelLogo    *ebiten.Image
+	meshLogo     *ebiten.Image
+	magnetLogo   *ebiten.Image
+	pipeLogo     *ebiten.Image
+	turnLogo     *ebiten.Image
+	injectorLogo *ebiten.Image
 }
 
 var sprites = mustLoadTileSprites()
@@ -56,17 +59,20 @@ func mustLoadTileSprites() tileSprites {
 		acceleratorBottom: mustLoadTileSprite("images/tiles/accelerator_bottom.png"),
 		acceleratorTop:    mustLoadTileSprite("images/tiles/accelerator_top.png"),
 		meshGridTop:       mustLoadTileSprite("images/tiles/mesh_grid_top.png"),
+		meshGridHori:      mustLoadTileSprite("images/tiles/mesh_grid_hori.png"),
+		meshGridVert:      mustLoadTileSprite("images/tiles/mesh_grid_vert.png"),
 
 		injector:         mustLoadTileSprite("images/tiles/injector.png"),
 		magnetiserTop:    mustLoadTileSprite("images/tiles/magnetiser_top.png"),
 		magnetiserBottom: mustLoadTileSprite("images/tiles/magnetiser_bottom.png"),
 		collector:        mustLoadTileSprite("images/tiles/collector.png"),
 
-		accelLogo:  mustLoadTileSprite("images/tiles/accelerator_logo.png"),
-		meshLogo:   mustLoadTileSprite("images/tiles/mesh_grid_logo.png"),
-		magnetLogo: mustLoadTileSprite("images/tiles/magnetiser_logo.png"),
-		pipeLogo:   mustLoadTileSprite("images/tiles/pipe_logo.png"),
-		turnLogo:   mustLoadTileSprite("images/tiles/turn_logo.png"),
+		accelLogo:    mustLoadTileSprite("images/tiles/accelerator_logo.png"),
+		meshLogo:     mustLoadTileSprite("images/tiles/mesh_grid_logo.png"),
+		magnetLogo:   mustLoadTileSprite("images/tiles/magnetiser_logo.png"),
+		pipeLogo:     mustLoadTileSprite("images/tiles/pipe_logo.png"),
+		turnLogo:     mustLoadTileSprite("images/tiles/turn_logo.png"),
+		injectorLogo: mustLoadTileSprite("images/tiles/injector_logo.png"),
 	}
 }
 
@@ -96,11 +102,10 @@ func spriteLayersForComponent(c sim.Component) componentSpriteLayers {
 			},
 		}
 	case *components.MeshGrid:
-		rotation := cardinalRotation(v.Orientation)
 		return componentSpriteLayers{
 			top: []spriteLayer{
 				{image: pipeSpriteForOrientation(v.Orientation)},
-				{image: sprites.meshGridTop, rotation: rotation},
+				{image: meshGridSpriteForOrientation(v.Orientation)},
 			},
 		}
 	case *components.Magnetiser:
@@ -133,6 +138,9 @@ func spriteLayersForComponent(c sim.Component) componentSpriteLayers {
 				{image: turnSpriteForOrientation(v.Orientation)},
 			},
 		}
+	case *components.Compressor:
+		// Placeholder: a plain horizontal pipe until dedicated art lands.
+		return componentSpriteLayers{top: []spriteLayer{{image: sprites.pipeHori}}}
 	}
 	return componentSpriteLayers{}
 }
@@ -151,6 +159,13 @@ func pipeSpriteForOrientation(d sim.Direction) *ebiten.Image {
 		return sprites.pipeVert
 	}
 	return sprites.pipeHori
+}
+
+func meshGridSpriteForOrientation(d sim.Direction) *ebiten.Image {
+	if d == sim.DirNorth || d == sim.DirSouth {
+		return sprites.meshGridVert
+	}
+	return sprites.meshGridHori
 }
 
 func turnSpriteForOrientation(d sim.Direction) *ebiten.Image {
@@ -257,16 +272,19 @@ func tileSpriteForTool(t ui.Tool) *ebiten.Image {
 		return sprites.injector
 	case ui.ToolDuplicator:
 		return sprites.turnNE
+	case ui.ToolCompressor:
+		return sprites.pipeHori
 	}
 	return nil
 }
 
 // logoSpriteForTool returns the inventory-facing logo icon for a Tool.
-// Dedicated logos exist for Accelerator, Mesh Grid, and Magnetiser; every
-// other Tool falls back to the generic pipe logo as a placeholder until
-// bespoke art lands.
+// Dedicated logos exist for Injector, Accelerator, Mesh Grid, Magnetiser,
+// and Elbow. Every other Tool falls back to the generic pipe logo.
 func logoSpriteForTool(t ui.Tool) *ebiten.Image {
 	switch t {
+	case ui.ToolInjector:
+		return sprites.injectorLogo
 	case ui.ToolAccelerator:
 		return sprites.accelLogo
 	case ui.ToolMeshGrid:

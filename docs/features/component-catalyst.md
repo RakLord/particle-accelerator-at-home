@@ -24,17 +24,27 @@ Catalyst rewards **research investment retroactively**. Early-game builds place 
 
 The component pairs with heavier Elements: a Catalyst that only activates at Helium research ≥ 20 is a natural way to make late-game Elements feel distinct from early-game ones on the same board.
 
+## Scaling with research
+
+Below the threshold the Catalyst is inert. At or above it, the Mass multiplier scales with the Subject Element's research level:
+
+```
+mul = 1 + k · log10(research − 24)
+```
+
+At exactly `research = 25`, `log10(1) = 0` so `mul = 1.0` — the component activates but applies a unity factor. This is deliberate: the first collection past the gate is a soft on-ramp, not a sudden cliff. Each additional research point lifts the curve, and the effect compounds with whatever Mass scaling the rest of the board already applies.
+
 ## Tiers
 
-Tierable. See `docs/features/component-tiers.md`. Higher tiers increase the Mass multiplier. The research threshold itself is fixed per Catalyst (a tier up makes the effect stronger, not easier to activate).
+Tierable. See `docs/features/component-tiers.md`. Higher tiers steepen the curve via a larger `k`; the research activation threshold (`25`) is fixed across tiers — a tier up makes the effect stronger, not easier to activate.
 
-| Tier | Mass multiplier |
-|---|---|
-| T1 | `×1.5` |
-| T2 | `×2.0` |
-| T3 | `×3.0` |
+| Tier | `k`  | Sample multiplier at R = 30 / 50 / 100 / 500 |
+|------|-----:|---|
+| T1 | 0.70 | 1.54 / 1.99 / 2.32 / 2.87 |
+| T2 | 0.95 | 1.74 / 2.34 / 2.79 / 3.54 |
+| T3 | 1.25 | 1.97 / 2.77 / 3.35 / 4.35 |
 
-The research activation threshold is `25` research for the Subject's own Element (see `catalystResearchThreshold` in `internal/sim/components/catalyst.go`). Tier tables live in the same file.
+Tier coefficients (`catalystKByTier`) and the threshold (`catalystResearchThreshold`) both live in `internal/sim/components/catalyst.go`.
 
 ## Related
 

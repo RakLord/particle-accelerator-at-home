@@ -68,7 +68,7 @@ Stat tables are flat int (or Decimal) slices indexed by tier. Index-out-of-range
 ```go
 // internal/sim/components/accelerator.go (sketch)
 
-var acceleratorSpeedByTier = []int{0, 1, 2, 3} // idx=0 unused; T1=+1, T2=+2, T3=+3
+var acceleratorSpeedByTier = []sim.Speed{0, sim.SpeedFromInt(1), sim.SpeedFromInt(2), sim.SpeedFromInt(3)} // idx=0 unused
 
 func (a *SimpleAccelerator) Apply(ctx sim.ApplyContext, s sim.Subject) (sim.Subject, bool) {
     // ... directional entry check unchanged ...

@@ -1,6 +1,7 @@
 package components
 
 import (
+	"math"
 	"testing"
 
 	"particleaccelerator/internal/bignum"
@@ -24,35 +25,59 @@ func TestCatalystInertBelowThreshold(t *testing.T) {
 	}
 }
 
-func TestCatalystActivatesAtThreshold(t *testing.T) {
+// At exactly the threshold the log-curve multiplier is 1.0 — the component
+// activates but the effective factor is unity (no cliff).
+func TestCatalystFlatAtThreshold(t *testing.T) {
 	c := &Catalyst{}
 	ctx := sim.NewTestApplyContext()
 	ctx.Research = stubResearch{sim.ElementHydrogen: catalystThreshold()}
-	out, _ := c.Apply(ctx, sim.Subject{Element: sim.ElementHydrogen, Mass: bignum.FromInt(2)})
-	// T1 multiplier is ×1.5 → 2 × 1.5 = 3.
-	if !out.Mass.Eq(bignum.FromInt(3)) {
-		t.Fatalf("T1 at threshold: got %v want 3", out.Mass)
+	in := sim.Subject{Element: sim.ElementHydrogen, Mass: bignum.FromInt(2)}
+	out, _ := c.Apply(ctx, in)
+	if got := out.Mass.Float64(); math.Abs(got-2) > 1e-9 {
+		t.Fatalf("at threshold multiplier must be 1.0: got %v want 2", got)
 	}
 }
 
+// Above the threshold, higher tiers steepen the curve. Pick research such
+// that log10(research - 24) = 2 so expected values are integer multiples of
+// k: T1=1+0.7·2=2.4, T2=1+0.95·2=2.9, T3=1+1.25·2=3.5.
 func TestCatalystTiersScale(t *testing.T) {
 	cases := []struct {
 		tier sim.Tier
-		want string
+		want float64
 	}{
-		{sim.BaseTier, "3"},    // 2 × 1.5
-		{sim.Tier(2), "4"},     // 2 × 2
-		{sim.Tier(3), "6"},     // 2 × 3
+		{sim.BaseTier, 2.4 * 2},
+		{sim.Tier(2), 2.9 * 2},
+		{sim.Tier(3), 3.5 * 2},
 	}
 	for _, c := range cases {
 		cat := &Catalyst{}
 		ctx := sim.NewTestApplyContext()
-		ctx.Research = stubResearch{sim.ElementHydrogen: catalystThreshold()}
+		ctx.Research = stubResearch{sim.ElementHydrogen: catalystThreshold() + 99} // 124 - 24 = 100
 		ctx.Tiers = testTierView(map[sim.ComponentKind]sim.Tier{sim.KindCatalyst: c.tier})
 		out, _ := cat.Apply(ctx, sim.Subject{Element: sim.ElementHydrogen, Mass: bignum.FromInt(2)})
-		if !out.Mass.Eq(bignum.MustParse(c.want)) {
-			t.Fatalf("tier %d: got %v want %s", c.tier, out.Mass, c.want)
+		got := out.Mass.Float64()
+		if math.Abs(got-c.want) > 1e-9 {
+			t.Fatalf("tier %d: got %v want %v", c.tier, got, c.want)
 		}
+	}
+}
+
+// The multiplier must increase monotonically with research above the
+// threshold — the whole point of switching off a flat cliff.
+func TestCatalystMonotonicAboveThreshold(t *testing.T) {
+	c := &Catalyst{}
+	levels := []int{catalystThreshold(), catalystThreshold() + 5, 50, 100, 500, 1000}
+	prev := 0.0
+	for _, r := range levels {
+		ctx := sim.NewTestApplyContext()
+		ctx.Research = stubResearch{sim.ElementHydrogen: r}
+		out, _ := c.Apply(ctx, sim.Subject{Element: sim.ElementHydrogen, Mass: bignum.FromInt(1)})
+		got := out.Mass.Float64()
+		if got < prev {
+			t.Fatalf("research=%d: got %v < previous %v (should be monotonic)", r, got, prev)
+		}
+		prev = got
 	}
 }
 

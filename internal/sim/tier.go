@@ -93,6 +93,10 @@ var TierUpgradeCatalog = map[ComponentKind][]TierUpgradeInfo{
 		{Tier: 2, Cost: bignum.MustParse("3000"), RequiresElement: ElementHydrogen, RequiresResearch: 12},
 		{Tier: 3, Cost: bignum.MustParse("30000"), RequiresElement: ElementHelium, RequiresResearch: 15},
 	},
+	KindCompressor: {
+		{Tier: 2, Cost: bignum.MustParse("15000"), RequiresElement: ElementHydrogen, RequiresResearch: 10},
+		{Tier: 3, Cost: bignum.MustParse("150000"), RequiresElement: ElementHelium, RequiresResearch: 5},
+	},
 }
 
 // NextTierUpgrade returns the next tier unlock available for kind, given the

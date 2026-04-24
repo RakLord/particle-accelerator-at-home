@@ -14,10 +14,11 @@ const (
 	KindRotator     ComponentKind = "rotator"
 	KindPipe        ComponentKind = "pipe"
 
-	// Phase 4 additions. See docs/features/component-{resonator,catalyst,duplicator}.md.
+	// Phase 4 additions. See docs/features/component-{resonator,catalyst,duplicator,compressor}.md.
 	KindResonator  ComponentKind = "resonator"
 	KindCatalyst   ComponentKind = "catalyst"
 	KindDuplicator ComponentKind = "duplicator"
+	KindCompressor ComponentKind = "compressor"
 
 	// KindCollector is used only for cost/ownership accounting. Collectors
 	// are stored as cell.IsCollector (see Cell), not Component instances,

@@ -125,6 +125,28 @@ func TestRoutingComponentCostCurves(t *testing.T) {
 	}
 }
 
+func TestCompressorCostCurve(t *testing.T) {
+	ResetCostModifiers()
+	s := NewGameState()
+	s.Owned = map[ComponentKind]int{}
+
+	cases := []struct {
+		owned int
+		want  bignum.Decimal
+	}{
+		{0, bignum.FromInt(7000)},        // raw = 7000
+		{1, bignum.FromInt(105000)},      // raw = 7000 * 15
+		{2, bignum.FromInt(1575000)},     // raw = 7000 * 15^2 — exactly at SoftCapAt
+		{3, bignum.FromInt(354375000)},   // raw = 7000 * 15^3; shaped = 1575000 * 15^2
+	}
+	for _, tc := range cases {
+		s.Owned[KindCompressor] = tc.owned
+		if got := ComponentCost(s, KindCompressor); !got.Eq(tc.want) {
+			t.Errorf("compressor owned=%d: got %v want %v", tc.owned, got, tc.want)
+		}
+	}
+}
+
 func TestComponentCostSoftCapAmplifiesAboveThreshold(t *testing.T) {
 	info := ComponentCostInfo{
 		Base:         bignum.FromInt(10),

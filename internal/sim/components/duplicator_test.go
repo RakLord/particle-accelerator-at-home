@@ -17,7 +17,7 @@ func TestDuplicatorT1EmitsTwoPerpendicularOutputs(t *testing.T) {
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,
 		Mass:        bignum.FromInt(4),
-		Speed:       sim.SpeedDivisor,
+		Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
 		Magnetism:   bignum.FromInt(2),
 		Direction:   sim.DirEast,
 		InDirection: sim.DirEast,
@@ -37,8 +37,8 @@ func TestDuplicatorT1EmitsTwoPerpendicularOutputs(t *testing.T) {
 		if !sub.Mass.Eq(bignum.FromInt(2)) {
 			t.Errorf("T1 output Mass: got %v want 2", sub.Mass)
 		}
-		if sub.Speed != sim.SpeedDivisor {
-			t.Errorf("output Speed: got %d want %d", sub.Speed, sim.SpeedDivisor)
+		if sub.Speed != sim.SpeedFromInt(sim.SpeedDivisor) {
+			t.Errorf("output Speed: got %d want %d", sub.Speed, sim.SpeedFromInt(sim.SpeedDivisor))
 		}
 		if !sub.Magnetism.Eq(bignum.FromInt(2)) {
 			t.Errorf("output Magnetism: got %v want 2", sub.Magnetism)
@@ -57,9 +57,9 @@ func TestDuplicatorTiersScaleMassFraction(t *testing.T) {
 		tier       sim.Tier
 		wantPerOut string
 	}{
-		{sim.BaseTier, "5"},    // 10 × 0.5
-		{sim.Tier(2), "6"},     // 10 × 0.6
-		{sim.Tier(3), "7.5"},   // 10 × 0.75
+		{sim.BaseTier, "5"},  // 10 × 0.5
+		{sim.Tier(2), "6"},   // 10 × 0.6
+		{sim.Tier(3), "7.5"}, // 10 × 0.75
 	}
 	for _, c := range cases {
 		s := sim.NewGameState()
@@ -69,7 +69,7 @@ func TestDuplicatorTiersScaleMassFraction(t *testing.T) {
 		s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 			Element:     sim.ElementHydrogen,
 			Mass:        bignum.FromInt(10),
-			Speed:       sim.SpeedDivisor,
+			Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
 			Direction:   sim.DirEast,
 			InDirection: sim.DirEast,
 			Position:    sim.Position{X: 1, Y: 2},
@@ -97,7 +97,7 @@ func TestDuplicatorRejectsWrongSideEntry(t *testing.T) {
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,
 		Mass:        bignum.One(),
-		Speed:       sim.SpeedDivisor,
+		Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
 		Direction:   sim.DirNorth,
 		InDirection: sim.DirNorth,
 		Position:    sim.Position{X: 2, Y: 3},
@@ -123,7 +123,7 @@ func TestDuplicatorRespectsEffectiveMaxLoad(t *testing.T) {
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,
 		Mass:        bignum.FromInt(4),
-		Speed:       sim.SpeedDivisor,
+		Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
 		Direction:   sim.DirEast,
 		InDirection: sim.DirEast,
 		Position:    sim.Position{X: 1, Y: 2},

@@ -12,7 +12,7 @@ func TestTickMovesSubject(t *testing.T) {
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:     ElementHydrogen,
 		Mass:        bignum.One(),
-		Speed:       SpeedDivisor, // one cell per tick
+		Speed:       SpeedFromInt(SpeedDivisor), // one cell per tick
 		Direction:   DirEast,
 		InDirection: DirEast,
 		Position:    Position{X: 1, Y: 2},
@@ -35,7 +35,7 @@ func TestCollectorAwardsUSD(t *testing.T) {
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:   ElementHydrogen,
 		Mass:      bignum.FromInt(2),
-		Speed:     SpeedDivisor,
+		Speed:     SpeedFromInt(SpeedDivisor),
 		Direction: DirEast,
 		Position:  Position{X: 1, Y: 2},
 		Load:      1,
@@ -54,8 +54,8 @@ func TestCollectorAwardsUSD(t *testing.T) {
 		t.Fatalf("expected research 1, got %d", s.Research[ElementHydrogen])
 	}
 	stats := s.BestStats[ElementHydrogen]
-	if stats.MaxSpeed != SpeedDivisor {
-		t.Fatalf("expected MaxSpeed %d, got %d", SpeedDivisor, stats.MaxSpeed)
+	if stats.MaxSpeed != SpeedFromInt(SpeedDivisor) {
+		t.Fatalf("expected MaxSpeed %d, got %d", SpeedFromInt(SpeedDivisor), stats.MaxSpeed)
 	}
 	if !stats.MaxMass.Eq(bignum.FromInt(2)) {
 		t.Fatalf("expected MaxMass 2, got %v", stats.MaxMass)
@@ -70,7 +70,7 @@ func TestCollectorAwardsUSD(t *testing.T) {
 		t.Fatalf("expected one collection log entry, got %d", len(s.CollectionLog))
 	}
 	entry := s.CollectionLog[0]
-	if entry.Element != ElementHydrogen || !entry.Mass.Eq(bignum.FromInt(2)) || entry.Speed != SpeedDivisor {
+	if entry.Element != ElementHydrogen || !entry.Mass.Eq(bignum.FromInt(2)) || entry.Speed != SpeedFromInt(SpeedDivisor) {
 		t.Fatalf("unexpected log entry subject stats: %#v", entry)
 	}
 	if entry.ResearchLevel != 0 {
@@ -88,7 +88,7 @@ func TestCollectionLogKeepsRecentTenNewestFirst(t *testing.T) {
 		s.recordCollectionLog(Subject{
 			Element:   ElementHydrogen,
 			Mass:      bignum.FromInt(i + 1),
-			Speed:     i + 1,
+			Speed:     SpeedFromInt(i + 1),
 			Magnetism: bignum.FromInt(i),
 		}, i, bignum.FromInt((i+1)*100))
 	}
@@ -111,7 +111,7 @@ func TestBestStatsUpdateOnCollectionOnly(t *testing.T) {
 		Subject{
 			Element:   ElementHydrogen,
 			Mass:      bignum.FromInt(2),
-			Speed:     SpeedDivisor,
+			Speed:     SpeedFromInt(SpeedDivisor),
 			Direction: DirEast,
 			Position:  Position{X: 1, Y: 2},
 			Load:      1,
@@ -119,7 +119,7 @@ func TestBestStatsUpdateOnCollectionOnly(t *testing.T) {
 		Subject{
 			Element:   ElementHydrogen,
 			Mass:      bignum.FromInt(9),
-			Speed:     SpeedDivisor * 2,
+			Speed:     SpeedFromInt(SpeedDivisor * 2),
 			Direction: DirEast,
 			Position:  Position{X: 0, Y: 0},
 			Load:      1,
@@ -130,8 +130,8 @@ func TestBestStatsUpdateOnCollectionOnly(t *testing.T) {
 	s.Tick()
 
 	stats := s.BestStats[ElementHydrogen]
-	if stats.MaxSpeed != SpeedDivisor {
-		t.Fatalf("off-grid subject should not update MaxSpeed: got %d want %d", stats.MaxSpeed, SpeedDivisor)
+	if stats.MaxSpeed != SpeedFromInt(SpeedDivisor) {
+		t.Fatalf("off-grid subject should not update MaxSpeed: got %d want %d", stats.MaxSpeed, SpeedFromInt(SpeedDivisor))
 	}
 	if !stats.MaxMass.Eq(bignum.FromInt(2)) {
 		t.Fatalf("off-grid subject should not update MaxMass: got %v want 2", stats.MaxMass)
@@ -145,7 +145,7 @@ func TestSubjectLeavingPipeNetworkIsDestroyed(t *testing.T) {
 	s.Grid.Cells[1][1].Component = &testPipe{}
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:     ElementHydrogen,
-		Speed:       SpeedDivisor, // one cell per tick
+		Speed:       SpeedFromInt(SpeedDivisor), // one cell per tick
 		Direction:   DirEast,
 		InDirection: DirEast,
 		Position:    Position{X: 1, Y: 1},
@@ -165,7 +165,7 @@ func TestSubjectOffGridIsRemoved(t *testing.T) {
 	s := NewGameState()
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:   ElementHydrogen,
-		Speed:     SpeedDivisor,
+		Speed:     SpeedFromInt(SpeedDivisor),
 		Direction: DirEast,
 		Position:  Position{X: GridSize - 1, Y: 0},
 		Load:      1,
@@ -186,7 +186,7 @@ func TestBaseSpeedAdvancesEverySpeedDivisorTicks(t *testing.T) {
 	s.Grid.Cells[0][1].Component = &testPipe{}
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:     ElementHydrogen,
-		Speed:       1,
+		Speed:       SpeedFromInt(1),
 		Direction:   DirEast,
 		InDirection: DirEast,
 		Position:    Position{X: 0, Y: 0},
@@ -218,7 +218,7 @@ func TestDoubleSpeedAdvancesHalfAsOften(t *testing.T) {
 	s.Grid.Cells[0][2].Component = &testPipe{}
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:     ElementHydrogen,
-		Speed:       2,
+		Speed:       SpeedFromInt(2),
 		Direction:   DirEast,
 		InDirection: DirEast,
 		Position:    Position{X: 0, Y: 0},
@@ -254,7 +254,7 @@ func TestTickPathRecordsAcrossRotator(t *testing.T) {
 	s.Grid.Cells[0][2].Component = &testPipe{}
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:     ElementHydrogen,
-		Speed:       3 * SpeedDivisor, // cross three cells in one tick
+		Speed:       SpeedFromInt(3 * SpeedDivisor), // cross three cells in one tick
 		Direction:   DirEast,
 		InDirection: DirEast,
 		Position:    Position{X: 0, Y: 1},
@@ -300,5 +300,5 @@ func (*testRightTurn) Apply(_ ApplyContext, s Subject) (Subject, bool) {
 // so Subjects can traverse them without tripping the empty-cell destroy rule.
 type testPipe struct{}
 
-func (*testPipe) Kind() ComponentKind                         { return ComponentKind("test_pipe") }
+func (*testPipe) Kind() ComponentKind                             { return ComponentKind("test_pipe") }
 func (*testPipe) Apply(_ ApplyContext, s Subject) (Subject, bool) { return s, false }

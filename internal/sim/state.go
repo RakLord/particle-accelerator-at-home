@@ -61,7 +61,7 @@ type GameState struct {
 }
 
 type ElementBestStats struct {
-	MaxSpeed          int            `json:"max_speed,omitempty"`
+	MaxSpeed          Speed          `json:"max_speed,omitempty"`
 	MaxMass           bignum.Decimal `json:"max_mass,omitempty"`
 	MaxCollectedValue bignum.Decimal `json:"max_collected_value,omitempty"`
 }
@@ -69,7 +69,7 @@ type ElementBestStats struct {
 type CollectionLogEntry struct {
 	Element       Element        `json:"element"`
 	Mass          bignum.Decimal `json:"mass"`
-	Speed         int            `json:"speed"`
+	Speed         Speed          `json:"speed"`
 	Magnetism     bignum.Decimal `json:"magnetism"`
 	ResearchLevel int            `json:"research_level"`
 	Value         bignum.Decimal `json:"value"`

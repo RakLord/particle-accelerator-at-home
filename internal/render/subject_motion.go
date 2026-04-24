@@ -27,23 +27,23 @@ func subjectPixel(sub sim.Subject, alpha float64) (float32, float32) {
 		// to StepProgress within Path[0].
 		progress := float64(sub.PrevStepProgress) + (float64(sub.StepProgress)-float64(sub.PrevStepProgress))*alpha
 		cellIdx = 0
-		localT = clamp01(progress / float64(sim.SpeedDivisor))
+		localT = clamp01(progress / float64(sim.StepProgressPerCell))
 	} else {
 		// At least one crossing. Walk through Path consuming virtual progress,
 		// with the first cell starting at PrevStepProgress fraction.
 		virtual := alpha * float64(sub.Speed)
-		firstCap := float64(sim.SpeedDivisor - sub.PrevStepProgress)
+		firstCap := float64(sim.StepProgressPerCell - sub.PrevStepProgress)
 		if virtual <= firstCap {
 			cellIdx = 0
-			localT = (float64(sub.PrevStepProgress) + virtual) / float64(sim.SpeedDivisor)
+			localT = (float64(sub.PrevStepProgress) + virtual) / float64(sim.StepProgressPerCell)
 		} else {
 			virtual -= firstCap
 			cellIdx = 1
-			for cellIdx < n-1 && virtual > float64(sim.SpeedDivisor) {
-				virtual -= float64(sim.SpeedDivisor)
+			for cellIdx < n-1 && virtual > float64(sim.StepProgressPerCell) {
+				virtual -= float64(sim.StepProgressPerCell)
 				cellIdx++
 			}
-			localT = clamp01(virtual / float64(sim.SpeedDivisor))
+			localT = clamp01(virtual / float64(sim.StepProgressPerCell))
 		}
 	}
 
