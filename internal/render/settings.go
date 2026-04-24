@@ -8,16 +8,18 @@ import (
 
 const (
 	modalW = 360
-	modalH = 380
+	modalH = 440
 
-	saveBtnW    = 160
-	saveBtnH    = 40
-	resetBtnW   = 160
-	resetBtnH   = 40
-	historyBtnW = 200
-	historyBtnH = 40
-	closeBtnW   = 80
-	closeBtnH   = 32
+	saveBtnW     = 160
+	saveBtnH     = 40
+	resetBtnW    = 160
+	resetBtnH    = 40
+	historyBtnW  = 200
+	historyBtnH  = 40
+	hotkeysBtnW  = 200
+	hotkeysBtnH  = 40
+	closeBtnW    = 80
+	closeBtnH    = 32
 
 	trailsRowW = 240
 	trailsRowH = 32
@@ -36,11 +38,14 @@ func resetBtnY() int { return modalY() + 120 }
 func historyBtnX() int { return modalX() + (modalW-historyBtnW)/2 }
 func historyBtnY() int { return modalY() + 184 }
 
+func hotkeysBtnX() int { return modalX() + (modalW-hotkeysBtnW)/2 }
+func hotkeysBtnY() int { return modalY() + 248 }
+
 func closeBtnX() int { return modalX() + modalW - closeBtnW - 12 }
 func closeBtnY() int { return modalY() + modalH - closeBtnH - 12 }
 
 func trailsRowX() int { return modalX() + (modalW-trailsRowW)/2 }
-func trailsRowY() int { return modalY() + 248 }
+func trailsRowY() int { return modalY() + 312 }
 
 func drawSettings(dst *ebiten.Image, u *ui.UIState) {
 	fillRect(dst, 0, 0, screenW, screenH, colorOverlay)
@@ -80,6 +85,12 @@ func drawSettings(dst *ebiten.Image, u *ui.UIState) {
 	fillRect(dst, hx, hy, historyBtnW, historyBtnH, colorButton)
 	strokeRect(dst, hx, hy, historyBtnW, historyBtnH, 1, colorTextMuted)
 	drawTextCentered(dst, "Notification History", hx, hy, historyBtnW, historyBtnH, colorText)
+
+	// Hotkeys
+	kx, ky := hotkeysBtnX(), hotkeysBtnY()
+	fillRect(dst, kx, ky, hotkeysBtnW, hotkeysBtnH, colorButton)
+	strokeRect(dst, kx, ky, hotkeysBtnW, hotkeysBtnH, 1, colorTextMuted)
+	drawTextCentered(dst, "Hotkeys  (/)", kx, ky, hotkeysBtnW, hotkeysBtnH, colorText)
 
 	// Particle trails toggle (checkbox + label, toggled by click anywhere on the row).
 	trx, try_ := trailsRowX(), trailsRowY()

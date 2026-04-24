@@ -51,6 +51,10 @@ type UIState struct {
 	// NotificationHistoryOpen is a Settings submodal for persisted helper logs.
 	NotificationHistoryOpen   bool
 	NotificationHistoryScroll int
+	// HotkeysOpen is a help submodal listing all keyboard shortcuts. Openable
+	// from Settings or by pressing '/' (shift-'/' = '?' on UK/US layouts maps
+	// to the same physical key).
+	HotkeysOpen bool
 }
 
 func NewUIState() *UIState { return &UIState{Selected: ToolNone, TrailsEnabled: true} }

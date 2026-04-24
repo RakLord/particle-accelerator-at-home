@@ -19,6 +19,11 @@ const (
 	selectedCardW = paletteW - 48
 	selectedCardH = 200
 
+	selectedHalfGap = 16
+	selectedHalfW   = (selectedCardW - selectedHalfGap) / 2
+	selectedLeftX   = selectedCardX
+	injectingHalfX  = selectedCardX + selectedHalfW + selectedHalfGap
+
 	selectedIconSize = 96
 
 	openInvBtnW = paletteW - 48
@@ -29,7 +34,7 @@ const (
 	injectBtnW = paletteW - 48
 	injectBtnH = 52
 	injectBtnX = paletteX + 24
-	injectBtnY = paletteY + paletteH - 140
+	injectBtnY = paletteY + paletteH - injectBtnH - 24
 )
 
 // openInvButtonHit reports whether (mx, my) is over the "Open Inventory"
@@ -45,9 +50,11 @@ func injectButtonHit(mx, my int) bool {
 func drawPalette(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 	fillRect(dst, paletteX, paletteY, paletteW, paletteH, colorPaletteBG)
 
-	drawText(dst, "Selected", paletteX+24, paletteY+20, colorText)
+	drawText(dst, "Selected", selectedLeftX, paletteY+20, colorText)
+	drawText(dst, "Injecting", injectingHalfX, paletteY+20, colorText)
 
 	drawSelectedCard(dst, s, u)
+	drawInjectingCard(dst, s)
 
 	// Open Inventory button.
 	fillRect(dst, openInvBtnX, openInvBtnY, openInvBtnW, openInvBtnH, colorButton)
@@ -55,12 +62,6 @@ func drawPalette(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 	drawTextCentered(dst, "Open Inventory  (E)", openInvBtnX, openInvBtnY, openInvBtnW, openInvBtnH, colorText)
 
 	drawInjectButton(dst, s)
-
-	// Hint footer.
-	hintY := paletteY + paletteH - 56
-	drawText(dst, "Left-click: place / reconfigure", paletteX+24, hintY, colorTextMuted)
-	drawText(dst, "Right-click: erase", paletteX+24, hintY+16, colorTextMuted)
-	drawText(dst, "Q: pick tile · scroll: rotate", paletteX+24, hintY+32, colorTextMuted)
 }
 
 func drawInjectButton(dst *ebiten.Image, s *sim.GameState) {
@@ -131,7 +132,7 @@ func cooldownSecondsRemaining(s *sim.GameState) int {
 }
 
 func drawSelectedCard(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
-	x, y, w, h := selectedCardX, selectedCardY, selectedCardW, selectedCardH
+	x, y, w, h := selectedLeftX, selectedCardY, selectedHalfW, selectedCardH
 	bg := color.RGBA{0x14, 0x14, 0x24, 0xff}
 	fillRect(dst, x, y, w, h, bg)
 	strokeRect(dst, x, y, w, h, 1, colorTextMuted)
@@ -175,6 +176,48 @@ func drawSelectedCard(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 	// Lock callout for future gated tools.
 	if reason := ui.ToolLockReason(s, u.Selected); reason != "" {
 		drawTextSmall(dst, "Locked", x+12, y+h-16, colorResetArmed)
+	}
+}
+
+func drawInjectingCard(dst *ebiten.Image, s *sim.GameState) {
+	x, y, w, h := injectingHalfX, selectedCardY, selectedHalfW, selectedCardH
+	bg := color.RGBA{0x14, 0x14, 0x24, 0xff}
+	fillRect(dst, x, y, w, h, bg)
+	strokeRect(dst, x, y, w, h, 1, colorTextMuted)
+
+	e := s.InjectionElement
+	info, ok := sim.ElementCatalog[e]
+	symbolW := 80
+	symbolX := x + 16
+	symbolY := y + (h-symbolW)/2
+	if !ok {
+		drawTextFaceCentered(dst, "—", symbolX, symbolY, symbolW, symbolW, fontDisplay, colorTextMuted)
+		drawTextFace(dst, "No element", symbolX+symbolW+14, y+16, fontBody, colorTextMuted)
+		return
+	}
+
+	drawTextFaceCentered(dst, info.Symbol, symbolX, symbolY, symbolW, symbolW, fontDisplay, elementAccentColor(e))
+
+	textX := symbolX + symbolW + 14
+	drawTextFace(dst, info.Name, textX, y+16, fontBody, colorText)
+
+	rowY := y + 48
+	rowGap := 22
+	rightX := x + w - 12
+	rows := []struct {
+		label string
+		value string
+	}{
+		{"Research", itoa(s.Research[e])},
+		{"Base Mass", formatNumber(info.BaseMass)},
+		{"Speed", formatSpeed(info.BaseSpeed)},
+		{"Mult", formatMultiplier(info.Multiplier)},
+	}
+	for i, r := range rows {
+		ry := rowY + i*rowGap
+		drawTextSmall(dst, r.label, textX, ry, colorTextMuted)
+		vw, _ := measureTextSmall(r.value)
+		drawTextSmall(dst, r.value, rightX-vw, ry, colorText)
 	}
 }
 
