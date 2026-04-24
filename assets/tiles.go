@@ -22,4 +22,5 @@ import "embed"
 //go:embed images/tiles/mesh_grid_logo.png
 //go:embed images/tiles/magnetiser_logo.png
 //go:embed images/tiles/pipe_logo.png
+//go:embed images/tiles/turn_logo.png
 var TileFS embed.FS

@@ -46,6 +46,7 @@ When adding or retuning Components, use `docs/features/component-creation-and-ba
 - **Mesh Grid** — `÷2` Speed at T1.
 - **Magnetiser** — `+1` Magnetism at T1.
 - **Rotator** — redirects the Subject (configurable angle; 90° MVP).
+- **Pipe** — straight pass-through for routing Subjects along a single axis (`docs/features/component-pipe.md`).
 - **Collector** — endpoint. Removes the Subject, awards $USD and Element research.
 
 ### Phase-3 additions

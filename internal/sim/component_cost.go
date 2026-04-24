@@ -26,7 +26,8 @@ var ComponentCatalog = map[ComponentKind]ComponentCostInfo{
 	KindAccelerator: {Base: bignum.MustParse("5"), Growth: bignum.MustParse("3.2"), SoftCapAt: bignum.MustParse("5000"), SoftCapPower: 2},
 	KindMeshGrid:    {Base: bignum.MustParse("15"), Growth: bignum.MustParse("1.20")},
 	KindMagnetiser:  {Base: bignum.MustParse("100"), Growth: bignum.MustParse("5")},
-	KindRotator:     {Base: bignum.MustParse("8"), Growth: bignum.MustParse("1.15")},
+	KindRotator:     {Base: bignum.MustParse("8"), Growth: bignum.MustParse("1.20")},
+	KindPipe:        {Base: bignum.MustParse("8"), Growth: bignum.MustParse("1.15")},
 	KindCollector:   {Base: bignum.MustParse("50"), Growth: bignum.MustParse("1.25")},
 	// Phase 4 components — prices to be refined after playtest.
 	KindResonator:  {Base: bignum.MustParse("50"), Growth: bignum.MustParse("1.35")},

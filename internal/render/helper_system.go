@@ -111,6 +111,8 @@ func toolForCell(cell sim.Cell) (ui.Tool, sim.ComponentKind, bool) {
 		return ui.ToolMagnetiser, kind, true
 	case sim.KindRotator:
 		return ui.ToolElbow, kind, true
+	case sim.KindPipe:
+		return ui.ToolPipe, kind, true
 	case sim.KindResonator:
 		return ui.ToolResonator, kind, true
 	case sim.KindCatalyst:

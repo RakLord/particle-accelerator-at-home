@@ -96,6 +96,35 @@ func TestComponentCostKeyBalanceTargets(t *testing.T) {
 	}
 }
 
+func TestRoutingComponentCostCurves(t *testing.T) {
+	// Pipe and Rotator share the same $8 base, but Rotator (the more
+	// powerful turn tile) ramps at 1.20 while Pipe ramps at 1.15. The
+	// gap should be visible by the tenth purchase.
+	ResetCostModifiers()
+	s := NewGameState()
+	s.Owned = map[ComponentKind]int{}
+
+	cases := []struct {
+		name  string
+		kind  ComponentKind
+		owned int
+		want  bignum.Decimal
+	}{
+		{"pipe first", KindPipe, 0, bignum.FromInt(8)},
+		{"pipe second", KindPipe, 1, bignum.FromInt(10)},        // ceil(8 * 1.15)
+		{"pipe tenth", KindPipe, 9, bignum.FromInt(29)},         // ceil(8 * 1.15^9) = ceil(28.15)
+		{"rotator first", KindRotator, 0, bignum.FromInt(8)},
+		{"rotator second", KindRotator, 1, bignum.FromInt(10)},  // ceil(8 * 1.20)
+		{"rotator tenth", KindRotator, 9, bignum.FromInt(42)},   // ceil(8 * 1.20^9) = ceil(41.27)
+	}
+	for _, tc := range cases {
+		s.Owned[tc.kind] = tc.owned
+		if got := ComponentCost(s, tc.kind); !got.Eq(tc.want) {
+			t.Errorf("%s: got %v want %v", tc.name, got, tc.want)
+		}
+	}
+}
+
 func TestComponentCostSoftCapAmplifiesAboveThreshold(t *testing.T) {
 	info := ComponentCostInfo{
 		Base:         bignum.FromInt(10),
@@ -119,7 +148,7 @@ func TestComponentCostIsWholeNumber(t *testing.T) {
 	s := NewGameState()
 	s.Owned = map[ComponentKind]int{}
 	for _, kind := range []ComponentKind{
-		KindInjector, KindAccelerator, KindMeshGrid, KindMagnetiser, KindRotator, KindCollector,
+		KindInjector, KindAccelerator, KindMeshGrid, KindMagnetiser, KindRotator, KindPipe, KindCollector,
 	} {
 		for _, owned := range []int{0, 1, 5, 17, 42} {
 			s.Owned[kind] = owned

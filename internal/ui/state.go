@@ -9,6 +9,7 @@ const (
 	ToolMeshGrid
 	ToolMagnetiser
 	ToolElbow
+	ToolPipe
 	ToolCollector
 	ToolErase
 	// Phase 4 tools.

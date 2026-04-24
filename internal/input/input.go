@@ -54,6 +54,9 @@ func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 	case ui.ToolElbow:
 		cell.Component = &components.Rotator{Orientation: sim.DirNorth}
 		cell.IsCollector = false
+	case ui.ToolPipe:
+		cell.Component = &components.Pipe{Orientation: sim.DirEast}
+		cell.IsCollector = false
 	case ui.ToolCollector:
 		cell.Component = nil
 		cell.IsCollector = true
@@ -102,6 +105,8 @@ func PickToolAt(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 		u.Selected = ui.ToolMagnetiser
 	case *components.Rotator:
 		u.Selected = ui.ToolElbow
+	case *components.Pipe:
+		u.Selected = ui.ToolPipe
 	case *components.Resonator:
 		u.Selected = ui.ToolResonator
 	case *components.Catalyst:
@@ -137,6 +142,8 @@ func ReconfigureBy(s *sim.GameState, pos sim.Position, steps int) {
 	case *components.Magnetiser:
 		c.Orientation = rotateDirection(c.Orientation, steps)
 	case *components.Rotator:
+		c.Orientation = rotateDirection(c.Orientation, steps)
+	case *components.Pipe:
 		c.Orientation = rotateDirection(c.Orientation, steps)
 	case *components.Duplicator:
 		c.Orientation = rotateDirection(c.Orientation, steps)

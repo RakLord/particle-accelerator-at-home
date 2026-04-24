@@ -33,10 +33,11 @@ type tileSprites struct {
 	magnetiserBottom *ebiten.Image
 	collector        *ebiten.Image
 
-	accelLogo   *ebiten.Image
-	meshLogo    *ebiten.Image
-	magnetLogo  *ebiten.Image
-	pipeLogo    *ebiten.Image
+	accelLogo  *ebiten.Image
+	meshLogo   *ebiten.Image
+	magnetLogo *ebiten.Image
+	pipeLogo   *ebiten.Image
+	turnLogo   *ebiten.Image
 }
 
 var sprites = mustLoadTileSprites()
@@ -65,6 +66,7 @@ func mustLoadTileSprites() tileSprites {
 		meshLogo:   mustLoadTileSprite("images/tiles/mesh_grid_logo.png"),
 		magnetLogo: mustLoadTileSprite("images/tiles/magnetiser_logo.png"),
 		pipeLogo:   mustLoadTileSprite("images/tiles/pipe_logo.png"),
+		turnLogo:   mustLoadTileSprite("images/tiles/turn_logo.png"),
 	}
 }
 
@@ -114,6 +116,8 @@ func spriteLayersForComponent(c sim.Component) componentSpriteLayers {
 		}
 	case *components.Rotator:
 		return componentSpriteLayers{top: []spriteLayer{{image: turnSpriteForOrientation(v.Orientation)}}}
+	case *components.Pipe:
+		return componentSpriteLayers{top: []spriteLayer{{image: pipeSpriteForOrientation(v.Orientation)}}}
 	case *components.Resonator:
 		// Placeholder: reuses the magnetiser bottom sprite until dedicated art lands.
 		return componentSpriteLayers{base: []spriteLayer{{image: sprites.magnetiserBottom}}}
@@ -243,6 +247,8 @@ func tileSpriteForTool(t ui.Tool) *ebiten.Image {
 		return sprites.magnetiserTop
 	case ui.ToolElbow:
 		return sprites.turnNE
+	case ui.ToolPipe:
+		return sprites.pipeHori
 	case ui.ToolCollector:
 		return sprites.collector
 	case ui.ToolResonator:
@@ -267,6 +273,8 @@ func logoSpriteForTool(t ui.Tool) *ebiten.Image {
 		return sprites.meshLogo
 	case ui.ToolMagnetiser:
 		return sprites.magnetLogo
+	case ui.ToolElbow:
+		return sprites.turnLogo
 	}
 	return sprites.pipeLogo
 }

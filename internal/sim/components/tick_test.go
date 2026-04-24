@@ -86,6 +86,76 @@ func TestElbowChangesDirection(t *testing.T) {
 	}
 }
 
+func TestPipePassesSubjectStraightThrough(t *testing.T) {
+	cases := []struct {
+		name        string
+		orientation sim.Direction
+		dir         sim.Direction
+	}{
+		{"horizontal pipe, east-bound subject", sim.DirEast, sim.DirEast},
+		{"horizontal pipe, west-bound subject", sim.DirEast, sim.DirWest},
+		{"vertical pipe, north-bound subject", sim.DirNorth, sim.DirNorth},
+		{"vertical pipe, south-bound subject", sim.DirNorth, sim.DirSouth},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			s := sim.NewGameState()
+			s.Grid.Cells[2][2].Component = &components.Pipe{Orientation: c.orientation}
+			entryPos := sim.Position{X: 2, Y: 2}
+			switch c.dir {
+			case sim.DirEast:
+				entryPos = sim.Position{X: 1, Y: 2}
+			case sim.DirWest:
+				entryPos = sim.Position{X: 3, Y: 2}
+			case sim.DirNorth:
+				entryPos = sim.Position{X: 2, Y: 3}
+			case sim.DirSouth:
+				entryPos = sim.Position{X: 2, Y: 1}
+			}
+			s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
+				Element:     sim.ElementHydrogen,
+				Mass:        bignum.One(),
+				Speed:       sim.SpeedDivisor,
+				Direction:   c.dir,
+				InDirection: c.dir,
+				Position:    entryPos,
+				Load:        1,
+			})
+			s.CurrentLoad = 1
+			s.Tick()
+			if len(s.Grid.Subjects) != 1 {
+				t.Fatalf("subject destroyed by straight pipe: got %d subjects", len(s.Grid.Subjects))
+			}
+			if got := s.Grid.Subjects[0].Direction; got != c.dir {
+				t.Fatalf("direction changed by straight pipe: got %v want %v", got, c.dir)
+			}
+		})
+	}
+}
+
+func TestPipeRejectsPerpendicularEntry(t *testing.T) {
+	s := sim.NewGameState()
+	// Horizontal pipe at (2,2); subject approaches from above moving south.
+	s.Grid.Cells[2][2].Component = &components.Pipe{Orientation: sim.DirEast}
+	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
+		Element:     sim.ElementHydrogen,
+		Mass:        bignum.One(),
+		Speed:       sim.SpeedDivisor,
+		Direction:   sim.DirSouth,
+		InDirection: sim.DirSouth,
+		Position:    sim.Position{X: 2, Y: 1},
+		Load:        1,
+	})
+	s.CurrentLoad = 1
+	s.Tick()
+	if len(s.Grid.Subjects) != 0 {
+		t.Fatalf("expected perpendicular subject destroyed, got %d subjects", len(s.Grid.Subjects))
+	}
+	if s.CurrentLoad != 0 {
+		t.Fatalf("expected CurrentLoad 0 after destruction, got %d", s.CurrentLoad)
+	}
+}
+
 func TestElbowRejectsDisconnectedEntry(t *testing.T) {
 	s := sim.NewGameState()
 	s.Grid.Cells[2][2].Component = &components.Rotator{Orientation: sim.DirNorth}

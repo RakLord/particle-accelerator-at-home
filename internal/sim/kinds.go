@@ -12,6 +12,7 @@ const (
 	KindMeshGrid    ComponentKind = "mesh_grid"
 	KindMagnetiser  ComponentKind = "magnetiser"
 	KindRotator     ComponentKind = "rotator"
+	KindPipe        ComponentKind = "pipe"
 
 	// Phase 4 additions. See docs/features/component-{resonator,catalyst,duplicator}.md.
 	KindResonator  ComponentKind = "resonator"

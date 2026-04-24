@@ -46,6 +46,7 @@ func TestCellRoundTrip(t *testing.T) {
 		{Component: &components.Injector{Direction: sim.DirSouth, SpawnInterval: 20, Element: sim.ElementHydrogen, TickCounter: 5}},
 		{Component: &components.SimpleAccelerator{Orientation: sim.DirWest}},
 		{Component: &components.Rotator{Orientation: sim.DirSouth}},
+		{Component: &components.Pipe{Orientation: sim.DirEast}},
 		{Component: &components.MeshGrid{Orientation: sim.DirWest}},
 		{Component: &components.Magnetiser{}},
 	}

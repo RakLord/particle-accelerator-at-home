@@ -37,6 +37,8 @@ func KindForTool(t Tool) sim.ComponentKind {
 		return sim.KindMagnetiser
 	case ToolElbow:
 		return sim.KindRotator
+	case ToolPipe:
+		return sim.KindPipe
 	case ToolCollector:
 		return sim.KindCollector
 	case ToolResonator:
@@ -55,12 +57,13 @@ func KindForTool(t Tool) sim.ComponentKind {
 // doesn't belong in a stock/purchase grid).
 var PlaceableTools = []Tool{
 	ToolInjector,
+	ToolCollector,
+	ToolPipe,
+	ToolElbow,
 	ToolAccelerator,
 	ToolMeshGrid,
 	ToolMagnetiser,
 	ToolResonator,
 	ToolCatalyst,
 	ToolDuplicator,
-	ToolElbow,
-	ToolCollector,
 }

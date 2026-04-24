@@ -69,6 +69,13 @@ var ToolInfoCatalog = map[Tool]ToolInfo{
 			"Left-click on an existing Elbow to cycle its orientation. " +
 			"Use these to route long paths through your Accelerator and Magnetiser chains before hitting the Collector.",
 	},
+	ToolPipe: {
+		Name:    "Pipe (straight)",
+		Tagline: "Carries a Subject in a straight line.",
+		Description: "Passes a Subject straight through along its orientation. " +
+			"Cheaper than an Elbow and meant for long runs between your Accelerator, Mesh Grid, and Magnetiser chains. " +
+			"Scroll over a placed Pipe to flip it between horizontal and vertical.",
+	},
 	ToolCollector: {
 		Name:    "Collector (endpoint)",
 		Tagline: "Removes the Subject and pays out $USD + research.",
