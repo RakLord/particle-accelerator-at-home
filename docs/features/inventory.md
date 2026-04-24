@@ -63,4 +63,5 @@ The compact panel shows:
 - `internal/ui/lock.go` — lock predicate, lock reason, tool→kind mapping, and the canonical `PlaceableTools` order.
 - `docs/adr/0012-component-inventory-modal.md` — design decisions behind this feature.
 - `docs/features/component-cost.md` — purchase cost curve consumed by the cost label.
+- `docs/features/component-creation-and-balancing.md` — how to choose component cost curves when adding or retuning tools.
 - `docs/features/component-tiers.md` — orthogonal progression axis surfaced in card stats.

@@ -3,13 +3,16 @@ package sim
 import "particleaccelerator/internal/bignum"
 
 const (
-	DefaultMaxLoad = 16
+	DefaultMaxLoad = 1
 	// DefaultInjectionCooldownSeconds is the base manual injection cooldown.
 	// Injector-rate upgrades shorten the effective tick count derived from this.
 	DefaultInjectionCooldownSeconds = 5
 	// MaxCollectionLogEntries is the number of recent collected Subjects kept
 	// for the in-game collection log.
 	MaxCollectionLogEntries = 10
+	// MaxNotificationLogEntries is the number of logged helper notifications kept
+	// for the in-game notification history.
+	MaxNotificationLogEntries = 50
 	// DefaultTickRate: interpolation is live (see docs/features/smooth-motion.md)
 	// so this is no longer a rendering constraint — raising it is a gameplay
 	// decision about how fast the grid feels.
@@ -17,13 +20,17 @@ const (
 )
 
 type GameState struct {
-	Layer            Layer
-	Grid             *Grid
-	USD              bignum.Decimal
-	Research         map[Element]int
-	BestStats        map[Element]ElementBestStats
-	CollectionLog    []CollectionLogEntry `json:"collection_log,omitempty"`
-	UnlockedElements map[Element]bool
+	Layer           Layer
+	Grid            *Grid
+	USD             bignum.Decimal
+	Research        map[Element]int
+	BestStats       map[Element]ElementBestStats
+	CollectionLog   []CollectionLogEntry `json:"collection_log,omitempty"`
+	NotificationLog []NotificationEntry  `json:"notification_log,omitempty"`
+	// ShownHelperMilestones records one-shot helper IDs that have already been
+	// shown in this save. HardReset clears it by restoring NewGameState defaults.
+	ShownHelperMilestones map[string]bool `json:"shown_helper_milestones,omitempty"`
+	UnlockedElements      map[Element]bool
 	// InjectionElement is the globally selected Element emitted by every
 	// Injector. It is chosen from unlocked Elements in the Codex.
 	InjectionElement Element
@@ -69,29 +76,38 @@ type CollectionLogEntry struct {
 	Tick          uint64         `json:"tick"`
 }
 
+type NotificationEntry struct {
+	Header string `json:"header"`
+	Body   string `json:"body"`
+	// TimeHHMM is render-supplied local time at notification creation. Keeping it
+	// as display text avoids time-zone interpretation in older saves.
+	TimeHHMM string `json:"time_hhmm,omitempty"`
+	Tick     uint64 `json:"tick,omitempty"`
+}
+
 func NewGameState() *GameState {
 	return &GameState{
-		Layer:            LayerGenesis,
-		Grid:             NewGrid(),
-		Research:         map[Element]int{},
-		BestStats:        map[Element]ElementBestStats{},
-		UnlockedElements: map[Element]bool{ElementHydrogen: true},
-		InjectionElement: ElementHydrogen,
-		Owned:            starterInventory(),
-		MaxLoad:          DefaultMaxLoad,
-		TickRate:         DefaultTickRate,
+		Layer:                 LayerGenesis,
+		Grid:                  NewGrid(),
+		Research:              map[Element]int{},
+		BestStats:             map[Element]ElementBestStats{},
+		ShownHelperMilestones: map[string]bool{},
+		UnlockedElements:      map[Element]bool{ElementHydrogen: true},
+		InjectionElement:      ElementHydrogen,
+		Owned:                 starterInventory(),
+		MaxLoad:               DefaultMaxLoad,
+		TickRate:              DefaultTickRate,
 	}
 }
 
-// starterInventory is the set of components a brand-new game begins with so
-// the player can build the first loop without spending $USD. Tuning these
+// starterInventory is the set of components a brand-new game begins with.
+// The player starts with only an Injector and a Collector; everything else
+// (pipes, accelerators, elbows, etc.) must be purchased. Tuning these
 // numbers is a design lever — see docs/features/component-cost.md.
 func starterInventory() map[ComponentKind]int {
 	return map[ComponentKind]int{
-		KindInjector:    1,
-		KindAccelerator: 2,
-		KindRotator:     1,
-		KindCollector:   1,
+		KindInjector:  1,
+		KindCollector: 1,
 	}
 }
 

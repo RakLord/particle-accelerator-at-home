@@ -38,6 +38,17 @@ type UIState struct {
 	// modal is open. Drives the right-hand description panel. Cleared on
 	// modal close; not persisted.
 	InventoryHovered Tool
+	// HelperOpen displays a blocking helper modal. HelperCentered=false anchors
+	// it near HelperX/HelperY, with render-side clamping to stay on screen.
+	HelperOpen     bool
+	HelperHeader   string
+	HelperBody     string
+	HelperCentered bool
+	HelperX        int
+	HelperY        int
+	// NotificationHistoryOpen is a Settings submodal for persisted helper logs.
+	NotificationHistoryOpen   bool
+	NotificationHistoryScroll int
 }
 
 func NewUIState() *UIState { return &UIState{Selected: ToolNone, TrailsEnabled: true} }

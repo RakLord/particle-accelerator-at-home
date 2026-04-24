@@ -5,7 +5,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 
-	"particleaccelerator/internal/bignum"
 	"particleaccelerator/internal/sim"
 	"particleaccelerator/internal/ui"
 )
@@ -191,7 +190,7 @@ func drawCodexCard(dst *ebiten.Image, s *sim.GameState, e sim.Element) {
 	drawTextFaceCentered(dst, "Period "+itoa(info.Period)+" · Group "+itoa(info.Group), x, y+118, codexCardW, 18, fontSmall, colorTextMuted)
 
 	drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+0*codexCardRowGap, "Research", itoa(s.Research[e]))
-	drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+1*codexCardRowGap, "Multiplier", formatMultiplier(codexEffectiveMultiplier(s, e)))
+	drawCodexStatRow(dst, x+codexCardStatsX, y+codexCardStatsY+1*codexCardRowGap, "Multiplier", formatMultiplier(sim.ElementCatalog[e].Multiplier))
 
 	stats := s.BestStats[e]
 	if stats.MaxSpeed == 0 && stats.MaxMass.IsZero() && stats.MaxCollectedValue.IsZero() {
@@ -230,12 +229,6 @@ func drawCodexCard(dst *ebiten.Image, s *sim.GameState, e sim.Element) {
 func drawCodexStatRow(dst *ebiten.Image, x, y int, label, value string) {
 	drawText(dst, label, x, y, colorTextMuted)
 	drawText(dst, value, x+codexCardValueX, y, colorText)
-}
-
-func codexEffectiveMultiplier(s *sim.GameState, e sim.Element) bignum.Decimal {
-	research := s.Research[e]
-	info := sim.ElementCatalog[e]
-	return info.Multiplier.Mul(bignum.One().Add(bignum.FromInt(research).Div(sim.ResearchK)))
 }
 
 func codexStatusLabel(s *sim.GameState, e sim.Element) (string, color.Color) {

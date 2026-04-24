@@ -126,6 +126,34 @@ func TestSaveLoadPreservesOwned(t *testing.T) {
 	}
 }
 
+func TestSaveLoadPreservesNotifications(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	t.Setenv("HOME", dir)
+
+	s := NewGameState()
+	s.RecordNotification("Inventory", "Press E to open the Inventory.", "09:41")
+	s.MarkHelperMilestoneShown("first-five-usd")
+	if err := s.Save(); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	loaded, ok, err := Load()
+	if err != nil || !ok {
+		t.Fatalf("Load: ok=%v err=%v", ok, err)
+	}
+	if got := len(loaded.NotificationLog); got != 1 {
+		t.Fatalf("NotificationLog length: got %d want 1", got)
+	}
+	entry := loaded.NotificationLog[0]
+	if entry.Header != "Inventory" || entry.TimeHHMM != "09:41" {
+		t.Fatalf("notification mismatch: %+v", entry)
+	}
+	if !loaded.HasShownHelperMilestone("first-five-usd") {
+		t.Fatalf("milestone shown flag was not preserved")
+	}
+}
+
 func TestLoadV2SaveSeedsOwnedCollectorsFromGrid(t *testing.T) {
 	// Craft a v2 save with two Collector cells and no `owned` field.
 	// Collectors don't go through componentRegistry (they're cell.IsCollector),

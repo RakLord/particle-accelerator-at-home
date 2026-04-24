@@ -35,6 +35,7 @@ Persisting aggregated multipliers and persisting purchased upgrades both work, b
 // are additive.
 type GlobalModifiers struct {
     CollectorValueMul       bignum.Decimal
+    ComponentCostMul        bignum.Decimal
     InjectorRateMul         bignum.Decimal
     AcceleratorSpeedBonus   int
     MagnetiserBonusMul      bignum.Decimal
@@ -80,6 +81,7 @@ func rebuildModifiers(s *GameState) {
 | Field | Read site |
 |---|---|
 | `CollectorValueMul` | `collectValue(s, research, mods)` in `economy.go` — multiplies the final value |
+| `ComponentCostMul` | `ComponentCost` in `component_cost.go` — multiplies component purchase costs after catalog curve/soft-cap shaping |
 | `InjectorRateMul` | `GameState.EffectiveInjectionCooldownTicks()` — divides effective manual injection cooldown, minimum 1 tick |
 | `AcceleratorSpeedBonus` | `SimpleAccelerator.Apply` — flat add on top of the component's own `SpeedBonus` (pre-ADR-0011) or tier bonus (post-ADR-0011) |
 | `MagnetiserBonusMul` | `Magnetiser.Apply` — multiplies the component's per-apply bonus |

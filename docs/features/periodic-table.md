@@ -48,7 +48,7 @@ The focused Element opens a centered stat card above the table. The card is the 
 - symbol and name
 - unlock state
 - research count
-- effective multiplier: `baseMultiplier × (1 + Research / ResearchK)`
+- element multiplier (static per-Element base multiplier used by `collectValue`)
 - injection action for unlocked Elements
 - best stats:
   - max Speed

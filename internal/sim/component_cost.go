@@ -7,11 +7,15 @@ import (
 )
 
 // ComponentCostInfo is the per-kind tuning data for component purchase cost.
-// The cost of the next purchase is Base * Growth^Owned, multiplied by any
-// registered CostModifiers, then ceilinged to a whole-dollar integer.
+// The pre-modifier cost of the next purchase is Base * Growth^Owned. If
+// SoftCapAt is non-zero and the raw cost exceeds it, the excess is amplified as
+// SoftCapAt * (raw / SoftCapAt)^SoftCapPower. The resulting cost is multiplied
+// by global and registered modifiers, then ceilinged to a whole-dollar integer.
 type ComponentCostInfo struct {
-	Base   bignum.Decimal
-	Growth bignum.Decimal
+	Base         bignum.Decimal
+	Growth       bignum.Decimal
+	SoftCapAt    bignum.Decimal
+	SoftCapPower int
 }
 
 // ComponentCatalog holds the base cost and per-unit growth factor for every
@@ -19,15 +23,15 @@ type ComponentCostInfo struct {
 // internal/sim/kinds.go.
 var ComponentCatalog = map[ComponentKind]ComponentCostInfo{
 	KindInjector:    {Base: bignum.MustParse("10"), Growth: bignum.MustParse("1.15")},
-	KindAccelerator: {Base: bignum.MustParse("5"), Growth: bignum.MustParse("1.15")},
+	KindAccelerator: {Base: bignum.MustParse("5"), Growth: bignum.MustParse("3.2"), SoftCapAt: bignum.MustParse("5000"), SoftCapPower: 2},
 	KindMeshGrid:    {Base: bignum.MustParse("15"), Growth: bignum.MustParse("1.20")},
-	KindMagnetiser:  {Base: bignum.MustParse("25"), Growth: bignum.MustParse("1.20")},
+	KindMagnetiser:  {Base: bignum.MustParse("100"), Growth: bignum.MustParse("5")},
 	KindRotator:     {Base: bignum.MustParse("8"), Growth: bignum.MustParse("1.15")},
 	KindCollector:   {Base: bignum.MustParse("50"), Growth: bignum.MustParse("1.25")},
 	// Phase 4 components — prices to be refined after playtest.
-	KindResonator:  {Base: bignum.MustParse("40"), Growth: bignum.MustParse("1.20")},
-	KindCatalyst:   {Base: bignum.MustParse("80"), Growth: bignum.MustParse("1.22")},
-	KindDuplicator: {Base: bignum.MustParse("200"), Growth: bignum.MustParse("1.30")},
+	KindResonator:  {Base: bignum.MustParse("50"), Growth: bignum.MustParse("1.35")},
+	KindCatalyst:   {Base: bignum.MustParse("1000"), Growth: bignum.MustParse("12")},
+	KindDuplicator: {Base: bignum.MustParse("10000"), Growth: bignum.MustParse("125")},
 }
 
 // CostModifier is the extension point for prestige / research / event effects
@@ -64,8 +68,18 @@ func ComponentCost(s *GameState, kind ComponentKind) bignum.Decimal {
 	for _, m := range costModifiers {
 		mult = mult.Mul(m(s, kind))
 	}
-	raw := info.Base.Mul(powDecimal(info.Growth, owned)).Mul(mult)
+	global := s.Modifiers.Normalized().ComponentCostMul
+	raw := applyCostSoftCap(info.Base.Mul(powDecimal(info.Growth, owned)), info)
+	raw = raw.Mul(global).Mul(mult)
 	return raw.Ceil()
+}
+
+func applyCostSoftCap(raw bignum.Decimal, info ComponentCostInfo) bignum.Decimal {
+	if info.SoftCapAt.IsZero() || info.SoftCapPower <= 1 || raw.LTE(info.SoftCapAt) {
+		return raw
+	}
+	ratio := raw.Div(info.SoftCapAt)
+	return info.SoftCapAt.Mul(powDecimal(ratio, info.SoftCapPower))
 }
 
 // CanPurchase reports whether s has enough USD to buy one more of kind.

@@ -53,24 +53,18 @@ var ElementCatalog = map[Element]ElementInfo{
 var CatalogOrder = []Element{ElementHydrogen, ElementHelium}
 
 // Value formula constants. See docs/features/value-formula.md.
-// ResearchK is exported so the UI can reproduce the research bonus curve
-// in the Periodic Table without recomputing `collectValue`.
 var (
 	speedValueK = bignum.MustParse("1")
 	magValueK   = bignum.MustParse("0.5")
-	ResearchK   = bignum.MustParse("50")
 )
 
-// collectValue is the $USD awarded when a Subject is collected. The research
-// count is the Element's research level at the moment of collection — pass the
-// pre-increment value so the first collection earns the base multiplier.
-// mods must be Normalized so Decimal fields multiply safely.
+// collectValue is the $USD awarded when a Subject is collected. mods must be
+// Normalized so Decimal fields multiply safely.
 // See docs/features/value-formula.md and docs/adr/0010-global-modifier-pipeline.md.
-func collectValue(s Subject, research int, mods GlobalModifiers) bignum.Decimal {
+func collectValue(s Subject, mods GlobalModifiers) bignum.Decimal {
 	info := ElementCatalog[s.Element]
 	base := s.Mass.MulInt(s.Speed).Mul(speedValueK).Add(s.Magnetism.Mul(magValueK))
-	researchBonus := bignum.One().Add(bignum.FromInt(research).Div(ResearchK))
-	return base.Mul(info.Multiplier).Mul(researchBonus).Mul(mods.CollectorValueMul)
+	return base.Mul(info.Multiplier).Mul(mods.CollectorValueMul)
 }
 
 var (

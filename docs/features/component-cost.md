@@ -8,17 +8,50 @@ Every placeable Accelerator Component costs $USD to acquire. Cost scales with th
 
 ## Formula
 
-For each purchase of `kind`:
+For each purchase of `kind`, first compute the raw exponential cost:
 
 ```
-cost = ceil( Base[kind] * Growth[kind] ^ Owned[kind] * Π modifiers(state, kind) )
+raw = Base[kind] * Growth[kind] ^ Owned[kind]
 ```
 
-- `Base` and `Growth` are tuning numbers in `sim.ComponentCatalog`.
+Then apply the optional soft cap:
+
+```
+if SoftCapAt[kind] is set and raw > SoftCapAt[kind]:
+    shaped = SoftCapAt[kind] * (raw / SoftCapAt[kind]) ^ SoftCapPower[kind]
+else:
+    shaped = raw
+```
+
+Then apply multipliers and round up:
+
+```
+cost = ceil( shaped * GlobalComponentCostMultiplier * Π modifiers(state, kind) )
+```
+
+- `Base`, `Growth`, optional `SoftCapAt`, and optional `SoftCapPower` are tuning numbers in `sim.ComponentCatalog`.
 - `Owned[kind]` is the total number ever purchased of that kind — monotonic. Erase does not decrement it.
+- `SoftCapAt` is a price threshold, not an owned-count threshold. It lets early purchases follow the normal curve, then makes pushing far past the intended quantity aggressively more expensive.
+- `SoftCapPower` should usually be an integer `2` or `3`. `0`/`1` means no extra soft-cap amplification.
+- `GlobalComponentCostMultiplier` is `GameState.Modifiers.ComponentCostMul`, normalized to `1` today. Future global upgrades can set it below `1` for discounts or above `1` for challenge modes.
+- Registered `CostModifier` functions still multiply after the soft cap and global multiplier for future prestige/research/event effects.
 - The final cost is ceilinged to a whole-dollar integer — no fractional $USD ever reaches the UI or the deduction.
 
 The current catalog is in `internal/sim/component_cost.go`.
+
+### Current catalog tuning
+
+| Kind | Base | Growth | SoftCapAt | SoftCapPower | Early notes |
+|---|---:|---:|---:|---:|---|
+| Injector | `$10` | `1.15` | unset | unset | Utility source. |
+| Accelerator | `$5` | `3.2` | `$5K` | `2` | Early costs: `$5`, `$16`, `$52`, `$164`, `$525`, `$1 678`; soft-cap pressure starts around `$5K`. |
+| Mesh Grid | `$15` | `1.20` | unset | unset | Speed-band utility. |
+| Magnetiser | `$100` | `5` | unset | unset | Second purchase is `$500`. |
+| Rotator | `$8` | `1.15` | unset | unset | Routing utility. |
+| Collector | `$50` | `1.25` | unset | unset | Endpoint/economy sink. |
+| Resonator | `$50` | `1.35` | unset | unset | Slightly steeper than early utility curves. |
+| Catalyst | `$1 000` | `12` | unset | unset | Second purchase is `$12K`. |
+| Duplicator | `$10 000` | `125` | unset | unset | Second purchase is `$1.25M`. |
 
 ## Inventory
 
@@ -30,14 +63,12 @@ The current catalog is in `internal/sim/component_cost.go`.
 
 ## Starter inventory
 
-A brand-new game begins with enough components to build a minimal loop:
+A brand-new game begins with only the two endpoints of an acceleration loop:
 
 - 1 Injector
-- 2 Simple Accelerators
-- 1 Rotator
 - 1 Collector
 
-Starting $USD is unchanged at `0`. The player can build a Hydrogen loop, collect a few Subjects, and earn the first purchase. Starter counts live in `sim.starterInventory()` — tune there.
+Everything else — accelerators, elbows, mesh grids, magnetisers, etc. — must be purchased. Starting $USD is unchanged at `0`, so the player's first move is to place the Injector and Collector adjacently; the first collected Subject funds the first Accelerator ($5). Starter counts live in `sim.starterInventory()` — tune there.
 
 ## Extensibility
 
@@ -48,7 +79,7 @@ type CostModifier func(s *GameState, kind ComponentKind) bignum.Decimal
 sim.RegisterCostModifier(myModifier)
 ```
 
-Each modifier returns a per-state, per-kind multiplier. The final cost multiplies every registered modifier's output. Today the list is empty (no modifiers shipped), so the formula reduces to `Base * Growth^Owned` ceilinged. Phase-4 prestige upgrades land here without re-shaping the surface.
+Each modifier returns a per-state, per-kind multiplier. The final cost multiplies every registered modifier's output after the built-in soft-cap shaping and global `ComponentCostMul`. Today the list is empty (no registered modifiers shipped), so the formula reduces to the catalog curve plus any `GameState.Modifiers.ComponentCostMul`. Phase-4 prestige upgrades land here without re-shaping the surface.
 
 ## UI
 
@@ -71,3 +102,4 @@ Additive: `GameState.Owned` is a new `map[ComponentKind]int` with `omitempty`. S
 - `internal/input/input.go` — placement / erase / reconfigure wiring.
 - `internal/render/palette.go` — inventory + cost sub-label per tool.
 - `docs/adr/0005-component-cost-and-inventory.md` — data-model and save-format decisions.
+- `docs/features/component-creation-and-balancing.md` — workflow for adding new components and choosing cost curves.

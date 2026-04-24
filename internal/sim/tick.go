@@ -52,7 +52,7 @@ func (s *GameState) advanceSubjects() {
 		}
 		if collected {
 			research := s.Research[sub.Element]
-			value := collectValue(sub, research, mods)
+			value := collectValue(sub, mods)
 			s.USD = s.USD.Add(value)
 			s.recordCollectionBestStats(sub, value)
 			s.recordCollectionLog(sub, research, value)

@@ -22,9 +22,10 @@ Three coupled decisions fall out of adding a component purchase cost:
 - Available (placeable right now) is always derived: `Owned[kind] - count-placed-on-grid(kind)`.
 - One counter instead of two (placed + available) removes a whole class of drift bugs and keeps the save smaller.
 
-**2. Cost is a compositional product, not a fixed table.**
+**2. Cost is a compositional curve, not a fixed table.**
 
-- `cost = ceil( Base * Growth^Owned * Π registered CostModifiers )`.
+- Initial implementation used `cost = ceil(Base * Growth^Owned * Π registered CostModifiers)`.
+- Current implementation keeps the same compositional surface but allows each catalog entry to add soft-cap shaping: `raw = Base * Growth^Owned`; above `SoftCapAt`, `shaped = SoftCapAt * (raw / SoftCapAt)^SoftCapPower`; final cost is `ceil(shaped * ComponentCostMul * Π registered CostModifiers)`.
 - Modifiers are a package-level slice (`RegisterCostModifier(fn)`) so prestige/research/event upgrades compose without re-shaping the signature.
 - Each modifier takes both the `GameState` and the `ComponentKind`, so per-kind effects ("Injectors 20% cheaper after research tier 3") fit the surface directly.
 
@@ -71,5 +72,6 @@ Three coupled decisions fall out of adding a component purchase cost:
 - `internal/sim/save.go` — migration for saves that predate the `Owned` field.
 - `internal/input/input.go` — placement auto-purchase flow and overwrite semantics.
 - `docs/features/component-cost.md` — gameplay-facing feature description.
+- `docs/features/component-creation-and-balancing.md` — current tuning workflow for component curves and soft caps.
 - ADR 0002 — versioned save schema.
 - ADR 0004 — canonical save strings; this ADR refines its "bump ⇒ reject" rule to apply only to shape-breaking changes.

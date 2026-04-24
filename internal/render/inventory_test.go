@@ -118,6 +118,79 @@ func TestHandleLogClickInsidePanelKeepsOpen(t *testing.T) {
 	}
 }
 
+func TestToggleLogOpensClosesAndClosesOtherModals(t *testing.T) {
+	g := newTestGame()
+	g.ui.SettingsOpen = true
+	g.ui.CodexOpen = true
+	g.ui.InventoryOpen = true
+
+	g.toggleLog()
+	if !g.ui.LogOpen {
+		t.Fatal("L hotkey should open log")
+	}
+	if g.ui.SettingsOpen || g.ui.CodexOpen || g.ui.InventoryOpen {
+		t.Fatal("opening log should close other modals")
+	}
+
+	g.toggleLog()
+	if g.ui.LogOpen {
+		t.Fatal("L hotkey should close log when already open")
+	}
+}
+
+func TestToggleCodexOpensClosesAndResetsSessionState(t *testing.T) {
+	g := newTestGame()
+	g.ui.SettingsOpen = true
+	g.ui.InventoryOpen = true
+	g.ui.LogOpen = true
+	g.ui.CodexNotice = "old notice"
+	g.codexHovered = sim.ElementHydrogen
+	g.codexPinned = sim.ElementHelium
+
+	g.toggleCodex()
+	if !g.ui.CodexOpen {
+		t.Fatal("C hotkey should open codex")
+	}
+	if g.ui.SettingsOpen || g.ui.InventoryOpen || g.ui.LogOpen {
+		t.Fatal("opening codex should close other modals")
+	}
+	if g.ui.CodexNotice != "" || g.codexHovered != "" || g.codexPinned != "" {
+		t.Fatal("opening codex should clear codex session state")
+	}
+
+	g.codexHovered = sim.ElementHydrogen
+	g.codexPinned = sim.ElementHelium
+	g.ui.CodexNotice = "selected"
+	g.toggleCodex()
+	if g.ui.CodexOpen {
+		t.Fatal("C hotkey should close codex when already open")
+	}
+	if g.ui.CodexNotice != "" || g.codexHovered != "" || g.codexPinned != "" {
+		t.Fatal("closing codex should clear codex session state")
+	}
+}
+
+func TestCloseModalsClosesAllAndClearsTransientState(t *testing.T) {
+	g := newTestGame()
+	g.ui.SettingsOpen = true
+	g.ui.CodexOpen = true
+	g.ui.InventoryOpen = true
+	g.ui.LogOpen = true
+	g.ui.ResetArmed = true
+	g.ui.CodexNotice = "notice"
+	g.ui.InventoryHovered = ui.ToolAccelerator
+	g.codexHovered = sim.ElementHydrogen
+	g.codexPinned = sim.ElementHelium
+
+	g.closeModals()
+	if g.ui.SettingsOpen || g.ui.CodexOpen || g.ui.InventoryOpen || g.ui.LogOpen {
+		t.Fatal("Escape should close all modals")
+	}
+	if g.ui.ResetArmed || g.ui.CodexNotice != "" || g.ui.InventoryHovered != ui.ToolNone || g.codexHovered != "" || g.codexPinned != "" {
+		t.Fatal("Escape should clear modal transient state")
+	}
+}
+
 func TestLoadBarFillWidthClamps(t *testing.T) {
 	if got := loadBarFillWidth(0, 16, 100); got != 0 {
 		t.Fatalf("empty load fill = %d, want 0", got)
@@ -157,6 +230,19 @@ func TestInjectButtonLabelStates(t *testing.T) {
 	label, enabled = injectButtonLabel(s)
 	if enabled || label != "Max Load" {
 		t.Fatalf("max load label=%q enabled=%v", label, enabled)
+	}
+}
+
+func TestTriggerInjectionFiresInjector(t *testing.T) {
+	g := newTestGame()
+	g.state.Grid.Cells[0][0].Component = &components.Injector{Direction: sim.DirEast}
+
+	g.triggerInjection()
+	if got := len(g.state.Grid.Subjects); got != 1 {
+		t.Fatalf("triggerInjection subjects = %d, want 1", got)
+	}
+	if g.state.InjectionCooldownRemaining <= 0 {
+		t.Fatal("triggerInjection should start injection cooldown")
 	}
 }
 

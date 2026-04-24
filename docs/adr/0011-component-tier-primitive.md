@@ -129,7 +129,7 @@ Kept distinct from `GlobalUpgradeCatalog` (ADR 0010) because:
 
 **6. Cost curve for *buying more of a component* stays single-tier for now.**
 
-`ComponentCatalog` (`internal/sim/component_cost.go`) still has one `Base`/`Growth` per kind. Buying your 10th Accelerator uses the same curve regardless of the global tier. Tier upgrades and purchase cost are orthogonal pricing dimensions.
+`ComponentCatalog` (`internal/sim/component_cost.go`) still has one purchase curve per kind (`Base`, `Growth`, and optional soft-cap fields). Buying your 10th Accelerator uses the same curve regardless of the global tier. Tier upgrades and purchase cost are orthogonal pricing dimensions.
 
 If this becomes wrong (e.g. T3 Accelerators should cost more to buy than T1), the catalog can grow a per-tier override without disturbing the tier primitive itself.
 
@@ -171,6 +171,6 @@ The removal of `SimpleAccelerator.SpeedBonus` and `Magnetiser.Bonus` fields is a
 - `internal/input/input.go` — `PlaceFromTool` no longer sets per-instance tier stats.
 - `docs/features/component-tiers.md` — player-facing progression.
 - ADR 0002 — additive save rule.
-- ADR 0005 — `ComponentCatalog` unchanged (purchase cost is orthogonal).
+- ADR 0005 — component purchase cost remains orthogonal to tiers.
 - ADR 0008 — `ApplyContext` carries `Tiers`.
 - ADR 0010 — global upgrades stay separate.

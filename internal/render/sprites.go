@@ -33,9 +33,10 @@ type tileSprites struct {
 	magnetiserBottom *ebiten.Image
 	collector        *ebiten.Image
 
-	accelLogo *ebiten.Image
-	meshLogo  *ebiten.Image
-	pipeLogo  *ebiten.Image
+	accelLogo   *ebiten.Image
+	meshLogo    *ebiten.Image
+	magnetLogo  *ebiten.Image
+	pipeLogo    *ebiten.Image
 }
 
 var sprites = mustLoadTileSprites()
@@ -60,9 +61,10 @@ func mustLoadTileSprites() tileSprites {
 		magnetiserBottom: mustLoadTileSprite("images/tiles/magnetiser_bottom.png"),
 		collector:        mustLoadTileSprite("images/tiles/collector.png"),
 
-		accelLogo: mustLoadTileSprite("images/tiles/accelerator_logo.png"),
-		meshLogo:  mustLoadTileSprite("images/tiles/mesh_grid_logo.png"),
-		pipeLogo:  mustLoadTileSprite("images/tiles/pipe_logo.png"),
+		accelLogo:  mustLoadTileSprite("images/tiles/accelerator_logo.png"),
+		meshLogo:   mustLoadTileSprite("images/tiles/mesh_grid_logo.png"),
+		magnetLogo: mustLoadTileSprite("images/tiles/magnetiser_logo.png"),
+		pipeLogo:   mustLoadTileSprite("images/tiles/pipe_logo.png"),
 	}
 }
 
@@ -254,15 +256,17 @@ func tileSpriteForTool(t ui.Tool) *ebiten.Image {
 }
 
 // logoSpriteForTool returns the inventory-facing logo icon for a Tool.
-// Dedicated logos exist for Accelerator and Mesh Grid; every other Tool
-// falls back to the generic pipe logo as a placeholder until bespoke art
-// lands.
+// Dedicated logos exist for Accelerator, Mesh Grid, and Magnetiser; every
+// other Tool falls back to the generic pipe logo as a placeholder until
+// bespoke art lands.
 func logoSpriteForTool(t ui.Tool) *ebiten.Image {
 	switch t {
 	case ui.ToolAccelerator:
 		return sprites.accelLogo
 	case ui.ToolMeshGrid:
 		return sprites.meshLogo
+	case ui.ToolMagnetiser:
+		return sprites.magnetLogo
 	}
 	return sprites.pipeLogo
 }

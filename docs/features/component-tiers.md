@@ -51,7 +51,7 @@ A fresh game starts every kind at Tier 1. Starter inventory amounts (see `docs/f
 
 ## Interaction with buying more components
 
-Purchase cost (`Base * Growth^Owned` — see `docs/features/component-cost.md`) does **not** change with tier. Buying your 20th Accelerator costs the same whether the Accelerator tier is T1 or T3. Tier upgrades and bulk-purchase costs are independent axes.
+Purchase cost (catalog exponential curve plus optional soft-cap shaping — see `docs/features/component-cost.md`) does **not** change with tier. Buying your 20th Accelerator costs the same whether the Accelerator tier is T1 or T3. Tier upgrades and bulk-purchase costs are independent axes.
 
 ## Interaction with global upgrades
 
@@ -75,4 +75,5 @@ Saves from before tiers exist load as Tier 1 for every kind. No migration. See `
 - `internal/sim/tier.go` — tier model and purchase flow.
 - `docs/adr/0011-component-tier-primitive.md` — data model and save-compat decisions.
 - `docs/features/component-cost.md` — orthogonal bulk-purchase cost axis.
+- `docs/features/component-creation-and-balancing.md` — practical guide for tuning purchase curves versus tier costs.
 - `docs/features/global-upgrades.md` — orthogonal flat-bonus axis.

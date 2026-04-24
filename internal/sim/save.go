@@ -115,6 +115,10 @@ func Load() (*GameState, bool, error) {
 	if len(state.CollectionLog) > MaxCollectionLogEntries {
 		state.CollectionLog = state.CollectionLog[:MaxCollectionLogEntries]
 	}
+	state.trimNotificationLog()
+	if state.ShownHelperMilestones == nil {
+		state.ShownHelperMilestones = map[string]bool{}
+	}
 	if state.UnlockedElements == nil {
 		state.UnlockedElements = map[Element]bool{ElementHydrogen: true}
 	}

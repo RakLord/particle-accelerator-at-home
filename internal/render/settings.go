@@ -8,14 +8,16 @@ import (
 
 const (
 	modalW = 360
-	modalH = 320
+	modalH = 380
 
-	saveBtnW  = 160
-	saveBtnH  = 40
-	resetBtnW = 160
-	resetBtnH = 40
-	closeBtnW = 80
-	closeBtnH = 32
+	saveBtnW    = 160
+	saveBtnH    = 40
+	resetBtnW   = 160
+	resetBtnH   = 40
+	historyBtnW = 200
+	historyBtnH = 40
+	closeBtnW   = 80
+	closeBtnH   = 32
 
 	trailsRowW = 240
 	trailsRowH = 32
@@ -31,11 +33,14 @@ func saveBtnY() int { return modalY() + 56 }
 func resetBtnX() int { return modalX() + (modalW-resetBtnW)/2 }
 func resetBtnY() int { return modalY() + 120 }
 
+func historyBtnX() int { return modalX() + (modalW-historyBtnW)/2 }
+func historyBtnY() int { return modalY() + 184 }
+
 func closeBtnX() int { return modalX() + modalW - closeBtnW - 12 }
 func closeBtnY() int { return modalY() + modalH - closeBtnH - 12 }
 
 func trailsRowX() int { return modalX() + (modalW-trailsRowW)/2 }
-func trailsRowY() int { return modalY() + 200 }
+func trailsRowY() int { return modalY() + 248 }
 
 func drawSettings(dst *ebiten.Image, u *ui.UIState) {
 	fillRect(dst, 0, 0, screenW, screenH, colorOverlay)
@@ -69,6 +74,12 @@ func drawSettings(dst *ebiten.Image, u *ui.UIState) {
 	} else if u.ResetArmed {
 		drawTextCentered(dst, "This wipes your save.", x, ry+resetBtnH+8, modalW, 16, colorTextMuted)
 	}
+
+	// Notification history
+	hx, hy := historyBtnX(), historyBtnY()
+	fillRect(dst, hx, hy, historyBtnW, historyBtnH, colorButton)
+	strokeRect(dst, hx, hy, historyBtnW, historyBtnH, 1, colorTextMuted)
+	drawTextCentered(dst, "Notification History", hx, hy, historyBtnW, historyBtnH, colorText)
 
 	// Particle trails toggle (checkbox + label, toggled by click anywhere on the row).
 	trx, try_ := trailsRowX(), trailsRowY()

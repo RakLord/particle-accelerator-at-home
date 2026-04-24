@@ -145,6 +145,7 @@ func TestInjectorRespectsEffectiveMaxLoadWithBonus(t *testing.T) {
 
 func TestInjectorUsesGlobalInjectionElement(t *testing.T) {
 	s := sim.NewGameState()
+	s.MaxLoad = 2
 	s.UnlockedElements[sim.ElementHelium] = true
 	s.InjectionElement = sim.ElementHelium
 	s.Grid.Cells[0][0].Component = &components.Injector{

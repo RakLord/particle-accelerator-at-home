@@ -32,6 +32,8 @@ Every Subject carries:
 
 Every Accelerator Component is conceptually a pure function `(Subject, context) → Subject`, optionally with a direction override. The context (grid read, per-Element research, tick, global modifiers, tier level) is covered by `docs/adr/0008-apply-context-and-grid-view.md`. Components that emit additional Subjects (e.g. Duplicator) implement a sibling capability interface — see `docs/adr/0009-subject-emitter-capability.md`. Adding a new Component means defining its function plus its sprite.
 
+When adding or retuning Components, use `docs/features/component-creation-and-balancing.md` for the implementation checklist and purchase-cost balancing workflow.
+
 ## Simulation model
 - **Fixed logical tick rate**, user-configurable. Logical state advances only on ticks. This keeps the simulation deterministic for saves and offline progress. The constant lives at `sim.DefaultTickRate`.
   - Render-side interpolation is live (see `docs/features/smooth-motion.md`): Subjects glide between ticks along a recorded per-tick `Path`, with quarter arcs through rotator cells. A `sim.SpeedDivisor` of 10 means base `Speed=1` traverses one cell every 10 ticks; the tick rate itself stays at 10 Hz for now.

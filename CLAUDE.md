@@ -42,6 +42,8 @@ Logical state advances **only on fixed-rate ticks** (default 60 Hz). Rendering u
 ### Component model
 Every Accelerator Component is conceptually `(Subject) → Subject`, optionally with a direction override. Adding a new component = one pure function + its sprite. The `sim.Upgrader` interface is the current placeholder for this.
 
+Before adding a new Accelerator Component or changing component purchase costs, read `docs/features/component-creation-and-balancing.md`. It contains the implementation checklist, cost formula, soft-cap guidance, and balancing workflow that should stay consistent across components.
+
 ### Terminology
 `docs/overview.md` defines canonical terms. Two are load-bearing in code:
 
@@ -50,4 +52,3 @@ Every Accelerator Component is conceptually `(Subject) → Subject`, optionally 
 
 ### Rendering resolution
 Design target is **logical 1280×720** with Ebitengine scaling to the window (see `docs/overview.md` for rationale). The current `render.Game.Layout` returns a square sized from `GridSize` — this is scaffolding and will change when the UI column lands; don't treat the current layout as the intended one.
-

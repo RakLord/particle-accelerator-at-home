@@ -10,6 +10,7 @@ Examples:
 - "All Collectors yield +10% $USD."
 - "Inject cooldown recovers twice as fast."
 - "All Accelerators grant +1 flat Speed."
+- "All component purchases cost ×0.8."
 - "Max Load +8."
 
 ## Purchase
@@ -26,7 +27,7 @@ The player sees global upgrades in a dedicated shop tab listed with all requirem
 
 Every purchased upgrade contributes to an aggregated `GlobalModifiers` state. Hot paths (collection value, manual injection cooldown, component Apply behaviour, `MaxLoad` enforcement) read the aggregated state on every tick. Stacked upgrades compose:
 
-- **Multiplicative** upgrades (e.g. Collector value, Injector rate, Magnetiser bonus) multiply over each other. Two `+10%` Collector upgrades yield `1.10 × 1.10 = 1.21×` total.
+- **Multiplicative** upgrades (e.g. Collector value, component purchase cost, Injector rate, Magnetiser bonus) multiply over each other. Two `+10%` Collector upgrades yield `1.10 × 1.10 = 1.21×` total; two `×0.8` component-cost discounts would yield `0.64×` cost.
 - **Additive** upgrades (e.g. flat Speed bonus, flat Max Load bonus) sum over each other.
 
 The split is per-field, documented in ADR 0010.
@@ -58,5 +59,7 @@ Saves from before global upgrades exist load into a state with no upgrades purch
 - `internal/sim/modifiers.go` — aggregated modifier state.
 - `internal/ui/upgrades_tab.go` — shop UI.
 - `docs/adr/0010-global-modifier-pipeline.md` — data model, derivation rule, save-compat.
+- `docs/features/component-cost.md` — where component purchase cost modifiers apply.
+- `docs/features/component-creation-and-balancing.md` — practical guide for component cost tuning.
 - `docs/features/component-tiers.md` — orthogonal progression axis.
 - `docs/features/value-formula.md` — where Collector value modifiers apply.

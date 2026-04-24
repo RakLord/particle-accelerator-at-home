@@ -19,7 +19,7 @@ var ToolInfoCatalog = map[Tool]ToolInfo{
 		Tagline: "Spawns the Codex-selected Element at a fixed cadence.",
 		Description: "Emits a Subject every few ticks in its facing direction using the Element selected for injection in the Codex. " +
 			"Spawns are blocked while the grid is at Max Load. " +
-			"Left-click again to cycle the facing direction after placing.",
+			"Hover it and use the scroll wheel to cycle the facing direction after placing.",
 	},
 	ToolAccelerator: {
 		Name:    "Accelerator",

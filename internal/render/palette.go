@@ -65,16 +65,48 @@ func drawPalette(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 
 func drawInjectButton(dst *ebiten.Image, s *sim.GameState) {
 	label, enabled := injectButtonLabel(s)
+	cooling := !enabled && s.HasInjector() && s.CurrentLoad < s.EffectiveMaxLoad() && s.InjectionCooldownRemaining > 0
+
 	bg := colorInjector
 	fg := colorText
-	if !enabled {
+	if !enabled && !cooling {
 		bg = color.RGBA{0x1a, 0x2a, 0x20, 0xff}
 		fg = colorTextMuted
 	}
 	fillRect(dst, injectBtnX, injectBtnY, injectBtnW, injectBtnH, bg)
+	if cooling {
+		drawInjectCooldownOverlay(dst, s)
+	}
 	strokeRect(dst, injectBtnX, injectBtnY, injectBtnW, injectBtnH, 1, colorTextMuted)
 	drawTextFaceCentered(dst, label, injectBtnX, injectBtnY+8, injectBtnW, 22, fontTitle, fg)
 	drawTextCentered(dst, "Manual injection", injectBtnX, injectBtnY+32, injectBtnW, 14, colorTextMuted)
+}
+
+// drawInjectCooldownOverlay draws a centered dark rectangle whose width is
+// proportional to the remaining cooldown, so that as the cooldown counts down
+// both edges collapse toward the horizontal center of the button, revealing
+// the ready-green background from the outside in.
+func drawInjectCooldownOverlay(dst *ebiten.Image, s *sim.GameState) {
+	total := s.EffectiveInjectionCooldownTicks()
+	if total <= 0 {
+		return
+	}
+	remain := s.InjectionCooldownRemaining
+	if remain <= 0 {
+		return
+	}
+	if remain > total {
+		remain = total
+	}
+	overlayW := injectBtnW * remain / total
+	if overlayW <= 0 {
+		return
+	}
+	if overlayW > injectBtnW {
+		overlayW = injectBtnW
+	}
+	overlayX := injectBtnX + (injectBtnW-overlayW)/2
+	fillRect(dst, overlayX, injectBtnY, overlayW, injectBtnH, color.RGBA{0x1a, 0x2a, 0x20, 0xff})
 }
 
 func injectButtonLabel(s *sim.GameState) (string, bool) {

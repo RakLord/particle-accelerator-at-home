@@ -53,18 +53,64 @@ func TestComponentCostScalesWithOwned(t *testing.T) {
 	s.Owned = map[ComponentKind]int{}
 
 	low := ComponentCost(s, KindAccelerator)
-	s.Owned[KindAccelerator] = 10
+	s.Owned[KindAccelerator] = 2
 	high := ComponentCost(s, KindAccelerator)
 
 	if !high.GT(low) {
 		t.Fatalf("cost should grow with Owned: low=%v high=%v", low, high)
 	}
-	// low = ceil(5 * 1) = 5; high = ceil(5 * 1.15^10) ≈ ceil(20.22) = 21.
+	// low = ceil(5 * 1) = 5; high = ceil(5 * 3.2^2) = ceil(51.2) = 52.
 	if !low.Eq(bignum.FromInt(5)) {
 		t.Fatalf("base cost: got %v want 5", low)
 	}
-	if !high.Eq(bignum.FromInt(21)) {
-		t.Fatalf("scaled cost: got %v want 21", high)
+	if !high.Eq(bignum.FromInt(52)) {
+		t.Fatalf("scaled cost: got %v want 52", high)
+	}
+}
+
+func TestComponentCostKeyBalanceTargets(t *testing.T) {
+	ResetCostModifiers()
+	s := NewGameState()
+	s.Owned = map[ComponentKind]int{}
+
+	cases := []struct {
+		kind       ComponentKind
+		firstCost  bignum.Decimal
+		secondCost bignum.Decimal
+	}{
+		{KindMagnetiser, bignum.FromInt(100), bignum.FromInt(500)},
+		{KindCatalyst, bignum.FromInt(1000), bignum.FromInt(12000)},
+		{KindDuplicator, bignum.FromInt(10000), bignum.FromInt(1250000)},
+		{KindResonator, bignum.FromInt(50), bignum.FromInt(68)},
+	}
+
+	for _, tc := range cases {
+		s.Owned[tc.kind] = 0
+		if got := ComponentCost(s, tc.kind); !got.Eq(tc.firstCost) {
+			t.Errorf("%s first cost: got %v want %v", tc.kind, got, tc.firstCost)
+		}
+		s.Owned[tc.kind] = 1
+		if got := ComponentCost(s, tc.kind); !got.Eq(tc.secondCost) {
+			t.Errorf("%s second cost: got %v want %v", tc.kind, got, tc.secondCost)
+		}
+	}
+}
+
+func TestComponentCostSoftCapAmplifiesAboveThreshold(t *testing.T) {
+	info := ComponentCostInfo{
+		Base:         bignum.FromInt(10),
+		Growth:       bignum.FromInt(2),
+		SoftCapAt:    bignum.FromInt(100),
+		SoftCapPower: 2,
+	}
+
+	below := applyCostSoftCap(bignum.FromInt(80), info)
+	if !below.Eq(bignum.FromInt(80)) {
+		t.Fatalf("below cap: got %v want 80", below)
+	}
+	above := applyCostSoftCap(bignum.FromInt(200), info)
+	if !above.Eq(bignum.FromInt(400)) {
+		t.Fatalf("above cap: got %v want 400", above)
 	}
 }
 
@@ -117,6 +163,18 @@ func TestComponentCostAppliesModifiers(t *testing.T) {
 	}
 	if !acc.Eq(bignum.FromInt(10)) {
 		t.Fatalf("kind-specific modifier leaked to accelerator: got %v", acc)
+	}
+}
+
+func TestComponentCostAppliesGlobalComponentCostMultiplier(t *testing.T) {
+	ResetCostModifiers()
+	s := NewGameState()
+	s.Owned = map[ComponentKind]int{}
+	s.Modifiers.ComponentCostMul = bignum.MustParse("0.5")
+
+	cost := ComponentCost(s, KindInjector)
+	if !cost.Eq(bignum.FromInt(5)) {
+		t.Fatalf("global component cost multiplier: got %v want 5", cost)
 	}
 }
 

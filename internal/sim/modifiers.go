@@ -13,6 +13,7 @@ import "particleaccelerator/internal/bignum"
 // See docs/adr/0010-global-modifier-pipeline.md.
 type GlobalModifiers struct {
 	CollectorValueMul       bignum.Decimal `json:"collector_value_mul,omitempty"`
+	ComponentCostMul        bignum.Decimal `json:"component_cost_mul,omitempty"`
 	InjectorRateMul         bignum.Decimal `json:"injector_rate_mul,omitempty"`
 	AcceleratorSpeedBonus   int            `json:"accelerator_speed_bonus,omitempty"`
 	MagnetiserBonusMul      bignum.Decimal `json:"magnetiser_bonus_mul,omitempty"`
@@ -29,6 +30,9 @@ type GlobalModifiers struct {
 func (m GlobalModifiers) Normalized() GlobalModifiers {
 	if m.CollectorValueMul.IsZero() {
 		m.CollectorValueMul = bignum.One()
+	}
+	if m.ComponentCostMul.IsZero() {
+		m.ComponentCostMul = bignum.One()
 	}
 	if m.InjectorRateMul.IsZero() {
 		m.InjectorRateMul = bignum.One()

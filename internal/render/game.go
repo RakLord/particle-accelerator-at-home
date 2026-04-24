@@ -74,6 +74,7 @@ func (g *Game) Update() error {
 	g.state.Tick()
 	g.income.ensureTickRate(g.state.TickRate)
 	g.income.record(g.state.USD.Sub(beforeUSD))
+	g.checkHelperMilestones()
 	g.lastTickAt = time.Now()
 	g.tickDuration = tickDurationFor(g.state.TickRate)
 	g.ticksSinceSave++
@@ -92,6 +93,45 @@ func (g *Game) Update() error {
 func (g *Game) handleInput() {
 	mx, my := ebiten.CursorPosition()
 
+	// Global: Escape closes the topmost overlay before any other input is handled.
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		if g.ui.HelperOpen {
+			g.closeHelper()
+			return
+		}
+		if g.ui.NotificationHistoryOpen {
+			g.ui.NotificationHistoryOpen = false
+			return
+		}
+		g.closeModals()
+		return
+	}
+	if g.ui.HelperOpen {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && helperCloseHit(g.ui, mx, my) {
+			g.closeHelper()
+		}
+		return
+	}
+	if g.ui.NotificationHistoryOpen {
+		_, wheelY := ebiten.Wheel()
+		if wheelY > 0 {
+			g.ui.NotificationHistoryScroll--
+		}
+		if wheelY < 0 {
+			g.ui.NotificationHistoryScroll++
+		}
+		if g.ui.NotificationHistoryScroll < 0 {
+			g.ui.NotificationHistoryScroll = 0
+		}
+		if maxScroll := maxNotificationScroll(g.state); g.ui.NotificationHistoryScroll > maxScroll {
+			g.ui.NotificationHistoryScroll = maxScroll
+		}
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			g.handleNotificationHistoryClick(mx, my)
+		}
+		return
+	}
+
 	// Global: toggle particle trails with T. Clears the buffer on disable so
 	// old dots don't linger for their full lifetime after toggle-off.
 	if inpututil.IsKeyJustPressed(ebiten.KeyT) {
@@ -99,6 +139,16 @@ func (g *Game) handleInput() {
 		if !g.ui.TrailsEnabled {
 			g.trail = g.trail[:0]
 		}
+	}
+
+	// Global: modal hotkeys.
+	if inpututil.IsKeyJustPressed(ebiten.KeyL) {
+		g.toggleLog()
+		return
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+		g.toggleCodex()
+		return
 	}
 
 	// Global: toggle the inventory modal with E. Closes any other modal that
@@ -110,6 +160,7 @@ func (g *Game) handleInput() {
 			g.ui.SettingsOpen = false
 			g.ui.CodexOpen = false
 			g.ui.LogOpen = false
+			g.ui.NotificationHistoryOpen = false
 		}
 		return
 	}
@@ -141,33 +192,23 @@ func (g *Game) handleInput() {
 		}
 		return
 	}
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		g.triggerInjection()
+		return
+	}
 
 	// Header: inventory + log + codex + settings buttons.
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		if contains(mx, my, settingsBtnX, settingsBtnY, settingsBtnW, settingsBtnH) {
-			g.ui.SettingsOpen = true
-			g.ui.CodexOpen = false
-			g.ui.InventoryOpen = false
-			g.ui.LogOpen = false
-			g.ui.ResetArmed = false
-			g.ui.LastSaveNotice = ""
+			g.openSettings()
 			return
 		}
 		if contains(mx, my, codexBtnX, codexBtnY, codexBtnW, codexBtnH) {
-			g.ui.CodexOpen = true
-			g.ui.SettingsOpen = false
-			g.ui.InventoryOpen = false
-			g.ui.LogOpen = false
-			g.ui.CodexNotice = ""
-			g.codexHovered = ""
-			g.codexPinned = ""
+			g.openCodex()
 			return
 		}
 		if contains(mx, my, logBtnX, logBtnY, logBtnW, logBtnH) {
-			g.ui.LogOpen = true
-			g.ui.SettingsOpen = false
-			g.ui.CodexOpen = false
-			g.ui.InventoryOpen = false
+			g.openLog()
 			return
 		}
 		if contains(mx, my, inventoryBtnX, inventoryBtnY, inventoryBtnW, inventoryBtnH) {
@@ -175,6 +216,7 @@ func (g *Game) handleInput() {
 			g.ui.SettingsOpen = false
 			g.ui.CodexOpen = false
 			g.ui.LogOpen = false
+			g.ui.NotificationHistoryOpen = false
 			g.ui.InventoryHovered = ui.ToolNone
 			return
 		}
@@ -187,17 +229,22 @@ func (g *Game) handleInput() {
 			g.ui.SettingsOpen = false
 			g.ui.CodexOpen = false
 			g.ui.LogOpen = false
+			g.ui.NotificationHistoryOpen = false
 			g.ui.InventoryHovered = ui.ToolNone
 			return
 		}
 		if injectButtonHit(mx, my) {
-			g.state.Inject()
+			g.triggerInjection()
 			return
 		}
 	}
 
 	// Grid: place / reconfigure / erase.
 	if pos, ok := cellAt(mx, my); ok {
+		if inpututil.IsKeyJustPressed(ebiten.KeyH) {
+			g.showComponentHelpAt(pos, mx, my)
+			return
+		}
 		if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
 			input.PickToolAt(g.state, g.ui, pos)
 			return
@@ -222,6 +269,77 @@ func (g *Game) handleInput() {
 			input.Erase(g.state, pos)
 		}
 	}
+}
+
+func (g *Game) openSettings() {
+	g.ui.SettingsOpen = true
+	g.ui.CodexOpen = false
+	g.ui.InventoryOpen = false
+	g.ui.LogOpen = false
+	g.ui.NotificationHistoryOpen = false
+	g.ui.ResetArmed = false
+	g.ui.LastSaveNotice = ""
+}
+
+func (g *Game) openCodex() {
+	g.ui.CodexOpen = true
+	g.ui.SettingsOpen = false
+	g.ui.InventoryOpen = false
+	g.ui.LogOpen = false
+	g.ui.NotificationHistoryOpen = false
+	g.ui.CodexNotice = ""
+	g.codexHovered = ""
+	g.codexPinned = ""
+}
+
+func (g *Game) closeHelper() {
+	g.ui.HelperOpen = false
+	g.ui.HelperHeader = ""
+	g.ui.HelperBody = ""
+}
+
+func (g *Game) toggleCodex() {
+	if g.ui.CodexOpen {
+		g.ui.CodexOpen = false
+		g.ui.CodexNotice = ""
+		g.codexHovered = ""
+		g.codexPinned = ""
+		return
+	}
+	g.openCodex()
+}
+
+func (g *Game) openLog() {
+	g.ui.LogOpen = true
+	g.ui.SettingsOpen = false
+	g.ui.CodexOpen = false
+	g.ui.InventoryOpen = false
+	g.ui.NotificationHistoryOpen = false
+}
+
+func (g *Game) toggleLog() {
+	if g.ui.LogOpen {
+		g.ui.LogOpen = false
+		return
+	}
+	g.openLog()
+}
+
+func (g *Game) closeModals() {
+	g.ui.SettingsOpen = false
+	g.ui.CodexOpen = false
+	g.ui.InventoryOpen = false
+	g.ui.LogOpen = false
+	g.ui.NotificationHistoryOpen = false
+	g.ui.ResetArmed = false
+	g.ui.CodexNotice = ""
+	g.ui.InventoryHovered = ui.ToolNone
+	g.codexHovered = ""
+	g.codexPinned = ""
+}
+
+func (g *Game) triggerInjection() {
+	g.state.Inject()
 }
 
 func (g *Game) handleSettingsClick(mx, my int) {
@@ -268,10 +386,22 @@ func (g *Game) handleSettingsClick(mx, my int) {
 		}
 		return
 	}
+	if contains(mx, my, historyBtnX(), historyBtnY(), historyBtnW, historyBtnH) {
+		g.ui.NotificationHistoryOpen = true
+		g.ui.NotificationHistoryScroll = 0
+		g.ui.ResetArmed = false
+		return
+	}
 	if contains(mx, my, closeBtnX(), closeBtnY(), closeBtnW, closeBtnH) {
 		g.ui.SettingsOpen = false
 		g.ui.ResetArmed = false
 		return
+	}
+}
+
+func (g *Game) handleNotificationHistoryClick(mx, my int) {
+	if contains(mx, my, notifCloseX(), notifCloseY(), closeBtnW, closeBtnH) || !notifInPanel(mx, my) {
+		g.ui.NotificationHistoryOpen = false
 	}
 }
 
@@ -320,6 +450,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	if g.ui.LogOpen {
 		drawCollectionLog(screen, g.state)
+	}
+	if g.ui.NotificationHistoryOpen {
+		drawNotificationHistory(screen, g.state, g.ui)
+	}
+	if g.ui.HelperOpen {
+		drawHelperModal(screen, g.ui)
 	}
 }
 
