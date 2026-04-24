@@ -103,6 +103,9 @@ func Load() (*GameState, bool, error) {
 	if state.Grid == nil {
 		state.Grid = NewGrid()
 	}
+	if state.InjectionCooldownRemaining < 0 {
+		state.InjectionCooldownRemaining = 0
+	}
 	if state.Research == nil {
 		state.Research = map[Element]int{}
 	}

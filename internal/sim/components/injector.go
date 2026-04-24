@@ -29,6 +29,10 @@ func (inj *Injector) MaybeSpawn(ctx sim.ApplyContext, pos sim.Position) (sim.Sub
 		return sim.Subject{}, false
 	}
 	inj.TickCounter = 0
+	return inj.Spawn(ctx, pos)
+}
+
+func (inj *Injector) Spawn(ctx sim.ApplyContext, pos sim.Position) (sim.Subject, bool) {
 	return sim.Subject{
 		Element:     ctx.InjectionElement,
 		Mass:        bignum.One(),

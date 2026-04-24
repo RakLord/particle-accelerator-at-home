@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"particleaccelerator/internal/sim"
+	"particleaccelerator/internal/sim/components"
 	"particleaccelerator/internal/ui"
 )
 
@@ -114,6 +115,48 @@ func TestHandleLogClickInsidePanelKeepsOpen(t *testing.T) {
 	g.handleLogClick(logModalX()+20, logModalY()+80)
 	if !g.ui.LogOpen {
 		t.Fatal("clicking inside log modal body should keep it open")
+	}
+}
+
+func TestLoadBarFillWidthClamps(t *testing.T) {
+	if got := loadBarFillWidth(0, 16, 100); got != 0 {
+		t.Fatalf("empty load fill = %d, want 0", got)
+	}
+	if got := loadBarFillWidth(8, 16, 100); got != 50 {
+		t.Fatalf("half load fill = %d, want 50", got)
+	}
+	if got := loadBarFillWidth(20, 16, 100); got != 100 {
+		t.Fatalf("over cap load fill = %d, want 100", got)
+	}
+	if got := loadBarFillWidth(1, 0, 100); got != 0 {
+		t.Fatalf("zero cap load fill = %d, want 0", got)
+	}
+}
+
+func TestInjectButtonLabelStates(t *testing.T) {
+	s := sim.NewGameState()
+	label, enabled := injectButtonLabel(s)
+	if enabled || label != "No Injector" {
+		t.Fatalf("no injector label=%q enabled=%v", label, enabled)
+	}
+
+	s.Grid.Cells[0][0].Component = &components.Injector{Direction: sim.DirEast}
+	label, enabled = injectButtonLabel(s)
+	if !enabled || label != "Inject" {
+		t.Fatalf("ready label=%q enabled=%v", label, enabled)
+	}
+
+	s.InjectionCooldownRemaining = s.TickRate * 2
+	label, enabled = injectButtonLabel(s)
+	if enabled || label != "Cooldown 2s" {
+		t.Fatalf("cooldown label=%q enabled=%v", label, enabled)
+	}
+
+	s.InjectionCooldownRemaining = 0
+	s.CurrentLoad = s.EffectiveMaxLoad()
+	label, enabled = injectButtonLabel(s)
+	if enabled || label != "Max Load" {
+		t.Fatalf("max load label=%q enabled=%v", label, enabled)
 	}
 }
 

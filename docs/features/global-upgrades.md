@@ -8,7 +8,7 @@ Global upgrades are one-shot $USD purchases that apply a cross-cutting bonus to 
 
 Examples:
 - "All Collectors yield +10% $USD."
-- "Injectors fire twice as fast."
+- "Inject cooldown recovers twice as fast."
 - "All Accelerators grant +1 flat Speed."
 - "Max Load +8."
 
@@ -24,7 +24,7 @@ The player sees global upgrades in a dedicated shop tab listed with all requirem
 
 ## Effect
 
-Every purchased upgrade contributes to an aggregated `GlobalModifiers` state. Hot paths (collection value, injector spawns, component Apply behaviour, `MaxLoad` enforcement) read the aggregated state on every tick. Stacked upgrades compose:
+Every purchased upgrade contributes to an aggregated `GlobalModifiers` state. Hot paths (collection value, manual injection cooldown, component Apply behaviour, `MaxLoad` enforcement) read the aggregated state on every tick. Stacked upgrades compose:
 
 - **Multiplicative** upgrades (e.g. Collector value, Injector rate, Magnetiser bonus) multiply over each other. Two `+10%` Collector upgrades yield `1.10 × 1.10 = 1.21×` total.
 - **Additive** upgrades (e.g. flat Speed bonus, flat Max Load bonus) sum over each other.
@@ -36,7 +36,7 @@ The split is per-field, documented in ADR 0010.
 | Upgrade | Effect | Prerequisite |
 |---|---|---|
 | Collector Coils I | Collector value `×1.10` | Hydrogen research ≥ 5 |
-| Rapid Injection | Injector spawn rate `×2` | Hydrogen research ≥ 10 |
+| Rapid Injection | Injection cooldown rate `×2` | Hydrogen research ≥ 10 |
 | Power Surge | Accelerators grant `+1` flat Speed | Hydrogen research ≥ 15 |
 | Capacity Expansion | Max Load `+8` | Helium unlocked |
 

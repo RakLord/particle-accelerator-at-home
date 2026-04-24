@@ -4,6 +4,9 @@ import "particleaccelerator/internal/bignum"
 
 const (
 	DefaultMaxLoad = 16
+	// DefaultInjectionCooldownSeconds is the base manual injection cooldown.
+	// Injector-rate upgrades shorten the effective tick count derived from this.
+	DefaultInjectionCooldownSeconds = 5
 	// MaxCollectionLogEntries is the number of recent collected Subjects kept
 	// for the in-game collection log.
 	MaxCollectionLogEntries = 10
@@ -31,8 +34,11 @@ type GameState struct {
 	Owned       map[ComponentKind]int `json:"owned,omitempty"`
 	MaxLoad     int
 	CurrentLoad int
-	TickRate    int
-	Ticks       uint64
+	// InjectionCooldownRemaining is the global manual-injection cooldown in
+	// logical ticks. Zero means the Inject button may fire if Load allows.
+	InjectionCooldownRemaining int `json:"injection_cooldown_remaining,omitempty"`
+	TickRate                   int
+	Ticks                      uint64
 
 	// Modifiers aggregates active global upgrades. Derived from (future)
 	// PurchasedUpgrades via rebuildModifiers; zero value is identity. Phase 1

@@ -180,8 +180,7 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	// Right-side panel: only the "Open Inventory" button is interactive
-	// after the palette shrank. Component selection lives in the modal.
+	// Right-side panel: inventory picker and manual injection button.
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		if openInvButtonHit(mx, my) {
 			g.ui.InventoryOpen = true
@@ -189,6 +188,10 @@ func (g *Game) handleInput() {
 			g.ui.CodexOpen = false
 			g.ui.LogOpen = false
 			g.ui.InventoryHovered = ui.ToolNone
+			return
+		}
+		if injectButtonHit(mx, my) {
+			g.state.Inject()
 			return
 		}
 	}

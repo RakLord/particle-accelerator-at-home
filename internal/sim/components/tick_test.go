@@ -111,13 +111,12 @@ func TestElbowRejectsDisconnectedEntry(t *testing.T) {
 func TestInjectorRespectsMaxLoad(t *testing.T) {
 	s := sim.NewGameState()
 	s.MaxLoad = 2
-	s.Grid.Cells[0][0].Component = &components.Injector{
-		Direction:     sim.DirEast,
-		SpawnInterval: 1,
-		Element:       sim.ElementHydrogen,
+	for x := 0; x < 3; x++ {
+		s.Grid.Cells[0][x].Component = &components.Injector{Direction: sim.DirEast}
 	}
-	for range 10 {
-		s.Tick()
+
+	if got := s.Inject(); got != 2 {
+		t.Fatalf("Inject admitted %d Subjects, want 2", got)
 	}
 	if s.CurrentLoad > s.MaxLoad {
 		t.Fatalf("CurrentLoad %d exceeds MaxLoad %d", s.CurrentLoad, s.MaxLoad)
@@ -129,13 +128,12 @@ func TestInjectorRespectsEffectiveMaxLoadWithBonus(t *testing.T) {
 	s := sim.NewGameState()
 	s.MaxLoad = 2
 	s.Modifiers.MaxLoadBonus = 3
-	s.Grid.Cells[0][0].Component = &components.Injector{
-		Direction:     sim.DirEast,
-		SpawnInterval: 1,
-		Element:       sim.ElementHydrogen,
+	for x := 0; x < 5; x++ {
+		s.Grid.Cells[0][x].Component = &components.Injector{Direction: sim.DirEast}
 	}
-	for range 20 {
-		s.Tick()
+
+	if got := s.Inject(); got != 5 {
+		t.Fatalf("Inject admitted %d Subjects, want 5", got)
 	}
 	if s.CurrentLoad > s.EffectiveMaxLoad() {
 		t.Fatalf("CurrentLoad %d exceeds EffectiveMaxLoad %d", s.CurrentLoad, s.EffectiveMaxLoad())
@@ -155,7 +153,7 @@ func TestInjectorUsesGlobalInjectionElement(t *testing.T) {
 		Element:       sim.ElementHydrogen, // legacy per-injector value is ignored.
 	}
 
-	s.Tick()
+	s.Inject()
 	if len(s.Grid.Subjects) != 1 {
 		t.Fatalf("expected one spawned Subject, got %d", len(s.Grid.Subjects))
 	}
@@ -164,12 +162,59 @@ func TestInjectorUsesGlobalInjectionElement(t *testing.T) {
 	}
 
 	s.InjectionElement = sim.ElementHydrogen
-	s.Tick()
+	s.InjectionCooldownRemaining = 0
+	s.Inject()
 	if len(s.Grid.Subjects) != 2 {
 		t.Fatalf("expected second spawned Subject, got %d", len(s.Grid.Subjects))
 	}
 	if got := s.Grid.Subjects[1].Element; got != sim.ElementHydrogen {
 		t.Fatalf("spawned Element after selection change = %q, want %q", got, sim.ElementHydrogen)
+	}
+}
+
+func TestTickDoesNotAutoInject(t *testing.T) {
+	s := sim.NewGameState()
+	s.Grid.Cells[0][0].Component = &components.Injector{Direction: sim.DirEast}
+	for range 20 {
+		s.Tick()
+	}
+	if len(s.Grid.Subjects) != 0 {
+		t.Fatalf("Tick auto-injected %d Subjects", len(s.Grid.Subjects))
+	}
+}
+
+func TestInjectStartsAndRespectsCooldown(t *testing.T) {
+	s := sim.NewGameState()
+	s.Grid.Cells[0][0].Component = &components.Injector{Direction: sim.DirEast}
+
+	if got := s.Inject(); got != 1 {
+		t.Fatalf("first Inject admitted %d Subjects, want 1", got)
+	}
+	wantCooldown := s.EffectiveInjectionCooldownTicks()
+	if s.InjectionCooldownRemaining != wantCooldown {
+		t.Fatalf("cooldown = %d, want %d", s.InjectionCooldownRemaining, wantCooldown)
+	}
+	if got := s.Inject(); got != 0 {
+		t.Fatalf("second Inject during cooldown admitted %d Subjects, want 0", got)
+	}
+	for range wantCooldown {
+		s.Tick()
+	}
+	if s.InjectionCooldownRemaining != 0 {
+		t.Fatalf("cooldown after waiting = %d, want 0", s.InjectionCooldownRemaining)
+	}
+}
+
+func TestInjectDoesNotStartCooldownWhenBlockedByLoad(t *testing.T) {
+	s := sim.NewGameState()
+	s.MaxLoad = 0
+	s.Grid.Cells[0][0].Component = &components.Injector{Direction: sim.DirEast}
+
+	if got := s.Inject(); got != 0 {
+		t.Fatalf("Inject admitted %d Subjects under MaxLoad 0, want 0", got)
+	}
+	if s.InjectionCooldownRemaining != 0 {
+		t.Fatalf("blocked Inject started cooldown %d", s.InjectionCooldownRemaining)
 	}
 }
 
@@ -184,7 +229,8 @@ func TestResearchPerCollectBonusAppliesOnCollection(t *testing.T) {
 		Element:       sim.ElementHydrogen,
 	}
 	s.Grid.Cells[0][1].IsCollector = true
-	for range 30 {
+	s.Inject()
+	for range sim.SpeedDivisor {
 		s.Tick()
 	}
 	if s.Research[sim.ElementHydrogen] < 3 {

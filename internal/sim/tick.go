@@ -10,12 +10,12 @@ const SpeedDivisor = 10
 
 // Tick advances the simulation by one logical step.
 // Order per tick:
-//  1. Injector spawns (respecting Max Load).
+//  1. Manual injection cooldown advances.
 //  2. Each Subject accumulates Speed into StepProgress and advances one cell
 //     per SpeedDivisor of accumulated progress. Each entered cell applies its
 //     Component; Collector cells remove the Subject and award $USD.
 func (s *GameState) Tick() {
-	s.injectorSpawns()
+	s.advanceInjectionCooldown()
 	s.advanceSubjects()
 	s.Ticks++
 }
@@ -33,32 +33,6 @@ func (s *GameState) baseApplyContext() ApplyContext {
 		Modifiers:        s.Modifiers.Normalized(),
 		Layer:            s.Layer,
 		InjectionElement: s.effectiveInjectionElement(),
-	}
-}
-
-func (s *GameState) injectorSpawns() {
-	g := s.Grid
-	base := s.baseApplyContext()
-	cap := s.EffectiveMaxLoad()
-	for y := range GridSize {
-		for x := range GridSize {
-			sp, ok := g.Cells[y][x].Component.(Spawner)
-			if !ok {
-				continue
-			}
-			pos := Position{X: x, Y: y}
-			ctx := base
-			ctx.Pos = pos
-			sub, fired := sp.MaybeSpawn(ctx, pos)
-			if !fired {
-				continue
-			}
-			if s.CurrentLoad+sub.Load > cap {
-				continue
-			}
-			g.Subjects = append(g.Subjects, sub)
-			s.CurrentLoad += sub.Load
-		}
 	}
 }
 

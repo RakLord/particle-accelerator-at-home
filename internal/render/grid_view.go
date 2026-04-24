@@ -11,6 +11,7 @@ import (
 
 func drawGrid(dst *ebiten.Image, s *sim.GameState, alpha float64, trail []trailSample) {
 	fillRect(dst, gridAreaX, gridAreaY, gridAreaW, gridAreaH, colorBG)
+	drawLoadBar(dst, s)
 
 	// Cells: background pass.
 	for cy := range sim.GridSize {
@@ -73,6 +74,31 @@ func drawGrid(dst *ebiten.Image, s *sim.GameState, alpha float64, trail []trailS
 			drawSpriteLayers(dst, layers.top, x, y, w, h)
 		}
 	}
+}
+
+func drawLoadBar(dst *ebiten.Image, s *sim.GameState) {
+	barX := gridAreaX + gridPadding
+	barY := gridAreaY + 10
+	barW := sim.GridSize * cellSize
+	barH := 20
+	cap := s.EffectiveMaxLoad()
+	fillRect(dst, barX, barY, barW, barH, colorButton)
+	fillW := loadBarFillWidth(s.CurrentLoad, cap, barW)
+	if fillW > 0 {
+		fillRect(dst, barX, barY, fillW, barH, colorPurchaseActive)
+	}
+	strokeRect(dst, barX, barY, barW, barH, 1, colorTextMuted)
+	drawTextCentered(dst, "Load: "+itoa(s.CurrentLoad)+"/"+itoa(cap), barX, barY+1, barW, barH, colorText)
+}
+
+func loadBarFillWidth(current, cap, width int) int {
+	if cap <= 0 || current <= 0 || width <= 0 {
+		return 0
+	}
+	if current >= cap {
+		return width
+	}
+	return width * current / cap
 }
 
 func drawSpriteLayers(dst *ebiten.Image, layers []spriteLayer, x, y, w, h int) {

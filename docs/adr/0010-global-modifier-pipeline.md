@@ -5,10 +5,10 @@
 
 ## Context
 
-`docs/overview.md` names **global upgrades** ("all Collectors +10%", "Injectors fire 2× faster", "all subjects start at Speed +1") as one of four progression axes. Nothing in the current code supports them:
+`docs/overview.md` names **global upgrades** ("all Collectors +10%", "Inject cooldown 2× faster", "all subjects start at Speed +1") as one of four progression axes. Nothing in the current code supports them:
 
 - `collectValue` (`internal/sim/economy.go:64-73`) computes collection value inline with no hook.
-- `Injector.MaybeSpawn` reads its own `SpawnInterval` directly.
+- Manual injection cooldown reads its base cooldown directly.
 - `SimpleAccelerator.Apply` reads its own `SpeedBonus` directly.
 - `MaxLoad` is a fixed starter value on `GameState` with no upgrade path.
 
@@ -80,7 +80,7 @@ func rebuildModifiers(s *GameState) {
 | Field | Read site |
 |---|---|
 | `CollectorValueMul` | `collectValue(s, research, mods)` in `economy.go` — multiplies the final value |
-| `InjectorRateMul` | `Injector.MaybeSpawn` — divides effective `SpawnInterval`, minimum 1 tick |
+| `InjectorRateMul` | `GameState.EffectiveInjectionCooldownTicks()` — divides effective manual injection cooldown, minimum 1 tick |
 | `AcceleratorSpeedBonus` | `SimpleAccelerator.Apply` — flat add on top of the component's own `SpeedBonus` (pre-ADR-0011) or tier bonus (post-ADR-0011) |
 | `MagnetiserBonusMul` | `Magnetiser.Apply` — multiplies the component's per-apply bonus |
 | `ResearchPerCollectBonus` | `advanceSubjects` in `tick.go` — added to `s.Research[Element]` on collection |

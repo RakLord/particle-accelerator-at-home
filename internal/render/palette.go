@@ -25,12 +25,21 @@ const (
 	openInvBtnH = 44
 	openInvBtnX = paletteX + 24
 	openInvBtnY = selectedCardY + selectedCardH + 16
+
+	injectBtnW = paletteW - 48
+	injectBtnH = 52
+	injectBtnX = paletteX + 24
+	injectBtnY = paletteY + paletteH - 140
 )
 
 // openInvButtonHit reports whether (mx, my) is over the "Open Inventory"
 // button rendered by drawPalette.
 func openInvButtonHit(mx, my int) bool {
 	return contains(mx, my, openInvBtnX, openInvBtnY, openInvBtnW, openInvBtnH)
+}
+
+func injectButtonHit(mx, my int) bool {
+	return contains(mx, my, injectBtnX, injectBtnY, injectBtnW, injectBtnH)
 }
 
 func drawPalette(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
@@ -45,11 +54,48 @@ func drawPalette(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 	strokeRect(dst, openInvBtnX, openInvBtnY, openInvBtnW, openInvBtnH, 1, colorTextMuted)
 	drawTextCentered(dst, "Open Inventory  (E)", openInvBtnX, openInvBtnY, openInvBtnW, openInvBtnH, colorText)
 
+	drawInjectButton(dst, s)
+
 	// Hint footer.
 	hintY := paletteY + paletteH - 56
 	drawText(dst, "Left-click: place / reconfigure", paletteX+24, hintY, colorTextMuted)
 	drawText(dst, "Right-click: erase", paletteX+24, hintY+16, colorTextMuted)
 	drawText(dst, "Q: pick tile · scroll: rotate", paletteX+24, hintY+32, colorTextMuted)
+}
+
+func drawInjectButton(dst *ebiten.Image, s *sim.GameState) {
+	label, enabled := injectButtonLabel(s)
+	bg := colorInjector
+	fg := colorText
+	if !enabled {
+		bg = color.RGBA{0x1a, 0x2a, 0x20, 0xff}
+		fg = colorTextMuted
+	}
+	fillRect(dst, injectBtnX, injectBtnY, injectBtnW, injectBtnH, bg)
+	strokeRect(dst, injectBtnX, injectBtnY, injectBtnW, injectBtnH, 1, colorTextMuted)
+	drawTextFaceCentered(dst, label, injectBtnX, injectBtnY+8, injectBtnW, 22, fontTitle, fg)
+	drawTextCentered(dst, "Manual injection", injectBtnX, injectBtnY+32, injectBtnW, 14, colorTextMuted)
+}
+
+func injectButtonLabel(s *sim.GameState) (string, bool) {
+	if !s.HasInjector() {
+		return "No Injector", false
+	}
+	if s.CurrentLoad >= s.EffectiveMaxLoad() {
+		return "Max Load", false
+	}
+	if s.InjectionCooldownRemaining > 0 {
+		return "Cooldown " + itoa(cooldownSecondsRemaining(s)) + "s", false
+	}
+	return "Inject", true
+}
+
+func cooldownSecondsRemaining(s *sim.GameState) int {
+	tickRate := s.TickRate
+	if tickRate <= 0 {
+		tickRate = sim.DefaultTickRate
+	}
+	return (s.InjectionCooldownRemaining + tickRate - 1) / tickRate
 }
 
 func drawSelectedCard(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {

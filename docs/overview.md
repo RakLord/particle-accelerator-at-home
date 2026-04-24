@@ -39,7 +39,7 @@ Every Accelerator Component is conceptually a pure function `(Subject, context) 
 - Collision handling (two Subjects in the same cell on the same tick) is TBD; MVP rule: ignore, both pass through.
 
 ## Accelerator Components (initial set)
-- **Injector** — spawns the Codex-selected Element as a Subject every N ticks in its configured Direction. Blocks spawn when Max Load is reached.
+- **Injector** — emits the Codex-selected Element as a Subject when the player presses Inject. The global Inject action has a 5-second base cooldown and blocks when Max Load is reached.
 - **Simple Accelerator** — `+1` Speed at T1 (see `docs/features/component-tiers.md`).
 - **Mesh Grid** — `÷2` Speed at T1.
 - **Magnetiser** — `+1` Magnetism at T1.
@@ -60,7 +60,7 @@ Collected $USD is a function of: `Mass`, `Speed`, `Magnetism`, the Element's bas
 ## Progression axes
 1. **Per-Component tiers** — e.g. Simple Accelerator T1 → T3 (`+1` → `+3` Speed). Bought with $USD.
 2. **Per-Element research** — collecting Subjects of an Element levels up its research, multiplying that Element's collected value. Research also gates heavier Elements.
-3. **Global upgrades** — cross-cutting $USD sinks ("all Collectors +10%", "Injectors fire 2× as fast", etc.).
+3. **Global upgrades** — cross-cutting $USD sinks ("all Collectors +10%", "Inject cooldown 2× as fast", etc.).
 4. **Reset layers (future)** — the game has multiple nested prestige layers. The base layer is **Genesis** (the game as shipped today); ascending to the next layer resets Genesis and awards a meta-currency. Each layer has its own Elements, Components, and currency context; meta-currency carries across. Layer names beyond Genesis are TBD. Represented in code as `sim.Layer` with `sim.LayerGenesis` seeded on `NewGameState`.
 
 ## Periodic Table (codex)
@@ -68,6 +68,9 @@ Dedicated screen styled as a real periodic table. Hovering or selecting an Eleme
 
 ## Collection Log
 Header modal showing the 10 most recent collected Subjects with the stats that fed their value: Element, Mass, Speed, Magnetism, research level, and awarded $USD.
+
+## Load Bar / Injection
+The grid area shows `Load: Current/Max` as a progress bar above the accelerator. The right-side panel has a manual Inject button. Pressing it commands every placed Injector to emit once, subject to the global injection cooldown and Max Load cap.
 
 ## Grid
 - Starts **5×5**.
@@ -119,7 +122,7 @@ MVP-first. Each phase ends with a playable build.
 ## Open questions (resolve in feature docs)
 - Exact collected-value formula.
 - Collision behaviour when multiple Subjects share a cell.
-- Injector tick rate — constant, or upgradeable per Injector?
+- Injection cooldown upgrades and future auto-injection upgrade shape.
 - Speed-band boundaries per Component.
 - Prestige-layer currency name and upgrade tree shape.
 

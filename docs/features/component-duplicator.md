@@ -31,7 +31,7 @@ Numbers above are illustrative and may shift at implementation time. Tier table 
 
 ### Load and grid admission
 
-Each emitted Subject costs its own `Load` against `MaxLoad`. If the grid is full, one output may fire and the other may be silently dropped — same policy as Injector spawns. A full grid can therefore squeeze a Duplicator's effective output to one or zero subjects.
+Each emitted Subject costs its own `Load` against `MaxLoad`. If the grid is full, one output may fire and the other may be silently dropped — same policy as manual Injector admission. A full grid can therefore squeeze a Duplicator's effective output to one or zero subjects.
 
 ## Design intent
 

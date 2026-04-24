@@ -79,7 +79,7 @@ Side effect of the order: the input Subject's `Load` is freed (via the `lost` br
 
 **3. Extras are load-accounted individually and may be partially admitted.**
 
-Each extra is a full Subject and costs its own Load. `MaxLoad` is enforced per-extra, not per-ApplySplit call. If the grid has no room for all extras, the ones that fit are admitted and the rest are silently dropped — same semantics as the Injector spawn gate.
+Each extra is a full Subject and costs its own Load. `MaxLoad` is enforced per-extra, not per-ApplySplit call. If the grid has no room for all extras, the ones that fit are admitted and the rest are silently dropped — same semantics as manual Injector admission.
 
 Alternative: reject the whole ApplySplit atomically if any extra can't fit. Rejected because it couples a single component's emit outcome to unrelated grid pressure; partial admission matches Injector behavior and is easier to reason about.
 
@@ -102,7 +102,7 @@ This matches how a real T-junction behaves: both output pipes are different path
 **Wins**
 - Components that don't emit extras remain completely unchanged. `Apply` stays a `(Subject, bool)` function.
 - The pattern is forward-compatible: future "absorber" components that consume *neighboring* subjects (not just incoming) can land as another sibling interface without further reshape.
-- MaxLoad enforcement is consistent with Injector spawns — one mental model for subject admission.
+- MaxLoad enforcement is consistent with manual Injector admission — one mental model for subject admission.
 
 **Costs**
 - Tick loop has two dispatch branches instead of one. Small cost, centralized.

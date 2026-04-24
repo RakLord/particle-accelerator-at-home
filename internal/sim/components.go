@@ -18,16 +18,12 @@ type Component interface {
 	Apply(ctx ApplyContext, s Subject) (Subject, bool)
 }
 
-// Spawner is an optional capability Components can implement to emit new
-// Subjects during the spawn phase of a tick. Injectors are the canonical
-// implementation; any future source-type component can opt in without
-// touching sim.tick.go.
-type Spawner interface {
+// ManualSpawner is implemented by source Components that emit a Subject when
+// the player presses the global Inject button. Cooldown and MaxLoad admission
+// are owned by GameState.Inject, not by individual Components.
+type ManualSpawner interface {
 	Component
-	// MaybeSpawn advances the Component's internal clock for one tick and
-	// returns (subject, true) when a spawn fires this tick. ctx is the same
-	// read-only view passed to Apply.
-	MaybeSpawn(ctx ApplyContext, pos Position) (Subject, bool)
+	Spawn(ctx ApplyContext, pos Position) (Subject, bool)
 }
 
 // Splitter is an optional capability for components that, on Apply, may

@@ -89,9 +89,9 @@ type ResearchView interface {
 
 Handing out `map[Element]int` would be mutable through the reference. The wrapper closes that door.
 
-**4. `ApplyContext` is built once per per-cell visit and once per spawn pass.**
+**4. `ApplyContext` is built once per per-cell visit and once per injection pass.**
 
-`internal/sim/tick.go` builds the context at the top of each cell visit in `stepSubject` and each spawn pass in `injectorSpawns`. The context is a small struct; a fresh value per visit keeps `Pos` and per-visit state correct without sharing instances.
+`internal/sim/tick.go` builds the context at the top of each cell visit in `stepSubject`; manual injection builds the same base context for each source. The context is a small struct; a fresh value per visit keeps `Pos` and per-visit state correct without sharing instances.
 
 `Grid` and `Research` view objects are constructed once per `Tick()` call and reused across all visits that tick. Both wrap the live `*Grid` / `map` — stale-reference bugs are not a concern because the context doesn't outlive the call frame.
 
