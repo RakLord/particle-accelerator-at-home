@@ -72,7 +72,6 @@ func TestSpriteLayersForComponent(t *testing.T) {
 	t.Run("wip-missing components keep fallback base sprites", func(t *testing.T) {
 		for _, component := range []sim.Component{
 			&components.Injector{},
-			&components.Magnetiser{},
 		} {
 			layers := spriteLayersForComponent(component)
 			if len(layers.base) != 1 || layers.base[0].image == nil {
@@ -81,6 +80,27 @@ func TestSpriteLayersForComponent(t *testing.T) {
 			if len(layers.top) != 0 {
 				t.Fatalf("%T top = %+v, want none", component, layers.top)
 			}
+		}
+	})
+
+	t.Run("horizontal magnetiser stacks top/bottom around a horizontal pipe", func(t *testing.T) {
+		layers := spriteLayersForComponent(&components.Magnetiser{Orientation: sim.DirEast})
+		if len(layers.base) != 1 || layers.base[0].image != sprites.magnetiserBottom {
+			t.Fatalf("magnetiser base = %+v, want magnetiserBottom", layers.base)
+		}
+		if len(layers.top) != 2 || layers.top[0].image != sprites.pipeHori || layers.top[1].image != sprites.magnetiserTop {
+			t.Fatalf("magnetiser top = %+v, want pipeHori then magnetiserTop", layers.top)
+		}
+		wantRotation := cardinalRotation(sim.DirEast)
+		if layers.base[0].rotation != wantRotation || layers.top[1].rotation != wantRotation {
+			t.Fatalf("magnetiser rotation = base:%v top:%v, want %v", layers.base[0].rotation, layers.top[1].rotation, wantRotation)
+		}
+	})
+
+	t.Run("vertical magnetiser uses vertical pipe", func(t *testing.T) {
+		layers := spriteLayersForComponent(&components.Magnetiser{Orientation: sim.DirNorth})
+		if len(layers.top) != 2 || layers.top[0].image != sprites.pipeVert {
+			t.Fatalf("vertical magnetiser top = %+v, want pipeVert first", layers.top)
 		}
 	})
 }

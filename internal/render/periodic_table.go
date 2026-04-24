@@ -146,7 +146,9 @@ func drawCodexTiles(dst *ebiten.Image, s *sim.GameState, focused sim.Element) {
 
 		drawTextSmall(dst, itoa(info.AtomicNumber), x+6, y+6, colorTextMuted)
 		drawTextFaceCentered(dst, info.Symbol, x, y+10, w, 28, fontTitle, elementAccentColor(e))
-		if sim.IsElementUnlocked(s, e) {
+		if sim.IsElementUnlocked(s, e) && s.InjectionElement == e {
+			drawTextSmall(dst, "SOURCE", x+6, y+h-16, colorPurchaseActive)
+		} else if sim.IsElementUnlocked(s, e) {
 			drawTextSmall(dst, "LIVE", x+6, y+h-16, colorPurchaseActive)
 		} else if sim.IsElementPurchasable(s, e) {
 			drawTextSmall(dst, "READY", x+6, y+h-16, colorText)
@@ -201,7 +203,14 @@ func drawCodexCard(dst *ebiten.Image, s *sim.GameState, e sim.Element) {
 	}
 
 	if sim.IsElementUnlocked(s, e) {
-		drawTextCentered(dst, "Unlocked in palette", x, y+codexCardH-60, codexCardW, 18, colorPurchaseActive)
+		if s.InjectionElement == e {
+			drawTextCentered(dst, "Injecting "+info.Name, x, y+codexCardH-60, codexCardW, 18, colorPurchaseActive)
+			return
+		}
+		bx, by, bw, bh := codexUnlockButtonRect()
+		fillRect(dst, bx, by, bw, bh, colorPurchaseActive)
+		strokeRect(dst, bx, by, bw, bh, 1, colorTextMuted)
+		drawTextCentered(dst, "Select for Injection", bx, by, bw, bh, colorText)
 		return
 	}
 	if sim.IsElementPurchasable(s, e) {

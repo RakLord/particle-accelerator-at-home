@@ -39,28 +39,43 @@ type Splitter interface {
 
 A component implements **either** `Component` alone **or** `Splitter` (which embeds `Component`). The tick loop prefers `Splitter` when present.
 
-**2. The tick loop dispatches via a type assertion.**
+**2. The tick loop dispatches via a type assertion; extras are admitted after the advance-subjects filter.**
+
+`stepSubject` type-asserts for `Splitter` and, when matched, appends extras to a per-tick `pending []Subject` slice owned by `advanceSubjects`. `advanceSubjects` runs its in-place filter over live Subjects first, then admits `pending` into `g.Subjects` under the `EffectiveMaxLoad` cap.
 
 ```go
 // internal/sim/tick.go (sketch; concrete lines will shift)
+
+// advanceSubjects:
+var pending []Subject
+alive := g.Subjects[:0]
+for _, sub := range g.Subjects {
+    collected, lost := s.stepSubject(&sub, &pending)
+    // ... existing collect/lost/keep-alive handling ...
+}
+g.Subjects = alive
+cap := s.EffectiveMaxLoad()
+for _, e := range pending {
+    if s.CurrentLoad+e.Load > cap { continue }  // per-extra MaxLoad gate
+    g.Subjects = append(g.Subjects, e)
+    s.CurrentLoad += e.Load
+}
+
+// stepSubject (inner loop, per-cell-visit):
 if sp, ok := cell.Component.(Splitter); ok {
-    self, extras, lost := sp.ApplySplit(ctx, *sub)
+    self, extras, destroyed := sp.ApplySplit(ctx, *sub)
     *sub = self
-    if lost {
-        // incoming is destroyed; see note (3) on extras
-    }
-    for _, e := range extras {
-        if s.CurrentLoad+e.Load > s.MaxLoad { continue } // MaxLoad gate applies per extra
-        g.Subjects = append(g.Subjects, e)
-        s.CurrentLoad += e.Load
-    }
+    *pending = append(*pending, extras...)
+    if destroyed { return false, true }
 } else {
-    *sub, lost := cell.Component.Apply(ctx, *sub)
-    // existing flow
+    *sub, destroyed = cell.Component.Apply(ctx, *sub)
+    if destroyed { return false, true }
 }
 ```
 
-The `Splitter` branch runs in `stepSubject` after the position and direction have been updated for the incoming Subject, same sequencing as the current `Apply` call.
+Why defer admission? Appending to `g.Subjects` from inside `stepSubject` races with the in-place filter (`alive := g.Subjects[:0]`) — the filter's final `g.Subjects = alive` assignment silently drops anything appended mid-loop. A separate `pending` slice keeps extras safe until the filter is done.
+
+Side effect of the order: the input Subject's `Load` is freed (via the `lost` branch) before extras are admitted. A full grid with a MaxLoad equal to the input's Load can admit one extra — matching the "partial admission" policy.
 
 **3. Extras are load-accounted individually and may be partially admitted.**
 

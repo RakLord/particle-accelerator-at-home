@@ -81,6 +81,18 @@ var TierUpgradeCatalog = map[ComponentKind][]TierUpgradeInfo{
 		{Tier: 2, Cost: bignum.MustParse("400"), RequiresElement: ElementHydrogen, RequiresResearch: 4},
 		{Tier: 3, Cost: bignum.MustParse("4000"), RequiresElement: ElementHydrogen, RequiresResearch: 18},
 	},
+	KindResonator: {
+		{Tier: 2, Cost: bignum.MustParse("1200"), RequiresElement: ElementHydrogen, RequiresResearch: 8},
+		{Tier: 3, Cost: bignum.MustParse("12000"), RequiresElement: ElementHydrogen, RequiresResearch: 25},
+	},
+	KindCatalyst: {
+		{Tier: 2, Cost: bignum.MustParse("2000"), RequiresElement: ElementHydrogen, RequiresResearch: 30},
+		{Tier: 3, Cost: bignum.MustParse("20000"), RequiresElement: ElementHelium, RequiresResearch: 10},
+	},
+	KindDuplicator: {
+		{Tier: 2, Cost: bignum.MustParse("3000"), RequiresElement: ElementHydrogen, RequiresResearch: 12},
+		{Tier: 3, Cost: bignum.MustParse("30000"), RequiresElement: ElementHelium, RequiresResearch: 15},
+	},
 }
 
 // NextTierUpgrade returns the next tier unlock available for kind, given the

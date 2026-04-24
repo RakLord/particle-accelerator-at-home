@@ -96,6 +96,7 @@ func Load() (*GameState, bool, error) {
 	// to seed inventory from the grid. New saves include the `owned` field
 	// (even if empty) and reach the post-unmarshal state as intended.
 	state.Owned = nil
+	state.InjectionElement = ""
 	if err := json.Unmarshal(env.State, state); err != nil {
 		return nil, false, err
 	}
@@ -108,9 +109,17 @@ func Load() (*GameState, bool, error) {
 	if state.BestStats == nil {
 		state.BestStats = map[Element]ElementBestStats{}
 	}
+	if len(state.CollectionLog) > MaxCollectionLogEntries {
+		state.CollectionLog = state.CollectionLog[:MaxCollectionLogEntries]
+	}
 	if state.UnlockedElements == nil {
 		state.UnlockedElements = map[Element]bool{ElementHydrogen: true}
 	}
+	state.UnlockedElements[ElementHydrogen] = true
+	if state.InjectionElement == "" {
+		state.InjectionElement = legacyInjectionElement(state)
+	}
+	state.normalizeInjectionElement()
 	if state.Layer == "" {
 		state.Layer = LayerGenesis
 	}
@@ -144,4 +153,26 @@ func Load() (*GameState, bool, error) {
 		sub.InDirection = sub.Direction
 	}
 	return state, true, nil
+}
+
+func legacyInjectionElement(state *GameState) Element {
+	if state.Grid == nil {
+		return ElementHydrogen
+	}
+	type legacyElementCarrier interface {
+		LegacyInjectionElement() Element
+	}
+	for y := range state.Grid.Cells {
+		for x := range state.Grid.Cells[y] {
+			carrier, ok := state.Grid.Cells[y][x].Component.(legacyElementCarrier)
+			if !ok {
+				continue
+			}
+			e := carrier.LegacyInjectionElement()
+			if _, known := ElementCatalog[e]; known && IsElementUnlocked(state, e) {
+				return e
+			}
+		}
+	}
+	return ElementHydrogen
 }

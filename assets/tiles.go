@@ -16,5 +16,9 @@ import "embed"
 //go:embed images/tiles/mesh_grid_top.png
 //go:embed images/tiles/collector.png
 //go:embed images/tiles/injector.png
-//go:embed images/tiles/magnetiser.png
+//go:embed images/tiles/magnetiser_top.png
+//go:embed images/tiles/magnetiser_bottom.png
+//go:embed images/tiles/accelerator_logo.png
+//go:embed images/tiles/mesh_grid_logo.png
+//go:embed images/tiles/pipe_logo.png
 var TileFS embed.FS

@@ -39,3 +39,46 @@ func TestCodexFocusedElementPinnedOverridesHover(t *testing.T) {
 		t.Fatalf("expected hover element when nothing pinned, got %q", got)
 	}
 }
+
+func TestHandleCodexClickSelectsInjectionElement(t *testing.T) {
+	g := newTestGame()
+	g.state.UnlockedElements[sim.ElementHelium] = true
+	g.state.InjectionElement = sim.ElementHydrogen
+	g.codexPinned = sim.ElementHelium
+
+	bx, by, bw, bh := codexUnlockButtonRect()
+	g.handleCodexClick(bx+bw/2, by+bh/2)
+
+	if got := g.state.InjectionElement; got != sim.ElementHelium {
+		t.Fatalf("InjectionElement = %q, want %q", got, sim.ElementHelium)
+	}
+	if g.ui.CodexNotice != "Injecting Helium" {
+		t.Fatalf("CodexNotice = %q", g.ui.CodexNotice)
+	}
+}
+
+func TestHandleCodexClickOutsideCardClearsPinnedElement(t *testing.T) {
+	g := newTestGame()
+	g.codexPinned = sim.ElementHydrogen
+	g.codexHovered = sim.ElementHydrogen
+
+	g.handleCodexClick(codexPanelX()+20, codexPanelY()+20)
+
+	if g.codexPinned != "" {
+		t.Fatalf("codexPinned = %q, want cleared", g.codexPinned)
+	}
+	if g.codexHovered != "" {
+		t.Fatalf("codexHovered = %q, want cleared", g.codexHovered)
+	}
+}
+
+func TestHandleCodexClickInsideCardKeepsPinnedElement(t *testing.T) {
+	g := newTestGame()
+	g.codexPinned = sim.ElementHydrogen
+
+	g.handleCodexClick(codexCardX()+20, codexCardY()+20)
+
+	if g.codexPinned != sim.ElementHydrogen {
+		t.Fatalf("codexPinned = %q, want %q", g.codexPinned, sim.ElementHydrogen)
+	}
+}

@@ -8,11 +8,12 @@ A Duplicator is a **T-junction**: a Subject enters one side and leaves as **two*
 
 ### Shape
 
-Like the Rotator/Elbow (ADR 0006), a Duplicator has an `Orientation` that defines which three sides are connected: one **input** side and two **output** sides at 90° to it.
+Like the Rotator/Elbow (ADR 0006), a Duplicator has an `Orientation`. For Duplicator, `Orientation` names the **input** side; the two output sides are perpendicular (`Orientation.Left()` and `Orientation.Right()`).
 
-- A horizontally-oriented Duplicator (`Orientation = East`, for example) has its input on the West side and outputs on the North and South sides.
-- A Subject entering from the input side emits two Subjects travelling towards the outputs.
-- A Subject entering from an **output** side (or from the closed fourth side) is destroyed — the junction is not bidirectional.
+- `Orientation = West` means a Subject must enter from the west edge; outputs head North and South.
+- `Orientation = East` means input from the east; outputs North and South.
+- `Orientation = North` or `South` means input from that side; outputs East and West.
+- A Subject entering from an output side (or from the closed opposite side) is destroyed — the junction is not bidirectional.
 
 ### Stat split
 
@@ -34,7 +35,7 @@ Each emitted Subject costs its own `Load` against `MaxLoad`. If the grid is full
 
 ## Design intent
 
-Duplicator is the first component that **grows subject count**. The existing economy is bounded by how fast Injectors fire; Duplicator uncouples throughput from spawn rate, turning the grid into an amplifier rather than a pipeline. Combined with a long chain of Magnetisers on each output side, a single Hydrogen Injector can feed a substantial late-game build.
+Duplicator is the first component that **grows subject count**. The existing economy is bounded by how fast Injectors fire; Duplicator uncouples throughput from spawn rate, turning the grid into an amplifier rather than a pipeline. Combined with a long chain of Magnetisers on each output side, a single Injector can feed a substantial late-game build.
 
 At T1 the mass-conservation rule keeps Duplicator honest: total collected value from the two outputs equals what one Subject would have collected if sent directly, assuming identical Collector paths — value comes from *parallelism* or from *Load pressure*. Tier upgrades break conservation in the player's favour, so tiering a Duplicator is a direct output-multiplier unlock — a high-value $USD sink. Future global upgrades (`docs/features/global-upgrades.md`) can layer an additional mass-retention bonus on top of the tier fraction.
 

@@ -10,8 +10,8 @@ import (
 
 func TestAcceleratorAddsTierBonusToSpeed(t *testing.T) {
 	cases := []struct {
-		tier     sim.Tier
-		wantAdd  int
+		tier    sim.Tier
+		wantAdd int
 	}{
 		{sim.BaseTier, 1}, // T1 = +1
 		{sim.Tier(2), 2},
@@ -142,6 +142,34 @@ func TestInjectorRespectsEffectiveMaxLoadWithBonus(t *testing.T) {
 	}
 	if s.CurrentLoad <= s.MaxLoad {
 		t.Fatalf("CurrentLoad %d should exceed base MaxLoad %d when bonus is active", s.CurrentLoad, s.MaxLoad)
+	}
+}
+
+func TestInjectorUsesGlobalInjectionElement(t *testing.T) {
+	s := sim.NewGameState()
+	s.UnlockedElements[sim.ElementHelium] = true
+	s.InjectionElement = sim.ElementHelium
+	s.Grid.Cells[0][0].Component = &components.Injector{
+		Direction:     sim.DirEast,
+		SpawnInterval: 1,
+		Element:       sim.ElementHydrogen, // legacy per-injector value is ignored.
+	}
+
+	s.Tick()
+	if len(s.Grid.Subjects) != 1 {
+		t.Fatalf("expected one spawned Subject, got %d", len(s.Grid.Subjects))
+	}
+	if got := s.Grid.Subjects[0].Element; got != sim.ElementHelium {
+		t.Fatalf("spawned Element = %q, want %q", got, sim.ElementHelium)
+	}
+
+	s.InjectionElement = sim.ElementHydrogen
+	s.Tick()
+	if len(s.Grid.Subjects) != 2 {
+		t.Fatalf("expected second spawned Subject, got %d", len(s.Grid.Subjects))
+	}
+	if got := s.Grid.Subjects[1].Element; got != sim.ElementHydrogen {
+		t.Fatalf("spawned Element after selection change = %q, want %q", got, sim.ElementHydrogen)
 	}
 }
 

@@ -4,6 +4,9 @@ import "particleaccelerator/internal/bignum"
 
 const (
 	DefaultMaxLoad = 16
+	// MaxCollectionLogEntries is the number of recent collected Subjects kept
+	// for the in-game collection log.
+	MaxCollectionLogEntries = 10
 	// DefaultTickRate: interpolation is live (see docs/features/smooth-motion.md)
 	// so this is no longer a rendering constraint — raising it is a gameplay
 	// decision about how fast the grid feels.
@@ -16,7 +19,11 @@ type GameState struct {
 	USD              bignum.Decimal
 	Research         map[Element]int
 	BestStats        map[Element]ElementBestStats
+	CollectionLog    []CollectionLogEntry `json:"collection_log,omitempty"`
 	UnlockedElements map[Element]bool
+	// InjectionElement is the globally selected Element emitted by every
+	// Injector. It is chosen from unlocked Elements in the Codex.
+	InjectionElement Element
 	// Owned is the total number of each component kind the player has ever
 	// purchased. Monotonic: incremented by PurchaseComponent; never
 	// decreased by Erase (removed components return to the available pool,
@@ -46,6 +53,16 @@ type ElementBestStats struct {
 	MaxCollectedValue bignum.Decimal `json:"max_collected_value,omitempty"`
 }
 
+type CollectionLogEntry struct {
+	Element       Element        `json:"element"`
+	Mass          bignum.Decimal `json:"mass"`
+	Speed         int            `json:"speed"`
+	Magnetism     bignum.Decimal `json:"magnetism"`
+	ResearchLevel int            `json:"research_level"`
+	Value         bignum.Decimal `json:"value"`
+	Tick          uint64         `json:"tick"`
+}
+
 func NewGameState() *GameState {
 	return &GameState{
 		Layer:            LayerGenesis,
@@ -53,6 +70,7 @@ func NewGameState() *GameState {
 		Research:         map[Element]int{},
 		BestStats:        map[Element]ElementBestStats{},
 		UnlockedElements: map[Element]bool{ElementHydrogen: true},
+		InjectionElement: ElementHydrogen,
 		Owned:            starterInventory(),
 		MaxLoad:          DefaultMaxLoad,
 		TickRate:         DefaultTickRate,
@@ -76,6 +94,17 @@ func starterInventory() map[ComponentKind]int {
 // not restore the previous state.
 func (s *GameState) HardReset() {
 	*s = *NewGameState()
+}
+
+func (s *GameState) effectiveInjectionElement() Element {
+	if _, ok := ElementCatalog[s.InjectionElement]; ok && IsElementUnlocked(s, s.InjectionElement) {
+		return s.InjectionElement
+	}
+	return ElementHydrogen
+}
+
+func (s *GameState) normalizeInjectionElement() {
+	s.InjectionElement = s.effectiveInjectionElement()
 }
 
 // EffectiveMaxLoad returns the grid-load cap after applying global upgrades.

@@ -8,13 +8,15 @@ import (
 
 func TestTickMovesSubject(t *testing.T) {
 	s := NewGameState()
+	s.Grid.Cells[2][2].Component = &testPipe{}
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
-		Element:   ElementHydrogen,
-		Mass:      bignum.One(),
-		Speed:     SpeedDivisor, // one cell per tick
-		Direction: DirEast,
-		Position:  Position{X: 1, Y: 2},
-		Load:      1,
+		Element:     ElementHydrogen,
+		Mass:        bignum.One(),
+		Speed:       SpeedDivisor, // one cell per tick
+		Direction:   DirEast,
+		InDirection: DirEast,
+		Position:    Position{X: 1, Y: 2},
+		Load:        1,
 	})
 	s.CurrentLoad = 1
 	s.Tick()
@@ -64,6 +66,42 @@ func TestCollectorAwardsUSD(t *testing.T) {
 	if s.CurrentLoad != 0 {
 		t.Fatalf("expected CurrentLoad 0, got %d", s.CurrentLoad)
 	}
+	if len(s.CollectionLog) != 1 {
+		t.Fatalf("expected one collection log entry, got %d", len(s.CollectionLog))
+	}
+	entry := s.CollectionLog[0]
+	if entry.Element != ElementHydrogen || !entry.Mass.Eq(bignum.FromInt(2)) || entry.Speed != SpeedDivisor {
+		t.Fatalf("unexpected log entry subject stats: %#v", entry)
+	}
+	if entry.ResearchLevel != 0 {
+		t.Fatalf("log ResearchLevel = %d, want pre-increment 0", entry.ResearchLevel)
+	}
+	if !entry.Value.Eq(wantUSD) {
+		t.Fatalf("log Value = %v, want %v", entry.Value, wantUSD)
+	}
+}
+
+func TestCollectionLogKeepsRecentTenNewestFirst(t *testing.T) {
+	s := NewGameState()
+	for i := 0; i < MaxCollectionLogEntries+2; i++ {
+		s.Ticks = uint64(i)
+		s.recordCollectionLog(Subject{
+			Element:   ElementHydrogen,
+			Mass:      bignum.FromInt(i + 1),
+			Speed:     i + 1,
+			Magnetism: bignum.FromInt(i),
+		}, i, bignum.FromInt((i+1)*100))
+	}
+
+	if len(s.CollectionLog) != MaxCollectionLogEntries {
+		t.Fatalf("log length = %d, want %d", len(s.CollectionLog), MaxCollectionLogEntries)
+	}
+	if got := s.CollectionLog[0].Tick; got != uint64(MaxCollectionLogEntries+1) {
+		t.Fatalf("newest tick = %d, want %d", got, MaxCollectionLogEntries+1)
+	}
+	if got := s.CollectionLog[len(s.CollectionLog)-1].Tick; got != 2 {
+		t.Fatalf("oldest retained tick = %d, want 2", got)
+	}
 }
 
 func TestBestStatsUpdateOnCollectionOnly(t *testing.T) {
@@ -100,6 +138,29 @@ func TestBestStatsUpdateOnCollectionOnly(t *testing.T) {
 	}
 }
 
+func TestSubjectLeavingPipeNetworkIsDestroyed(t *testing.T) {
+	s := NewGameState()
+	// Starting cell has pipe; the next cell east is empty, so stepping into it
+	// leaves the network.
+	s.Grid.Cells[1][1].Component = &testPipe{}
+	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
+		Element:     ElementHydrogen,
+		Speed:       SpeedDivisor, // one cell per tick
+		Direction:   DirEast,
+		InDirection: DirEast,
+		Position:    Position{X: 1, Y: 1},
+		Load:        1,
+	})
+	s.CurrentLoad = 1
+	s.Tick()
+	if len(s.Grid.Subjects) != 0 {
+		t.Fatalf("expected subject destroyed on empty cell entry, got %d", len(s.Grid.Subjects))
+	}
+	if s.CurrentLoad != 0 {
+		t.Fatalf("expected CurrentLoad 0 after destruction, got %d", s.CurrentLoad)
+	}
+}
+
 func TestSubjectOffGridIsRemoved(t *testing.T) {
 	s := NewGameState()
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
@@ -122,6 +183,7 @@ func TestSubjectOffGridIsRemoved(t *testing.T) {
 // A base-Speed=1 Subject moves exactly once per SpeedDivisor ticks.
 func TestBaseSpeedAdvancesEverySpeedDivisorTicks(t *testing.T) {
 	s := NewGameState()
+	s.Grid.Cells[0][1].Component = &testPipe{}
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:     ElementHydrogen,
 		Speed:       1,
@@ -152,6 +214,8 @@ func TestBaseSpeedAdvancesEverySpeedDivisorTicks(t *testing.T) {
 // Speed=2 moves once per SpeedDivisor/2 = 5 ticks.
 func TestDoubleSpeedAdvancesHalfAsOften(t *testing.T) {
 	s := NewGameState()
+	s.Grid.Cells[0][1].Component = &testPipe{}
+	s.Grid.Cells[0][2].Component = &testPipe{}
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:     ElementHydrogen,
 		Speed:       2,
@@ -185,7 +249,9 @@ func TestTickPathRecordsAcrossRotator(t *testing.T) {
 	// Place a north-facing elbow in the middle of the row.
 	// Note: sim package can't import components, so we use a minimal inline
 	// stand-in via a closure component below.
+	s.Grid.Cells[1][1].Component = &testPipe{}
 	s.Grid.Cells[1][2].Component = &testRightTurn{}
+	s.Grid.Cells[0][2].Component = &testPipe{}
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:     ElementHydrogen,
 		Speed:       3 * SpeedDivisor, // cross three cells in one tick
@@ -229,3 +295,10 @@ func (*testRightTurn) Apply(_ ApplyContext, s Subject) (Subject, bool) {
 	s.Direction = DirNorth
 	return s, false
 }
+
+// testPipe is an in-sim no-op Component. Tests use it to "lay pipe" on cells
+// so Subjects can traverse them without tripping the empty-cell destroy rule.
+type testPipe struct{}
+
+func (*testPipe) Kind() ComponentKind                         { return ComponentKind("test_pipe") }
+func (*testPipe) Apply(_ ApplyContext, s Subject) (Subject, bool) { return s, false }

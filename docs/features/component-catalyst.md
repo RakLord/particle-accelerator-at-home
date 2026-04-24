@@ -28,6 +28,14 @@ The component pairs with heavier Elements: a Catalyst that only activates at Hel
 
 Tierable. See `docs/features/component-tiers.md`. Higher tiers increase the Mass multiplier. The research threshold itself is fixed per Catalyst (a tier up makes the effect stronger, not easier to activate).
 
+| Tier | Mass multiplier |
+|---|---|
+| T1 | `×1.5` |
+| T2 | `×2.0` |
+| T3 | `×3.0` |
+
+The research activation threshold is `25` research for the Subject's own Element (see `catalystResearchThreshold` in `internal/sim/components/catalyst.go`). Tier tables live in the same file.
+
 ## Related
 
 - `internal/sim/components/catalyst.go`

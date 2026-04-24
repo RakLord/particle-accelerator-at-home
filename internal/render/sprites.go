@@ -28,9 +28,14 @@ type tileSprites struct {
 	acceleratorTop    *ebiten.Image
 	meshGridTop       *ebiten.Image
 
-	injector   *ebiten.Image
-	magnetiser *ebiten.Image
-	collector  *ebiten.Image
+	injector         *ebiten.Image
+	magnetiserTop    *ebiten.Image
+	magnetiserBottom *ebiten.Image
+	collector        *ebiten.Image
+
+	accelLogo *ebiten.Image
+	meshLogo  *ebiten.Image
+	pipeLogo  *ebiten.Image
 }
 
 var sprites = mustLoadTileSprites()
@@ -50,9 +55,14 @@ func mustLoadTileSprites() tileSprites {
 		acceleratorTop:    mustLoadTileSprite("images/tiles/accelerator_top.png"),
 		meshGridTop:       mustLoadTileSprite("images/tiles/mesh_grid_top.png"),
 
-		injector:   mustLoadTileSprite("images/tiles/injector.png"),
-		magnetiser: mustLoadTileSprite("images/tiles/magnetiser.png"),
-		collector:  mustLoadTileSprite("images/tiles/collector.png"),
+		injector:         mustLoadTileSprite("images/tiles/injector.png"),
+		magnetiserTop:    mustLoadTileSprite("images/tiles/magnetiser_top.png"),
+		magnetiserBottom: mustLoadTileSprite("images/tiles/magnetiser_bottom.png"),
+		collector:        mustLoadTileSprite("images/tiles/collector.png"),
+
+		accelLogo: mustLoadTileSprite("images/tiles/accelerator_logo.png"),
+		meshLogo:  mustLoadTileSprite("images/tiles/mesh_grid_logo.png"),
+		pipeLogo:  mustLoadTileSprite("images/tiles/pipe_logo.png"),
 	}
 }
 
@@ -90,11 +100,44 @@ func spriteLayersForComponent(c sim.Component) componentSpriteLayers {
 			},
 		}
 	case *components.Magnetiser:
-		return componentSpriteLayers{base: []spriteLayer{{image: sprites.magnetiser}}}
+		rotation := cardinalRotation(v.Orientation)
+		return componentSpriteLayers{
+			base: []spriteLayer{
+				{image: sprites.magnetiserBottom, rotation: rotation},
+			},
+			top: []spriteLayer{
+				{image: pipeSpriteForOrientation(v.Orientation)},
+				{image: sprites.magnetiserTop, rotation: rotation},
+			},
+		}
 	case *components.Rotator:
 		return componentSpriteLayers{top: []spriteLayer{{image: turnSpriteForOrientation(v.Orientation)}}}
+	case *components.Resonator:
+		// Placeholder: reuses the magnetiser bottom sprite until dedicated art lands.
+		return componentSpriteLayers{base: []spriteLayer{{image: sprites.magnetiserBottom}}}
+	case *components.Catalyst:
+		// Placeholder: reuses injector sprite centered (no rotation).
+		return componentSpriteLayers{base: []spriteLayer{{image: sprites.injector}}}
+	case *components.Duplicator:
+		// Placeholder: a pipe orthogonal to the input plus a turn tile on the
+		// input side to hint the T-junction shape. Real art pending.
+		return componentSpriteLayers{
+			top: []spriteLayer{
+				{image: pipeSpriteForOrientation(perpendicular(v.Orientation))},
+				{image: turnSpriteForOrientation(v.Orientation)},
+			},
+		}
 	}
 	return componentSpriteLayers{}
+}
+
+// perpendicular returns the horizontal axis if d is vertical, and vice versa.
+// Used by Duplicator placeholder rendering to draw its output pipe.
+func perpendicular(d sim.Direction) sim.Direction {
+	if d == sim.DirNorth || d == sim.DirSouth {
+		return sim.DirEast
+	}
+	return sim.DirNorth
 }
 
 func pipeSpriteForOrientation(d sim.Direction) *ebiten.Image {
@@ -188,18 +231,38 @@ func cardinalRotation(d sim.Direction) float64 {
 
 func tileSpriteForTool(t ui.Tool) *ebiten.Image {
 	switch t {
-	case ui.ToolInjectorHydrogen, ui.ToolInjectorHelium:
+	case ui.ToolInjector:
 		return sprites.injector
 	case ui.ToolAccelerator:
 		return sprites.acceleratorTop
 	case ui.ToolMeshGrid:
 		return sprites.meshGridTop
 	case ui.ToolMagnetiser:
-		return sprites.magnetiser
+		return sprites.magnetiserTop
 	case ui.ToolElbow:
 		return sprites.turnNE
 	case ui.ToolCollector:
 		return sprites.collector
+	case ui.ToolResonator:
+		return sprites.magnetiserBottom
+	case ui.ToolCatalyst:
+		return sprites.injector
+	case ui.ToolDuplicator:
+		return sprites.turnNE
 	}
 	return nil
+}
+
+// logoSpriteForTool returns the inventory-facing logo icon for a Tool.
+// Dedicated logos exist for Accelerator and Mesh Grid; every other Tool
+// falls back to the generic pipe logo as a placeholder until bespoke art
+// lands.
+func logoSpriteForTool(t ui.Tool) *ebiten.Image {
+	switch t {
+	case ui.ToolAccelerator:
+		return sprites.accelLogo
+	case ui.ToolMeshGrid:
+		return sprites.meshLogo
+	}
+	return sprites.pipeLogo
 }

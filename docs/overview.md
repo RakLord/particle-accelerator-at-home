@@ -39,7 +39,7 @@ Every Accelerator Component is conceptually a pure function `(Subject, context) 
 - Collision handling (two Subjects in the same cell on the same tick) is TBD; MVP rule: ignore, both pass through.
 
 ## Accelerator Components (initial set)
-- **Injector** — spawns a Subject every N ticks in its configured Direction. Blocks spawn when Max Load is reached.
+- **Injector** — spawns the Codex-selected Element as a Subject every N ticks in its configured Direction. Blocks spawn when Max Load is reached.
 - **Simple Accelerator** — `+1` Speed at T1 (see `docs/features/component-tiers.md`).
 - **Mesh Grid** — `÷2` Speed at T1.
 - **Magnetiser** — `+1` Magnetism at T1.
@@ -64,7 +64,10 @@ Collected $USD is a function of: `Mass`, `Speed`, `Magnetism`, the Element's bas
 4. **Reset layers (future)** — the game has multiple nested prestige layers. The base layer is **Genesis** (the game as shipped today); ascending to the next layer resets Genesis and awards a meta-currency. Each layer has its own Elements, Components, and currency context; meta-currency carries across. Layer names beyond Genesis are TBD. Represented in code as `sim.Layer` with `sim.LayerGenesis` seeded on `NewGameState`.
 
 ## Periodic Table (codex)
-Dedicated screen styled as a real periodic table. Hovering or selecting an Element opens a centered stat card showing research level, best stats (max Speed, max Mass, max collected value), unlock status, and cost to unlock the next.
+Dedicated screen styled as a real periodic table. Hovering or selecting an Element opens a centered stat card showing research level, best stats (max Speed, max Mass, max collected value), unlock status, cost to unlock the next, and the injection Element selector.
+
+## Collection Log
+Header modal showing the 10 most recent collected Subjects with the stats that fed their value: Element, Mass, Speed, Magnetism, research level, and awarded $USD.
 
 ## Grid
 - Starts **5×5**.

@@ -3,6 +3,7 @@ package render
 import (
 	"image/color"
 	"math"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -65,6 +66,65 @@ func drawTextFaceCentered(dst *ebiten.Image, s string, x, y, w, h int, face text
 
 func contains(px, py, x, y, w, h int) bool {
 	return px >= x && py >= y && px < x+w && py < y+h
+}
+
+// wrapLines breaks s into lines that fit within maxW pixels when measured
+// with face. Words longer than maxW are placed on their own line and may
+// overflow — caller is responsible for picking sensible widths.
+func wrapLines(s string, maxW int, face text.Face) []string {
+	if s == "" {
+		return nil
+	}
+	var lines []string
+	for _, paragraph := range strings.Split(s, "\n") {
+		words := strings.Fields(paragraph)
+		if len(words) == 0 {
+			lines = append(lines, "")
+			continue
+		}
+		current := words[0]
+		for _, w := range words[1:] {
+			candidate := current + " " + w
+			cw, _ := text.Measure(candidate, face, 0)
+			if int(math.Ceil(cw)) > maxW {
+				lines = append(lines, current)
+				current = w
+				continue
+			}
+			current = candidate
+		}
+		lines = append(lines, current)
+	}
+	return lines
+}
+
+// drawTextWrapped renders s into a column of width maxW starting at (x, y),
+// wrapping on word boundaries. Line height is the face's line metric.
+func drawTextWrapped(dst *ebiten.Image, s string, x, y, maxW int, face text.Face, c color.Color) {
+	lines := wrapLines(s, maxW, face)
+	lh := face.Metrics().HLineGap + face.Metrics().HAscent + face.Metrics().HDescent
+	if lh == 0 {
+		_, mh := text.Measure("Mg", face, 0)
+		lh = mh
+	}
+	for i, line := range lines {
+		drawTextFace(dst, line, x, y+int(float64(i)*lh), face, c)
+	}
+}
+
+// wrappedHeight returns the height in pixels needed to render s wrapped to
+// maxW with face. Mirrors drawTextWrapped's line metric.
+func wrappedHeight(s string, maxW int, face text.Face) int {
+	lines := wrapLines(s, maxW, face)
+	if len(lines) == 0 {
+		return 0
+	}
+	lh := face.Metrics().HLineGap + face.Metrics().HAscent + face.Metrics().HDescent
+	if lh == 0 {
+		_, mh := text.Measure("Mg", face, 0)
+		lh = mh
+	}
+	return int(float64(len(lines)) * lh)
 }
 
 // drawCircularArrow draws a 300° arc with an arrowhead at the leading end,

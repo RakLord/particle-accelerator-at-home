@@ -58,7 +58,7 @@ The tool palette (`internal/render/palette.go`) shows a sub-label per purchasabl
 have: N · next: $X
 ```
 
-Tools you can't afford *and* have zero of are dimmed (muted swatch + muted text). Clicking a dimmed tool is a no-op; nothing pays, nothing places. Helium Injector keeps its separate lock-status line until Helium is unlocked.
+Tools you can't afford *and* have zero of are dimmed (muted swatch + muted text). Clicking a dimmed tool is a no-op; nothing pays, nothing places. Element availability is handled in the Codex injection selector, not by separate Injector inventory entries.
 
 ## Save format
 

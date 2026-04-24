@@ -91,6 +91,8 @@ func TestGameStateRoundTrip(t *testing.T) {
 	s := sim.NewGameState()
 	s.USD = bignum.MustParse("1234.5")
 	s.Research[sim.ElementHydrogen] = 7
+	s.UnlockedElements[sim.ElementHelium] = true
+	s.InjectionElement = sim.ElementHelium
 	s.Grid.Cells[0][0].Component = &components.Injector{
 		Direction: sim.DirEast, SpawnInterval: 30, Element: sim.ElementHydrogen, TickCounter: 12,
 	}
@@ -118,6 +120,9 @@ func TestGameStateRoundTrip(t *testing.T) {
 	}
 	if loaded.Research[sim.ElementHydrogen] != 7 {
 		t.Fatalf("research mismatch: %d", loaded.Research[sim.ElementHydrogen])
+	}
+	if loaded.InjectionElement != sim.ElementHelium {
+		t.Fatalf("InjectionElement mismatch: got %q", loaded.InjectionElement)
 	}
 	if loaded.Grid.Cells[0][0].Component.Kind() != sim.KindInjector {
 		t.Fatalf("injector kind lost")
@@ -179,8 +184,10 @@ func TestLoadV2SeedsOwnedFromGridComponents(t *testing.T) {
 
 	s := sim.NewGameState()
 	s.Owned = nil // Force the migration path on reload.
+	s.UnlockedElements[sim.ElementHelium] = true
+	s.InjectionElement = "" // Force the legacy per-Injector Element migration path.
 	s.Grid.Cells[0][0].Component = &components.Injector{
-		Direction: sim.DirEast, SpawnInterval: 30, Element: sim.ElementHydrogen,
+		Direction: sim.DirEast, SpawnInterval: 30, Element: sim.ElementHelium,
 	}
 	s.Grid.Cells[1][0].Component = &components.SimpleAccelerator{Orientation: sim.DirNorth}
 	s.Grid.Cells[2][0].Component = &components.SimpleAccelerator{Orientation: sim.DirEast}
@@ -208,5 +215,8 @@ func TestLoadV2SeedsOwnedFromGridComponents(t *testing.T) {
 	}
 	if loaded.Owned[sim.KindRotator] != 0 {
 		t.Errorf("Owned[rotator]: got %d want 0", loaded.Owned[sim.KindRotator])
+	}
+	if loaded.InjectionElement != sim.ElementHelium {
+		t.Errorf("InjectionElement after migration: got %q want %q", loaded.InjectionElement, sim.ElementHelium)
 	}
 }

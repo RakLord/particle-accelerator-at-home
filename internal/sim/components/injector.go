@@ -11,8 +11,10 @@ import (
 type Injector struct {
 	Direction     sim.Direction
 	SpawnInterval int
-	Element       sim.Element
-	TickCounter   int
+	// Element is retained only to read legacy saves that stored one Element per
+	// Injector. Spawn behavior now uses GameState.InjectionElement via context.
+	Element     sim.Element
+	TickCounter int
 }
 
 func (*Injector) Kind() sim.ComponentKind { return sim.KindInjector }
@@ -28,7 +30,7 @@ func (inj *Injector) MaybeSpawn(ctx sim.ApplyContext, pos sim.Position) (sim.Sub
 	}
 	inj.TickCounter = 0
 	return sim.Subject{
-		Element:     inj.Element,
+		Element:     ctx.InjectionElement,
 		Mass:        bignum.One(),
 		Speed:       1,
 		Direction:   inj.Direction,
@@ -41,6 +43,8 @@ func (inj *Injector) MaybeSpawn(ctx sim.ApplyContext, pos sim.Position) (sim.Sub
 		StepProgress: sim.SpeedDivisor / 2,
 	}, true
 }
+
+func (inj *Injector) LegacyInjectionElement() sim.Element { return inj.Element }
 
 // effectiveSpawnInterval divides the configured SpawnInterval by the global
 // InjectorRateMul, clamped to at least 1 tick. rateMul below 1 is treated as

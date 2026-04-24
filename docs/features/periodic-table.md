@@ -49,6 +49,7 @@ The focused Element opens a centered stat card above the table. The card is the 
 - unlock state
 - research count
 - effective multiplier: `baseMultiplier × (1 + Research / ResearchK)`
+- injection action for unlocked Elements
 - best stats:
   - max Speed
   - max Mass
@@ -73,7 +74,7 @@ Each Element's unlock state is driven by two predicates:
 1. **Research gate** — `Research[UnlocksFrom] >= ResearchThreshold`. While below, the card shows that the Element is locked and how much prerequisite research remains.
 2. **Purchase gate** — once the research gate is clear, the card shows an `Unlock for $N` button. Clicking deducts `UnlockCost` from `USD` and flips `GameState.UnlockedElements[e] = true`.
 
-Unlocking an Element activates the corresponding Injector entry in the component palette.
+Unlocking an Element makes it selectable as the global injection Element. All Injector components emit whichever unlocked Element is selected here; changing the selection affects existing Injectors immediately.
 
 Current catalog (`internal/sim/economy.go`):
 
@@ -85,6 +86,7 @@ Current catalog (`internal/sim/economy.go`):
 ## Save semantics
 
 - `UnlockedElements` is persisted as part of `GameState`.
+- `InjectionElement` is persisted as part of `GameState` and normalized to Hydrogen if a save is missing it or points at a locked/unknown Element.
 - `BestStats` is an additive persisted field on `GameState`.
 - Legacy saves that predate either field load with safe defaults and do not require a save-version bump.
 

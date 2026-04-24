@@ -62,6 +62,8 @@ type ApplyContext struct {
 	Tiers     TierView
 	Modifiers GlobalModifiers
 	Layer     Layer
+	// InjectionElement is the globally selected Element all Injectors emit.
+	InjectionElement Element
 }
 
 // NewTestApplyContext returns a zero-valued ApplyContext with Modifiers
@@ -72,8 +74,9 @@ type ApplyContext struct {
 // explicitly.
 func NewTestApplyContext() ApplyContext {
 	return ApplyContext{
-		Tiers:     newTierView(nil),
-		Modifiers: GlobalModifiers{}.Normalized(),
+		Tiers:            newTierView(nil),
+		Modifiers:        GlobalModifiers{}.Normalized(),
+		InjectionElement: ElementHydrogen,
 	}
 }
 

@@ -15,10 +15,10 @@ Tier 1 is the baseline. Higher tiers produce stronger effects (more Speed, more 
 | Simple Accelerator | yes | `+1` Speed | `+2` | `+3` |
 | Magnetiser | yes | `+1` Magnetism | `+2` | `+3` |
 | Mesh Grid | yes | `÷2` Speed (band ≥ 2) | `÷3` (band ≥ 3) | `÷4` (band ≥ 4) |
-| Resonator | yes (Phase 4) | — | — | — |
-| Catalyst | yes (Phase 4) | — | — | — |
-| Duplicator | yes (Phase 4) | Mass `×0.5` per output | `×0.6` | `×0.75` |
-| Injector | no | Per-instance config (element, direction, interval) |
+| Resonator | yes | `+1` Speed per neighbour | `+2` | `+3` |
+| Catalyst | yes | Mass `×1.5` (research ≥ 25) | `×2.0` | `×3.0` |
+| Duplicator | yes | Mass `×0.5` per output | `×0.6` | `×0.75` |
+| Injector | no | Per-instance config (direction, interval); Element is selected globally in the Codex |
 | Rotator / Elbow | no | Per-instance orientation |
 | Collector | no | Governed by `docs/features/global-upgrades.md` |
 
@@ -39,6 +39,9 @@ Initial catalog (`internal/sim/tier.go`):
 | Simple Accelerator | $500 / Hydrogen ≥ 3 | $5 000 / Hydrogen ≥ 15 |
 | Magnetiser | $800 / Hydrogen ≥ 5 | $8 000 / Hydrogen ≥ 20 |
 | Mesh Grid | $400 / Hydrogen ≥ 4 | $4 000 / Hydrogen ≥ 18 |
+| Resonator | $1 200 / Hydrogen ≥ 8 | $12 000 / Hydrogen ≥ 25 |
+| Catalyst | $2 000 / Hydrogen ≥ 30 | $20 000 / Helium ≥ 10 |
+| Duplicator | $3 000 / Hydrogen ≥ 12 | $30 000 / Helium ≥ 15 |
 
 Values subject to playtest.
 

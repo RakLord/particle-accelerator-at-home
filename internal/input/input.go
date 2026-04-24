@@ -8,34 +8,11 @@ import (
 
 const defaultSpawnInterval = 30
 
-// toolKind maps a Tool selection to the ComponentKind that represents it for
-// cost / ownership purposes. Returns "" for tools that don't participate in
-// the inventory system (ToolNone, ToolErase). Both injector tools resolve to
-// KindInjector — element variants are free to pick, only the kind costs.
-func toolKind(t ui.Tool) sim.ComponentKind {
-	switch t {
-	case ui.ToolInjectorHydrogen, ui.ToolInjectorHelium:
-		return sim.KindInjector
-	case ui.ToolAccelerator:
-		return sim.KindAccelerator
-	case ui.ToolMeshGrid:
-		return sim.KindMeshGrid
-	case ui.ToolMagnetiser:
-		return sim.KindMagnetiser
-	case ui.ToolElbow:
-		return sim.KindRotator
-	case ui.ToolCollector:
-		return sim.KindCollector
-	}
-	return ""
-}
-
 // PlaceFromTool writes the currently-selected Tool into the cell at pos.
 // An existing component at pos is overwritten; the displaced component
 // returns to the available inventory automatically (Owned is monotonic,
 // so decrementing the placed count for the old kind bumps its Available).
-// Placing a Helium Injector while Helium is locked is a no-op. Placing
-// when inventory is empty auto-purchases if affordable; otherwise no-op.
+// Placing when inventory is empty auto-purchases if affordable; otherwise no-op.
 func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 	if !inBounds(pos) {
 		return
@@ -47,11 +24,7 @@ func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 	if u.Selected == ui.ToolNone {
 		return
 	}
-	// Element-gate Helium injector before spending inventory.
-	if u.Selected == ui.ToolInjectorHelium && !sim.IsElementUnlocked(s, sim.ElementHelium) {
-		return
-	}
-	kind := toolKind(u.Selected)
+	kind := ui.KindForTool(u.Selected)
 	if kind == "" {
 		return
 	}
@@ -63,18 +36,10 @@ func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 
 	cell := &s.Grid.Cells[pos.Y][pos.X]
 	switch u.Selected {
-	case ui.ToolInjectorHydrogen:
+	case ui.ToolInjector:
 		cell.Component = &components.Injector{
 			Direction:     sim.DirEast,
 			SpawnInterval: defaultSpawnInterval,
-			Element:       sim.ElementHydrogen,
-		}
-		cell.IsCollector = false
-	case ui.ToolInjectorHelium:
-		cell.Component = &components.Injector{
-			Direction:     sim.DirEast,
-			SpawnInterval: defaultSpawnInterval,
-			Element:       sim.ElementHelium,
 		}
 		cell.IsCollector = false
 	case ui.ToolAccelerator:
@@ -84,7 +49,7 @@ func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 		cell.Component = &components.MeshGrid{Orientation: sim.DirEast}
 		cell.IsCollector = false
 	case ui.ToolMagnetiser:
-		cell.Component = &components.Magnetiser{}
+		cell.Component = &components.Magnetiser{Orientation: sim.DirEast}
 		cell.IsCollector = false
 	case ui.ToolElbow:
 		cell.Component = &components.Rotator{Orientation: sim.DirNorth}
@@ -92,6 +57,15 @@ func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 	case ui.ToolCollector:
 		cell.Component = nil
 		cell.IsCollector = true
+	case ui.ToolResonator:
+		cell.Component = &components.Resonator{}
+		cell.IsCollector = false
+	case ui.ToolCatalyst:
+		cell.Component = &components.Catalyst{}
+		cell.IsCollector = false
+	case ui.ToolDuplicator:
+		cell.Component = &components.Duplicator{Orientation: sim.DirWest}
+		cell.IsCollector = false
 	}
 }
 
@@ -106,22 +80,71 @@ func Erase(s *sim.GameState, pos sim.Position) {
 	cell.IsCollector = false
 }
 
+// PickToolAt selects the inventory tool matching the cell at pos. Empty cells
+// are ignored so an accidental pick over blank grid doesn't clear selection.
+func PickToolAt(s *sim.GameState, u *ui.UIState, pos sim.Position) {
+	if !inBounds(pos) {
+		return
+	}
+	cell := s.Grid.Cells[pos.Y][pos.X]
+	if cell.IsCollector {
+		u.Selected = ui.ToolCollector
+		return
+	}
+	switch cell.Component.(type) {
+	case *components.Injector:
+		u.Selected = ui.ToolInjector
+	case *components.SimpleAccelerator:
+		u.Selected = ui.ToolAccelerator
+	case *components.MeshGrid:
+		u.Selected = ui.ToolMeshGrid
+	case *components.Magnetiser:
+		u.Selected = ui.ToolMagnetiser
+	case *components.Rotator:
+		u.Selected = ui.ToolElbow
+	case *components.Resonator:
+		u.Selected = ui.ToolResonator
+	case *components.Catalyst:
+		u.Selected = ui.ToolCatalyst
+	case *components.Duplicator:
+		u.Selected = ui.ToolDuplicator
+	}
+}
+
 // Reconfigure cycles the orientation of directional tiles already at pos.
 func Reconfigure(s *sim.GameState, pos sim.Position) {
+	ReconfigureBy(s, pos, 1)
+}
+
+// ReconfigureBy rotates directional tiles already at pos by steps quarter-turns.
+// Positive steps match Reconfigure's existing cycle direction; negative steps
+// rotate the other way.
+func ReconfigureBy(s *sim.GameState, pos sim.Position, steps int) {
 	if !inBounds(pos) {
+		return
+	}
+	if steps == 0 {
 		return
 	}
 	cell := &s.Grid.Cells[pos.Y][pos.X]
 	switch c := cell.Component.(type) {
 	case *components.Injector:
-		c.Direction = (c.Direction + 1) % 4
+		c.Direction = rotateDirection(c.Direction, steps)
 	case *components.SimpleAccelerator:
-		c.Orientation = (c.Orientation + 1) % 4
+		c.Orientation = rotateDirection(c.Orientation, steps)
 	case *components.MeshGrid:
-		c.Orientation = (c.Orientation + 1) % 4
+		c.Orientation = rotateDirection(c.Orientation, steps)
+	case *components.Magnetiser:
+		c.Orientation = rotateDirection(c.Orientation, steps)
 	case *components.Rotator:
-		c.Orientation = (c.Orientation + 1) % 4
+		c.Orientation = rotateDirection(c.Orientation, steps)
+	case *components.Duplicator:
+		c.Orientation = rotateDirection(c.Orientation, steps)
 	}
+}
+
+func rotateDirection(d sim.Direction, steps int) sim.Direction {
+	return sim.Direction((int(d) + steps%4 + 4) % 4)
 }
 
 func inBounds(p sim.Position) bool {

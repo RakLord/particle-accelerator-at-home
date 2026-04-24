@@ -26,12 +26,13 @@ func (s *GameState) Tick() {
 // See docs/adr/0008-apply-context-and-grid-view.md.
 func (s *GameState) baseApplyContext() ApplyContext {
 	return ApplyContext{
-		Grid:      newGridView(s.Grid),
-		Tick:      s.Ticks,
-		Research:  newResearchView(s.Research),
-		Tiers:     newTierView(s.ComponentTiers),
-		Modifiers: s.Modifiers.Normalized(),
-		Layer:     s.Layer,
+		Grid:             newGridView(s.Grid),
+		Tick:             s.Ticks,
+		Research:         newResearchView(s.Research),
+		Tiers:            newTierView(s.ComponentTiers),
+		Modifiers:        s.Modifiers.Normalized(),
+		Layer:            s.Layer,
+		InjectionElement: s.effectiveInjectionElement(),
 	}
 }
 
@@ -64,17 +65,23 @@ func (s *GameState) injectorSpawns() {
 func (s *GameState) advanceSubjects() {
 	g := s.Grid
 	mods := s.Modifiers.Normalized()
+	// Splitter-emitted extras are collected here and admitted after the filter
+	// loop, so they don't get clobbered by g.Subjects[:0] reuse or processed
+	// twice in the same tick.
+	var pending []Subject
 	alive := g.Subjects[:0]
 	for _, sub := range g.Subjects {
-		collected, lost := s.stepSubject(&sub)
+		collected, lost := s.stepSubject(&sub, &pending)
 		if lost {
 			s.CurrentLoad -= sub.Load
 			continue
 		}
 		if collected {
-			value := collectValue(sub, s.Research[sub.Element], mods)
+			research := s.Research[sub.Element]
+			value := collectValue(sub, research, mods)
 			s.USD = s.USD.Add(value)
 			s.recordCollectionBestStats(sub, value)
+			s.recordCollectionLog(sub, research, value)
 			s.Research[sub.Element] += 1 + mods.ResearchPerCollectBonus
 			s.CurrentLoad -= sub.Load
 			continue
@@ -82,6 +89,18 @@ func (s *GameState) advanceSubjects() {
 		alive = append(alive, sub)
 	}
 	g.Subjects = alive
+	// Admit pending extras under the EffectiveMaxLoad cap. Partial admission
+	// matches Injector spawn semantics (ADR 0009).
+	if len(pending) > 0 {
+		cap := s.EffectiveMaxLoad()
+		for _, e := range pending {
+			if s.CurrentLoad+e.Load > cap {
+				continue
+			}
+			g.Subjects = append(g.Subjects, e)
+			s.CurrentLoad += e.Load
+		}
+	}
 }
 
 func (s *GameState) recordCollectionBestStats(sub Subject, value bignum.Decimal) {
@@ -101,12 +120,33 @@ func (s *GameState) recordCollectionBestStats(sub Subject, value bignum.Decimal)
 	s.BestStats[sub.Element] = stats
 }
 
+func (s *GameState) recordCollectionLog(sub Subject, research int, value bignum.Decimal) {
+	entry := CollectionLogEntry{
+		Element:       sub.Element,
+		Mass:          sub.Mass,
+		Speed:         sub.Speed,
+		Magnetism:     sub.Magnetism,
+		ResearchLevel: research,
+		Value:         value,
+		Tick:          s.Ticks,
+	}
+	s.CollectionLog = append([]CollectionLogEntry{entry}, s.CollectionLog...)
+	if len(s.CollectionLog) > MaxCollectionLogEntries {
+		s.CollectionLog = s.CollectionLog[:MaxCollectionLogEntries]
+	}
+}
+
 // stepSubject accumulates Speed into StepProgress and advances the Subject one
 // cell per SpeedDivisor of accumulated progress, applying Components on each
 // entered cell. Returns (collected, lost). If neither, the Subject is left at
 // its new Position for the next tick, with any leftover StepProgress < SpeedDivisor
 // representing in-cell progress the renderer interpolates.
-func (s *GameState) stepSubject(sub *Subject) (collected, lost bool) {
+//
+// Splitter-emitted extras are appended to *pending, not to g.Subjects directly.
+// The caller (advanceSubjects) admits them after its filter loop so they don't
+// get clobbered by g.Subjects[:0] reuse. MaxLoad enforcement also lives with
+// the admission — see ADR 0009.
+func (s *GameState) stepSubject(sub *Subject, pending *[]Subject) (collected, lost bool) {
 	g := s.Grid
 	base := s.baseApplyContext()
 
@@ -131,20 +171,18 @@ func (s *GameState) stepSubject(sub *Subject) (collected, lost bool) {
 		sub.Position = Position{X: nx, Y: ny}
 		sub.InDirection = arrival
 		cell := g.Cells[ny][nx]
+		// A Subject that enters an empty cell (no Component, not a Collector)
+		// leaves the pipe network and is destroyed.
+		if cell.Component == nil && !cell.IsCollector {
+			return false, true
+		}
 		if cell.Component != nil {
 			ctx := base
 			ctx.Pos = sub.Position
 			if sp, ok := cell.Component.(Splitter); ok {
 				self, extras, destroyed := sp.ApplySplit(ctx, *sub)
 				*sub = self
-				cap := s.EffectiveMaxLoad()
-				for _, e := range extras {
-					if s.CurrentLoad+e.Load > cap {
-						continue
-					}
-					g.Subjects = append(g.Subjects, e)
-					s.CurrentLoad += e.Load
-				}
+				*pending = append(*pending, extras...)
 				if destroyed {
 					return false, true
 				}

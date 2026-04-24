@@ -92,7 +92,7 @@ func (a *SimpleAccelerator) Apply(ctx sim.ApplyContext, s sim.Subject) (sim.Subj
 
 Tuning is illustrative; final values may differ at implementation time.
 
-**Non-tierable (this wave):** Injector (per-instance config — element, direction, interval), Rotator (per-instance orientation), Collector (not a Component). Duplicator and Catalyst are tierable in principle but ship at T1 only to keep the first drop small; their stat tables exist with a single entry so later tiers are additive.
+**Non-tierable (this wave):** Injector (per-instance config — direction, interval; Element is selected globally in the Codex), Rotator (per-instance orientation), Collector (not a Component). Duplicator and Catalyst are tierable in principle but ship at T1 only to keep the first drop small; their stat tables exist with a single entry so later tiers are additive.
 
 **5. Tier upgrades are their own catalog, distinct from global upgrades.**
 

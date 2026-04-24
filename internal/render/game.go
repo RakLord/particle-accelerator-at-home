@@ -101,6 +101,19 @@ func (g *Game) handleInput() {
 		}
 	}
 
+	// Global: toggle the inventory modal with E. Closes any other modal that
+	// may be open so the player isn't stuck with two overlays.
+	if inpututil.IsKeyJustPressed(ebiten.KeyE) {
+		g.ui.InventoryOpen = !g.ui.InventoryOpen
+		g.ui.InventoryHovered = ui.ToolNone
+		if g.ui.InventoryOpen {
+			g.ui.SettingsOpen = false
+			g.ui.CodexOpen = false
+			g.ui.LogOpen = false
+		}
+		return
+	}
+
 	// Modals swallow clicks when open.
 	if g.ui.SettingsOpen {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
@@ -115,38 +128,86 @@ func (g *Game) handleInput() {
 		}
 		return
 	}
+	if g.ui.InventoryOpen {
+		g.ui.InventoryHovered = invToolAt(mx, my)
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			g.handleInventoryClick(mx, my)
+		}
+		return
+	}
+	if g.ui.LogOpen {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			g.handleLogClick(mx, my)
+		}
+		return
+	}
 
-	// Header: codex + settings buttons.
+	// Header: inventory + log + codex + settings buttons.
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		if contains(mx, my, settingsBtnX, settingsBtnY, settingsBtnW, settingsBtnH) {
 			g.ui.SettingsOpen = true
+			g.ui.CodexOpen = false
+			g.ui.InventoryOpen = false
+			g.ui.LogOpen = false
 			g.ui.ResetArmed = false
 			g.ui.LastSaveNotice = ""
 			return
 		}
 		if contains(mx, my, codexBtnX, codexBtnY, codexBtnW, codexBtnH) {
 			g.ui.CodexOpen = true
+			g.ui.SettingsOpen = false
+			g.ui.InventoryOpen = false
+			g.ui.LogOpen = false
 			g.ui.CodexNotice = ""
 			g.codexHovered = ""
 			g.codexPinned = ""
 			return
 		}
+		if contains(mx, my, logBtnX, logBtnY, logBtnW, logBtnH) {
+			g.ui.LogOpen = true
+			g.ui.SettingsOpen = false
+			g.ui.CodexOpen = false
+			g.ui.InventoryOpen = false
+			return
+		}
+		if contains(mx, my, inventoryBtnX, inventoryBtnY, inventoryBtnW, inventoryBtnH) {
+			g.ui.InventoryOpen = true
+			g.ui.SettingsOpen = false
+			g.ui.CodexOpen = false
+			g.ui.LogOpen = false
+			g.ui.InventoryHovered = ui.ToolNone
+			return
+		}
 	}
 
-	// Palette: tool selection.
+	// Right-side panel: only the "Open Inventory" button is interactive
+	// after the palette shrank. Component selection lives in the modal.
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		if tool, ok := paletteButtonAt(mx, my); ok {
-			if g.ui.Selected == tool {
-				g.ui.Selected = ui.ToolNone
-			} else {
-				g.ui.Selected = tool
-			}
+		if openInvButtonHit(mx, my) {
+			g.ui.InventoryOpen = true
+			g.ui.SettingsOpen = false
+			g.ui.CodexOpen = false
+			g.ui.LogOpen = false
+			g.ui.InventoryHovered = ui.ToolNone
 			return
 		}
 	}
 
 	// Grid: place / reconfigure / erase.
 	if pos, ok := cellAt(mx, my); ok {
+		if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
+			input.PickToolAt(g.state, g.ui, pos)
+			return
+		}
+		_, wheelY := ebiten.Wheel()
+		if wheelY > 0 {
+			input.ReconfigureBy(g.state, pos, 1)
+			return
+		}
+		if wheelY < 0 {
+			input.ReconfigureBy(g.state, pos, -1)
+			return
+		}
 		cell := g.state.Grid.Cells[pos.Y][pos.X]
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			if g.ui.Selected != ui.ToolNone {
@@ -211,6 +272,33 @@ func (g *Game) handleSettingsClick(mx, my int) {
 	}
 }
 
+func (g *Game) handleInventoryClick(mx, my int) {
+	if contains(mx, my, invCloseX(), invCloseY(), closeBtnW, closeBtnH) {
+		g.ui.InventoryOpen = false
+		g.ui.InventoryHovered = ui.ToolNone
+		return
+	}
+	if t := invToolAt(mx, my); t != ui.ToolNone {
+		if !ui.IsToolUnlocked(g.state, t) {
+			return
+		}
+		g.ui.Selected = t
+		g.ui.InventoryOpen = false
+		g.ui.InventoryHovered = ui.ToolNone
+		return
+	}
+	if !invInPanel(mx, my) {
+		g.ui.InventoryOpen = false
+		g.ui.InventoryHovered = ui.ToolNone
+	}
+}
+
+func (g *Game) handleLogClick(mx, my int) {
+	if contains(mx, my, logCloseX(), logCloseY(), closeBtnW, closeBtnH) || !logInPanel(mx, my) {
+		g.ui.LogOpen = false
+	}
+}
+
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(colorBG)
 	alpha := g.tickAlpha()
@@ -223,6 +311,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	if g.ui.CodexOpen {
 		drawPeriodicTable(screen, g.state, g.ui, g.currentCodexFocus())
+	}
+	if g.ui.InventoryOpen {
+		drawInventory(screen, g.state, g.ui)
+	}
+	if g.ui.LogOpen {
+		drawCollectionLog(screen, g.state)
 	}
 }
 
@@ -252,6 +346,11 @@ func (g *Game) handleCodexClick(mx, my int) {
 	}
 	if e := g.currentCodexFocus(); e != "" {
 		bx, by, bw, bh := codexUnlockButtonRect()
+		if contains(mx, my, bx, by, bw, bh) && sim.IsElementUnlocked(g.state, e) && g.state.InjectionElement != e {
+			g.state.InjectionElement = e
+			g.ui.CodexNotice = "Injecting " + sim.ElementCatalog[e].Name
+			return
+		}
 		if contains(mx, my, bx, by, bw, bh) && sim.IsElementPurchasable(g.state, e) {
 			if err := sim.PurchaseElement(g.state, e); err != nil {
 				g.ui.CodexNotice = "Unlock failed: " + err.Error()
@@ -272,6 +371,11 @@ func (g *Game) handleCodexClick(mx, my int) {
 	}
 	if e := g.currentCodexFocus(); e != "" && contains(mx, my, codexCardX(), codexCardY(), codexCardW, codexCardH) {
 		g.codexHovered = e
+		return
+	}
+	if g.codexPinned != "" {
+		g.codexPinned = ""
+		g.codexHovered = ""
 		return
 	}
 	if !contains(mx, my, codexPanelX(), codexPanelY(), codexPanelW(), codexPanelH()) {

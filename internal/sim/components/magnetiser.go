@@ -6,9 +6,11 @@ import (
 )
 
 // Magnetiser adds a tier-driven flat bonus to the Subject's Magnetism when the
-// Subject is inside its speed band. See docs/features/component-magnetiser.md
-// and docs/features/component-tiers.md.
-type Magnetiser struct{}
+// Subject is inside its speed band and entering along the Magnetiser's axis.
+// See docs/features/component-magnetiser.md and docs/features/component-tiers.md.
+type Magnetiser struct {
+	Orientation sim.Direction
+}
 
 // magnetiserBonusByTier is the flat Magnetism added per pass at each tier.
 // Index 0 unused; index N is the bonus at tier N.
@@ -24,6 +26,9 @@ const magnetiserMinSpeed = 1
 func (*Magnetiser) Kind() sim.ComponentKind { return sim.KindMagnetiser }
 
 func (m *Magnetiser) Apply(ctx sim.ApplyContext, s sim.Subject) (sim.Subject, bool) {
+	if isVertical(m.Orientation) != isVertical(s.InDirection) {
+		return s, true
+	}
 	if s.Speed < magnetiserMinSpeed {
 		return s, false
 	}
