@@ -59,7 +59,7 @@ Saves from before global upgrades exist load into a state with no upgrades purch
 - `internal/sim/modifiers.go` — aggregated modifier state.
 - `internal/ui/upgrades_tab.go` — shop UI.
 - `docs/adr/0010-global-modifier-pipeline.md` — data model, derivation rule, save-compat.
-- `docs/features/component-cost.md` — where component purchase cost modifiers apply.
-- `docs/features/component-creation-and-balancing.md` — practical guide for component cost tuning.
-- `docs/features/component-tiers.md` — orthogonal progression axis.
-- `docs/features/value-formula.md` — where Collector value modifiers apply.
+- `docs/features/0007-component-cost.md` — where component purchase cost modifiers apply.
+- `docs/features/0016-component-creation-and-balancing.md` — practical guide for component cost tuning.
+- `docs/features/0011-component-tiers.md` — orthogonal progression axis.
+- `docs/features/0001-value-formula.md` — where Collector value modifiers apply.

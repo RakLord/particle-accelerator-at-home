@@ -126,7 +126,7 @@ If we later decide a wider grid is the better trade, deleting `drawPalette`/`dra
 - `internal/render/palette.go` — shrunk to "Selected" card + Open Inventory button.
 - `internal/render/draw_util.go` — `drawTextWrapped`, `wrappedHeight` helpers added for the description panel.
 - `internal/input/input.go` — `toolKind` removed, replaced by shared `ui.KindForTool`.
-- `docs/features/inventory.md` — player-facing feature doc.
+- `docs/features/0014-inventory.md` — player-facing feature doc.
 - ADR 0005 — component cost / inventory accounting that the modal surfaces.
 - ADR 0007 — Codex modal pattern this design follows.
 - ADR 0011 — tier system; tier upgrades remain in their own UI surface (not the inventory).

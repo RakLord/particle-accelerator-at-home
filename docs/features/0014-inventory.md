@@ -62,6 +62,6 @@ The compact panel shows:
 - `internal/ui/component_info.go` — single source of truth for component name/tagline/description.
 - `internal/ui/lock.go` — lock predicate, lock reason, tool→kind mapping, and the canonical `PlaceableTools` order.
 - `docs/adr/0012-component-inventory-modal.md` — design decisions behind this feature.
-- `docs/features/component-cost.md` — purchase cost curve consumed by the cost label.
-- `docs/features/component-creation-and-balancing.md` — how to choose component cost curves when adding or retuning tools.
-- `docs/features/component-tiers.md` — orthogonal progression axis surfaced in card stats.
+- `docs/features/0007-component-cost.md` — purchase cost curve consumed by the cost label.
+- `docs/features/0016-component-creation-and-balancing.md` — how to choose component cost curves when adding or retuning tools.
+- `docs/features/0011-component-tiers.md` — orthogonal progression axis surfaced in card stats.

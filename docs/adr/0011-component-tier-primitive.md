@@ -150,7 +150,7 @@ The removal of `SimpleAccelerator.SpeedBonus` and `Magnetiser.Bonus` fields is a
 **Costs**
 - Tier upgrades feel "free" for existing placed components, which is a deliberate gameplay choice but could cheapen the expense of buying lots of T1s in bulk. Balance via research-gate prerequisites and cost values.
 - Per-instance differentiation is not possible (every Accelerator on the grid is the same tier). If a future gameplay idea needs per-instance tiers, this ADR has to be revisited — but the migration path (add a `Tier` field to the component struct, default from global) is additive.
-- Two purchase surfaces (Components, Tier Upgrades) next to Global Upgrades (ADR 0010). Three shop tabs risks clutter; see `docs/features/component-tiers.md` for UI grouping.
+- Two purchase surfaces (Components, Tier Upgrades) next to Global Upgrades (ADR 0010). Three shop tabs risks clutter; see `docs/features/0011-component-tiers.md` for UI grouping.
 
 ## Alternatives considered
 
@@ -169,7 +169,7 @@ The removal of `SimpleAccelerator.SpeedBonus` and `Magnetiser.Bonus` fields is a
 - `internal/sim/components/magnetiser.go` — drop `Bonus`, read tier.
 - `internal/sim/components/mesh_grid.go` — read tier for divisor.
 - `internal/input/input.go` — `PlaceFromTool` no longer sets per-instance tier stats.
-- `docs/features/component-tiers.md` — player-facing progression.
+- `docs/features/0011-component-tiers.md` — player-facing progression.
 - ADR 0002 — additive save rule.
 - ADR 0005 — component purchase cost remains orthogonal to tiers.
 - ADR 0008 — `ApplyContext` carries `Tiers`.

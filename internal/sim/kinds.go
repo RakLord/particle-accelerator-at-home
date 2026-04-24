@@ -14,7 +14,7 @@ const (
 	KindRotator     ComponentKind = "rotator"
 	KindPipe        ComponentKind = "pipe"
 
-	// Phase 4 additions. See docs/features/component-{resonator,catalyst,duplicator,compressor}.md.
+	// Phase 4 additions. See docs/features/0008-component-catalyst.md, 0009-component-duplicator.md, 0010-component-resonator.md, 0019-component-compressor.md.
 	KindResonator  ComponentKind = "resonator"
 	KindCatalyst   ComponentKind = "catalyst"
 	KindDuplicator ComponentKind = "duplicator"

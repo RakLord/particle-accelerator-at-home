@@ -102,4 +102,4 @@ Additive: `GameState.Owned` is a new `map[ComponentKind]int` with `omitempty`. S
 - `internal/input/input.go` — placement / erase / reconfigure wiring.
 - `internal/render/palette.go` — inventory + cost sub-label per tool.
 - `docs/adr/0005-component-cost-and-inventory.md` — data-model and save-format decisions.
-- `docs/features/component-creation-and-balancing.md` — workflow for adding new components and choosing cost curves.
+- `docs/features/0016-component-creation-and-balancing.md` — workflow for adding new components and choosing cost curves.

@@ -170,7 +170,7 @@ No save envelope bump required (ADR 0005 already established that additive field
 - `internal/sim/economy.go` — `collectValue` signature change.
 - `internal/sim/tick.go` — `Normalized()` called per tick, threaded via `ApplyContext`.
 - `internal/sim/save.go` — call `rebuildModifiers(s)` after unmarshal.
-- `docs/features/global-upgrades.md` — player-facing description.
+- `docs/features/0012-global-upgrades.md` — player-facing description.
 - ADR 0002 — versioned save schema (additive change, no bump).
 - ADR 0004 — bignum core (backs the multiplier fields).
 - ADR 0005 — established that additive save fields are allowed.

@@ -8,7 +8,7 @@ import (
 // Duplicator is a T-junction splitter. A Subject entering the input side is
 // consumed; two copies leave via the two perpendicular output sides. Mass is
 // divided per-output by a tier-driven fraction. See
-// docs/features/component-duplicator.md and
+// docs/features/0009-component-duplicator.md and
 // docs/adr/0009-subject-emitter-capability.md.
 //
 // Orientation names the INPUT side. Outputs are Orientation.Left() and

@@ -7,8 +7,8 @@ Use this guide when adding a new Accelerator Component or retuning an existing o
 ## Required References
 
 - `docs/overview.md` — canonical game model and terminology.
-- `docs/features/component-cost.md` — exact component purchase formula.
-- `docs/features/component-tiers.md` — tier model and tier-upgrade pricing.
+- `docs/features/0007-component-cost.md` — exact component purchase formula.
+- `docs/features/0011-component-tiers.md` — tier model and tier-upgrade pricing.
 - Relevant existing component feature docs in `docs/features/component-*.md`.
 - ADRs for component architecture: `docs/adr/0008-apply-context-and-grid-view.md`, `docs/adr/0009-subject-emitter-capability.md`, and `docs/adr/0011-component-tier-primitive.md`.
 

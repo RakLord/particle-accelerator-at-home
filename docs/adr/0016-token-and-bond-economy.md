@@ -5,7 +5,7 @@
 
 ## Context
 
-Tokens (per-Element crystallisations) and Bonds (synthesised compounds) are the two prestige-currency layers between *banked Subjects* and *permanent modifiers* (see `docs/features/bonds-and-tokens.md`).
+Tokens (per-Element crystallisations) and Bonds (synthesised compounds) are the two prestige-currency layers between *banked Subjects* and *permanent modifiers* (see `docs/features/0021-bonds-and-tokens.md`).
 
 Three architectural questions:
 
@@ -211,7 +211,7 @@ If a Bond is removed from `BondCatalog` in a future release while an existing sa
 - `internal/sim/modifiers.go` — `rebuildModifiers` extended to read `BondsState`.
 - `internal/sim/state.go` — `TokenInventory`, `BondsState`, `BondPoints`.
 - `internal/ui/bonds_tab.go` (new) — list view, Crystallise + Synthesise.
-- `docs/features/bonds-and-tokens.md` — player-facing description.
+- `docs/features/0021-bonds-and-tokens.md` — player-facing description.
 - ADR 0002 — additive save fields.
 - ADR 0010 — modifier pipeline being extended.
 - ADR 0014 — what `ResetGenesis` preserves vs. wipes.

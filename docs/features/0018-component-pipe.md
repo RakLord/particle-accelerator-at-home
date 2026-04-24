@@ -25,7 +25,7 @@ From `internal/sim/component_cost.go`:
 
 - `Base = $8`
 - `Growth = 1.15`
-- No soft cap — routing utility is deliberately unconstrained (see `docs/features/component-creation-and-balancing.md` §Choosing Soft Caps).
+- No soft cap — routing utility is deliberately unconstrained (see `docs/features/0016-component-creation-and-balancing.md` §Choosing Soft Caps).
 
 Pipe uses the same $8 base as Rotator (Elbow) but a gentler growth curve (`1.15` vs Rotator's `1.20`), so Pipe stays cheap to spam for long runs while Rotators remain the slightly-premium turn tile.
 
@@ -37,5 +37,5 @@ Before Pipe, the only way to carry a Subject across several cells was to use Acc
 
 - `internal/sim/components/pipe.go`
 - `internal/sim/component_cost.go` — cost catalog entry
-- `docs/features/component-cost.md` — cost formula
-- `docs/features/component-creation-and-balancing.md` — balancing workflow
+- `docs/features/0007-component-cost.md` — cost formula
+- `docs/features/0016-component-creation-and-balancing.md` — balancing workflow

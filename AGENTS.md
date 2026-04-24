@@ -44,7 +44,7 @@ Logical state advances **only on fixed-rate ticks** (default 60 Hz). Rendering u
 
 Every Accelerator Component is conceptually `(Subject) -> Subject`, optionally with a direction override. Adding a new component = one pure function + its sprite. The `sim.Upgrader` interface is the current placeholder for this.
 
-Before adding a new Accelerator Component or changing component purchase costs, read `docs/features/component-creation-and-balancing.md`. It contains the implementation checklist, cost formula, soft-cap guidance, and balancing workflow that should stay consistent across components.
+Before adding a new Accelerator Component or changing component purchase costs, read `docs/features/0016-component-creation-and-balancing.md`. It contains the implementation checklist, cost formula, soft-cap guidance, and balancing workflow that should stay consistent across components.
 
 ### Terminology
 

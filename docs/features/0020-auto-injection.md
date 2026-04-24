@@ -6,7 +6,7 @@
 
 Auto-Injection is an idle-mode injection toggle. While on, the manual Inject path fires automatically every cooldown cycle without the player pressing the button. It is the prestige layer's idle-game enabler — the player can step away from the keyboard and Subjects keep flowing.
 
-The mechanic is **gated behind the Benzene Bond** (`docs/features/bonds-and-tokens.md`). Until the player has synthesised Benzene, the Auto-Inject toggle is hidden. Synthesising Benzene reveals the toggle for all current and future runs.
+The mechanic is **gated behind the Benzene Bond** (`docs/features/0021-bonds-and-tokens.md`). Until the player has synthesised Benzene, the Auto-Inject toggle is hidden. Synthesising Benzene reveals the toggle for all current and future runs.
 
 ## Behaviour
 
@@ -24,7 +24,7 @@ There is no separate auto-inject queue — the auto path is a tick-driven caller
 
 Default Auto-Inject cadence on Benzene unlock is **10 seconds** — slower than the 5-second base manual cooldown. An active player out-paces auto by a factor of 2; auto is a "set it and walk away" tool, not the optimal play.
 
-The Laboratory tree (see `docs/features/laboratory.md`) sells four cadence reductions:
+The Laboratory tree (see `docs/features/0023-laboratory.md`) sells four cadence reductions:
 
 | Lab upgrade | Effect | Bond Point cost |
 |---|---|---:|
@@ -94,6 +94,6 @@ if state.Modifiers.AutoInjectEnabled && state.AutoInjectActive {
 - `internal/sim/modifiers.go` — `AutoInjectEnabled`, `AutoInjectCadenceTicks` fields.
 - `internal/ui/inject_panel.go` — toggle UI (extends the existing Inject button area).
 - `docs/adr/0017-auto-injection.md` — separation from `InjectorRateMul`, scheduling model, modifier fields.
-- `docs/features/manual-injection.md` — the path auto-inject reuses.
-- `docs/features/bonds-and-tokens.md` — Benzene Bond is the unlock.
-- `docs/features/laboratory.md` — cadence upgrades.
+- `docs/features/0015-manual-injection.md` — the path auto-inject reuses.
+- `docs/features/0021-bonds-and-tokens.md` — Benzene Bond is the unlock.
+- `docs/features/0023-laboratory.md` — cadence upgrades.

@@ -37,12 +37,12 @@ Each emitted Subject costs its own `Load` against `MaxLoad`. If the grid is full
 
 Duplicator is the first component that **grows subject count**. The existing economy is bounded by how fast Injectors fire; Duplicator uncouples throughput from spawn rate, turning the grid into an amplifier rather than a pipeline. Combined with a long chain of Magnetisers on each output side, a single Injector can feed a substantial late-game build.
 
-At T1 the mass-conservation rule keeps Duplicator honest: total collected value from the two outputs equals what one Subject would have collected if sent directly, assuming identical Collector paths — value comes from *parallelism* or from *Load pressure*. Tier upgrades break conservation in the player's favour, so tiering a Duplicator is a direct output-multiplier unlock — a high-value $USD sink. Future global upgrades (`docs/features/global-upgrades.md`) can layer an additional mass-retention bonus on top of the tier fraction.
+At T1 the mass-conservation rule keeps Duplicator honest: total collected value from the two outputs equals what one Subject would have collected if sent directly, assuming identical Collector paths — value comes from *parallelism* or from *Load pressure*. Tier upgrades break conservation in the player's favour, so tiering a Duplicator is a direct output-multiplier unlock — a high-value $USD sink. Future global upgrades (`docs/features/0012-global-upgrades.md`) can layer an additional mass-retention bonus on top of the tier fraction.
 
 ## Related
 
 - `internal/sim/components/duplicator.go`
 - `docs/adr/0009-subject-emitter-capability.md` — `Splitter` interface makes this component possible.
 - `docs/adr/0006-directional-components-and-elbow-tiles.md` — shared orientation model.
-- `docs/features/component-tiers.md`
-- `docs/features/value-formula.md`
+- `docs/features/0011-component-tiers.md`
+- `docs/features/0001-value-formula.md`

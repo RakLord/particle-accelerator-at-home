@@ -10,10 +10,10 @@ Carbon (Z=6) is the prestige gate Element. Until the player has unlocked Carbon,
 
 The companion features describe the parts:
 
-- `docs/features/component-binder.md` — the new Binder Component that banks Subjects.
-- `docs/features/bonds-and-tokens.md` — Token crystallisation and the compound (Bond) catalog.
-- `docs/features/laboratory.md` — the post-prestige Bond Point tree.
-- `docs/features/auto-injection.md` — the idle-injection mechanic unlocked by the Benzene Bond.
+- `docs/features/0022-component-binder.md` — the new Binder Component that banks Subjects.
+- `docs/features/0021-bonds-and-tokens.md` — Token crystallisation and the compound (Bond) catalog.
+- `docs/features/0023-laboratory.md` — the post-prestige Bond Point tree.
+- `docs/features/0020-auto-injection.md` — the idle-injection mechanic unlocked by the Benzene Bond.
 
 ## Trigger
 
@@ -48,15 +48,15 @@ After reset, `rebuildModifiers(state)` runs, so any Bond and Laboratory effects 
 
 Bonds (synthesised compounds) and Laboratory upgrades are the only durable progression. The first prestige feels brutal because it almost is — only Methane's +15% softens Run 2. By Run 4-5, with multiple Bonds and a few Laboratory upgrades, the run feels meaningfully accelerated.
 
-The "harder" reset (research and unlocks both wiped) is the deliberate trade-off for getting Bonds. It also makes the Laboratory upgrades that *soften* the climb — `Covalent Memory` (Helium pre-unlocked), `Stable Isotope` (research carryover), `Chain Reaction` (faster early Injectors) — into high-value early purchases. See `docs/features/laboratory.md` for the full tree.
+The "harder" reset (research and unlocks both wiped) is the deliberate trade-off for getting Bonds. It also makes the Laboratory upgrades that *soften* the climb — `Covalent Memory` (Helium pre-unlocked), `Stable Isotope` (research carryover), `Chain Reaction` (faster early Injectors) — into high-value early purchases. See `docs/features/0023-laboratory.md` for the full tree.
 
 ## UI surface
 
 - **Prestige button** in the right-side panel, hidden until `len(BondsState) >= 1`.
 - **Confirmation modal** on press, listing what will be reset and what will persist. Same modal pattern as the existing Hard Reset confirmation in `internal/render/settings.go`.
 - **Run counter** in the panel after first prestige: "Run #N".
-- **Bonds tab** (see `docs/features/bonds-and-tokens.md`) becomes available the moment a player owns ≥1 Token of any element — independent of having prestiged.
-- **Laboratory tab** (see `docs/features/laboratory.md`) becomes visible after the first prestige.
+- **Bonds tab** (see `docs/features/0021-bonds-and-tokens.md`) becomes available the moment a player owns ≥1 Token of any element — independent of having prestiged.
+- **Laboratory tab** (see `docs/features/0023-laboratory.md`) becomes visible after the first prestige.
 
 ## Save compatibility
 

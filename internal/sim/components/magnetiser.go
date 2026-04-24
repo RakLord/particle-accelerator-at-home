@@ -7,7 +7,7 @@ import (
 
 // Magnetiser adds a tier-driven flat bonus to the Subject's Magnetism when the
 // Subject is inside its speed band and entering along the Magnetiser's axis.
-// See docs/features/component-magnetiser.md and docs/features/component-tiers.md.
+// See docs/features/0002-component-magnetiser.md and docs/features/0011-component-tiers.md.
 type Magnetiser struct {
 	Orientation sim.Direction
 }

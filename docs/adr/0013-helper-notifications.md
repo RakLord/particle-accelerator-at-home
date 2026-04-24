@@ -68,7 +68,7 @@ This is simpler than maintaining per-edge arrow direction assets and is enough t
 
 ## Related
 
-- `docs/features/helper-notifications.md`.
+- `docs/features/0017-helper-notifications.md`.
 - `internal/sim/notification.go`.
 - `internal/render/helper_system.go`.
 - `internal/render/helper_modal.go`.

@@ -11,7 +11,7 @@ type SimpleAccelerator struct {
 }
 
 // acceleratorSpeedByTier is the per-tier Speed bonus. Index 0 unused;
-// index N is the bonus at tier N. See docs/features/component-tiers.md.
+// index N is the bonus at tier N. See docs/features/0011-component-tiers.md.
 var acceleratorSpeedByTier = []sim.Speed{0, sim.SpeedFromInt(1), sim.SpeedFromInt(2), sim.SpeedFromInt(3)}
 
 func (*SimpleAccelerator) Kind() sim.ComponentKind { return sim.KindAccelerator }

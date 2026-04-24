@@ -136,4 +136,4 @@ Current catalog (`internal/sim/economy.go`):
 - `internal/render/game.go` — Codex interaction routing.
 - `internal/sim/economy.go` — catalog, purchase logic, research constants.
 - `internal/sim/tick.go` — collection-time best-stat updates.
-- `docs/features/value-formula.md` — how research factors into collected value.
+- `docs/features/0001-value-formula.md` — how research factors into collected value.

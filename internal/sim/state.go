@@ -13,7 +13,7 @@ const (
 	// MaxNotificationLogEntries is the number of logged helper notifications kept
 	// for the in-game notification history.
 	MaxNotificationLogEntries = 50
-	// DefaultTickRate: interpolation is live (see docs/features/smooth-motion.md)
+	// DefaultTickRate: interpolation is live (see docs/features/0005-smooth-motion.md)
 	// so this is no longer a rendering constraint — raising it is a gameplay
 	// decision about how fast the grid feels.
 	DefaultTickRate = 10
@@ -103,7 +103,7 @@ func NewGameState() *GameState {
 // starterInventory is the set of components a brand-new game begins with.
 // The player starts with only an Injector and a Collector; everything else
 // (pipes, accelerators, elbows, etc.) must be purchased. Tuning these
-// numbers is a design lever — see docs/features/component-cost.md.
+// numbers is a design lever — see docs/features/0007-component-cost.md.
 func starterInventory() map[ComponentKind]int {
 	return map[ComponentKind]int{
 		KindInjector:  1,

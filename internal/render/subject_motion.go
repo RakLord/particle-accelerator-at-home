@@ -10,7 +10,7 @@ import (
 // alpha α ∈ [0,1] within the current tick. Uses sim.Path, StepProgress, and
 // the inbound-direction snapshot to walk along a mixed-segment polycurve where
 // elbow-turn cells are rendered as quarter arcs and all other cells as straight
-// lines. See docs/features/smooth-motion.md for the geometric model.
+// lines. See docs/features/0005-smooth-motion.md for the geometric model.
 func subjectPixel(sub sim.Subject, alpha float64) (float32, float32) {
 	n := len(sub.Path)
 	if n == 0 {

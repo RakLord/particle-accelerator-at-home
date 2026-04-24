@@ -71,7 +71,7 @@ Three coupled decisions fall out of adding a component purchase cost:
 - `internal/sim/component_cost.go` — catalog, `ComponentCost`, `PurchaseComponent`, `CanPurchase`, modifier registry.
 - `internal/sim/save.go` — migration for saves that predate the `Owned` field.
 - `internal/input/input.go` — placement auto-purchase flow and overwrite semantics.
-- `docs/features/component-cost.md` — gameplay-facing feature description.
-- `docs/features/component-creation-and-balancing.md` — current tuning workflow for component curves and soft caps.
+- `docs/features/0007-component-cost.md` — gameplay-facing feature description.
+- `docs/features/0016-component-creation-and-balancing.md` — current tuning workflow for component curves and soft caps.
 - ADR 0002 — versioned save schema.
 - ADR 0004 — canonical save strings; this ADR refines its "bump ⇒ reject" rule to apply only to shape-breaking changes.

@@ -5,7 +5,7 @@
 
 ## Context
 
-The Laboratory tree is the third upgrade catalog plugging into the modifier pipeline (after `GlobalUpgradeCatalog` from ADR 0010 and `BondCatalog` from ADR 0016). It houses upgrades paid in Bond Points and unlocked post-prestige. See `docs/features/laboratory.md` for the player-facing description and full catalog.
+The Laboratory tree is the third upgrade catalog plugging into the modifier pipeline (after `GlobalUpgradeCatalog` from ADR 0010 and `BondCatalog` from ADR 0016). It houses upgrades paid in Bond Points and unlocked post-prestige. See `docs/features/0023-laboratory.md` for the player-facing description and full catalog.
 
 Three architectural questions:
 
@@ -213,7 +213,7 @@ No wrapper, no currency type, no abstraction. It's a counter. If a future presti
 - `internal/sim/state.go` — `LaboratoryUpgrades`, `BondPoints`, `ResetGenesis` extension.
 - `internal/sim/modifiers.go` — `rebuildModifiers` extended again.
 - `internal/ui/laboratory_tab.go` (new) — tab UI.
-- `docs/features/laboratory.md` — player-facing description.
+- `docs/features/0023-laboratory.md` — player-facing description.
 - ADR 0002 — additive save fields.
 - ADR 0010 — first catalog; modifier pipeline being extended.
 - ADR 0014 — `ResetGenesis` calls `LabApplyResetSeed` upgrades; `LaboratoryUpgrades` is preserved.

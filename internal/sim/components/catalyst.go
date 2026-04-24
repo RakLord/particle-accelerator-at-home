@@ -12,7 +12,7 @@ import (
 // threshold the multiplier is 1.0 (soft on-ramp, no cliff); past it the
 // multiplier grows as `1 + k · log10(research - threshold + 1)`. Higher tiers
 // steepen the curve via a larger k. Below the threshold the component is
-// inert. See docs/features/component-catalyst.md.
+// inert. See docs/features/0008-component-catalyst.md.
 type Catalyst struct{}
 
 // catalystResearchThreshold is the per-Element research level at which a

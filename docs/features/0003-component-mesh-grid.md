@@ -36,5 +36,5 @@ Mesh Grid is a **tool, not a trap**. The player should be able to hit thresholds
 ## Related
 
 - `internal/sim/components/mesh_grid.go`
-- `docs/features/component-tiers.md`
-- `docs/features/value-formula.md` — the Speed axis feeds into collected value.
+- `docs/features/0011-component-tiers.md`
+- `docs/features/0001-value-formula.md` — the Speed axis feeds into collected value.

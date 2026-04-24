@@ -47,7 +47,7 @@ Numbers are first-draft and may shift after playtesting. The catalog lives in `i
 ### Notes on individual upgrades
 
 **Covalent Memory** + **Stable Isotope** under the hard reset.
-The Genesis reset wipes both per-Element research *and* `UnlockedElements` (see `docs/features/prestige-genesis-ascension.md`). Both of these upgrades become much more impactful than a milder reset would imply. Their costs (1 BP, 2 BP) are deliberately low to make them attractive first purchases. Re-tune if playtesting shows them dominating the early Lab spend.
+The Genesis reset wipes both per-Element research *and* `UnlockedElements` (see `docs/features/0024-prestige-genesis-ascension.md`). Both of these upgrades become much more impactful than a milder reset would imply. Their costs (1 BP, 2 BP) are deliberately low to make them attractive first purchases. Re-tune if playtesting shows them dominating the early Lab spend.
 
 **Carbon Core.**
 Skips the entire Carbon unlock chain on every future Run — no Boron grind, no $100K wall. Combined with `Stable Isotope`'s 30% research carryover, a Run 5+ player effectively jumps straight to Carbon banking on each prestige.
@@ -56,7 +56,7 @@ Skips the entire Carbon unlock chain on every future Run — no Boron grind, no 
 Multiplicative ×2 per purchase, applied to *per-Binder* base capacity (not the per-Element total). At level 5: a Carbon Binder holds 100 × 32 = 3,200 Subjects. Each level's cost climbs to keep the late tiers as long-tail goals.
 
 **Auto-Inject Speed I-IV.**
-See `docs/features/auto-injection.md`. Only the highest purchased level applies (`max(LaboratoryUpgrades["auto_inject_speed"], ...)`). The four entries together cost 10 BP — a substantial chunk of the tree, balancing the strong idle-mode payoff.
+See `docs/features/0020-auto-injection.md`. Only the highest purchased level applies (`max(LaboratoryUpgrades["auto_inject_speed"], ...)`). The four entries together cost 10 BP — a substantial chunk of the tree, balancing the strong idle-mode payoff.
 
 ## Effect integration
 
@@ -97,6 +97,6 @@ Hovering shows extended description and the cumulative effect (e.g. for Dense Pa
 - `internal/ui/laboratory_tab.go` — tab UI.
 - `docs/adr/0018-laboratory-upgrade-tree.md` — currency, catalog shape, modifier integration.
 - `docs/adr/0010-global-modifier-pipeline.md` — pipeline that Laboratory upgrades extend.
-- `docs/features/bonds-and-tokens.md` — where BP is earned.
-- `docs/features/auto-injection.md` — what the cadence upgrades drive.
-- `docs/features/prestige-genesis-ascension.md` — what the tree softens.
+- `docs/features/0021-bonds-and-tokens.md` — where BP is earned.
+- `docs/features/0020-auto-injection.md` — what the cadence upgrades drive.
+- `docs/features/0024-prestige-genesis-ascension.md` — what the tree softens.

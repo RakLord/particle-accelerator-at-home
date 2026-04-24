@@ -11,7 +11,7 @@ import (
 
 // The right-side panel is a compact "currently selected" indicator plus
 // an Open Inventory button. The full picker lives in the inventory modal
-// (drawInventory). See docs/features/inventory.md.
+// (drawInventory). See docs/features/0014-inventory.md.
 
 const (
 	selectedCardX = paletteX + 24

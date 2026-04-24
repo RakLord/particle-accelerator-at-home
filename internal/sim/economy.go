@@ -331,7 +331,7 @@ var CatalogOrder = []Element{
 	ElementCalcium,
 }
 
-// Value formula constants. See docs/features/value-formula.md.
+// Value formula constants. See docs/features/0001-value-formula.md.
 var (
 	speedValueK = bignum.MustParse("1")
 	magValueK   = bignum.MustParse("0.5")
@@ -339,7 +339,7 @@ var (
 
 // collectValue is the $USD awarded when a Subject is collected. mods must be
 // Normalized so Decimal fields multiply safely.
-// See docs/features/value-formula.md and docs/adr/0010-global-modifier-pipeline.md.
+// See docs/features/0001-value-formula.md and docs/adr/0010-global-modifier-pipeline.md.
 func collectValue(s Subject, mods GlobalModifiers) bignum.Decimal {
 	info := ElementCatalog[s.Element]
 	base := s.Mass.Mul(s.Speed.Decimal()).Mul(speedValueK).Add(s.Magnetism.Mul(magValueK))

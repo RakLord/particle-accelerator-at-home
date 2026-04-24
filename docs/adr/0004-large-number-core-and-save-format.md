@@ -71,5 +71,5 @@ Structural fields remain integer-backed: `Speed` is fixed-point hundredths, whil
 - `internal/bignum/` — large-number representation, arithmetic, comparison, formatting, JSON encoding.
 - `internal/sim/economy.go` — value formula and costs now operate on bignums.
 - `internal/sim/save.go` — save envelope bumped to v2.
-- `docs/features/large-numbers.md` — gameplay-facing behavior and UI format rules.
+- `docs/features/0006-large-numbers.md` — gameplay-facing behavior and UI format rules.
 - ADR-0002 — versioned save schema; this change is a breaking save-shape update.

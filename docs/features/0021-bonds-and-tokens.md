@@ -53,7 +53,7 @@ On a first Carbon run the player should realistically afford 1-2 Tokens *per Ele
 A Bond is a compound the player has synthesised. Synthesis spends Tokens and is permanent — once owned, a Bond never leaves `BondsState`. Each Bond:
 
 - Applies a permanent modifier to `GameState.Modifiers` via the same closure-based pipeline as global upgrades (ADR 0010).
-- Awards a one-time amount of Bond Points (see `docs/features/laboratory.md`).
+- Awards a one-time amount of Bond Points (see `docs/features/0023-laboratory.md`).
 - Marks its row in the Bonds tab as owned.
 
 ### MVP catalog (Carbon + Hydrogen only)
@@ -63,10 +63,10 @@ A Bond is a compound the player has synthesised. Synthesis spends Tokens and is 
 | Methane | CH₄ | 1C + 4H | `CollectorValueMul ×1.15` | 1 |
 | Acetylene | C₂H₂ | 2C + 2H | `InjectorRateMul ×0.75` (cooldown 25% faster) | 1 |
 | Ethylene | C₂H₄ | 2C + 4H | `AcceleratorSpeedBonus +1` | 2 |
-| Benzene | C₆H₆ | 6C + 6H | Unlocks **Auto-Inject** (see `docs/features/auto-injection.md`) | 3 |
+| Benzene | C₆H₆ | 6C + 6H | Unlocks **Auto-Inject** (see `docs/features/0020-auto-injection.md`) | 3 |
 | Diamond | C₁₂ | 12C | `MaxLoadBonus +15` | 3 |
 
-**MVP total Bond Points available: 10.** The Laboratory tree (see `docs/features/laboratory.md`) costs ~31 BP — players can afford ~⅓ of it during the MVP window. Heavier-Element Bonds will fund the remainder.
+**MVP total Bond Points available: 10.** The Laboratory tree (see `docs/features/0023-laboratory.md`) costs ~31 BP — players can afford ~⅓ of it during the MVP window. Heavier-Element Bonds will fund the remainder.
 
 Numbers are first-draft and may shift after playtesting. The catalog lives in `internal/sim/bonds.go`.
 
@@ -115,6 +115,6 @@ Each Bond entry carries an `Apply(*GlobalModifiers)` closure, identical to a `Gl
 - `internal/ui/bonds_tab.go` — list-view UI.
 - `docs/adr/0016-token-and-bond-economy.md` — storage shapes, cost function, modifier integration.
 - `docs/adr/0010-global-modifier-pipeline.md` — modifier pipeline that Bonds plug into.
-- `docs/features/component-binder.md` — what feeds the reserves.
-- `docs/features/laboratory.md` — what Bond Points are spent on.
-- `docs/features/auto-injection.md` — what the Benzene Bond unlocks.
+- `docs/features/0022-component-binder.md` — what feeds the reserves.
+- `docs/features/0023-laboratory.md` — what Bond Points are spent on.
+- `docs/features/0020-auto-injection.md` — what the Benzene Bond unlocks.

@@ -5,9 +5,9 @@
 
 ## Context
 
-Auto-injection is the prestige layer's idle-mode injection mechanism (see `docs/features/auto-injection.md`). It is unlocked by the Benzene Bond and tunable through the Laboratory's Auto-Inject Speed I-IV upgrades.
+Auto-injection is the prestige layer's idle-mode injection mechanism (see `docs/features/0020-auto-injection.md`). It is unlocked by the Benzene Bond and tunable through the Laboratory's Auto-Inject Speed I-IV upgrades.
 
-`docs/features/manual-injection.md` already mentions this in passing: "Auto-injection is intentionally not enabled yet, but can later call the same `GameState.Inject` path." That's the foundation. The remaining decisions:
+`docs/features/0015-manual-injection.md` already mentions this in passing: "Auto-injection is intentionally not enabled yet, but can later call the same `GameState.Inject` path." That's the foundation. The remaining decisions:
 
 1. **Where does the auto-fire timer live?** On `GameState`? On `GlobalModifiers`? Elsewhere?
 2. **How do auto-cadence upgrades and `InjectorRateMul` (manual cooldown speed) compose?** Stack? Or are they independent?
@@ -145,8 +145,8 @@ Players who want higher throughput buy `Chain Reaction` (Lab) or stack more Inje
 - `internal/sim/bonds.go` — Benzene's `Apply` sets `AutoInjectEnabled`.
 - `internal/sim/state.go` — `AutoInjectActive`, `AutoInjectTickCounter`.
 - `internal/ui/inject_panel.go` — toggle UI.
-- `docs/features/auto-injection.md` — player-facing description.
-- `docs/features/manual-injection.md` — referenced "auto-injection later" call-out.
+- `docs/features/0020-auto-injection.md` — player-facing description.
+- `docs/features/0015-manual-injection.md` — referenced "auto-injection later" call-out.
 - ADR 0010 — modifier pipeline extended with `AutoInjectEnabled` / `Cadence` fields.
 - ADR 0014 — `AutoInjectActive` persists, `AutoInjectTickCounter` resets.
 - ADR 0016 — Benzene Bond's `Apply` closure that flips `AutoInjectEnabled`.

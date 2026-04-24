@@ -91,7 +91,7 @@ This matches how a real T-junction behaves: both output pipes are different path
 
 **5. Duplicator is the first and only Splitter in this wave.**
 
-`internal/sim/components/duplicator.go` implements `Splitter`. Its `ApplySplit` consumes the incoming Subject (`lost=true`) and emits two extras — one going the Subject's incoming perpendicular `.Left()` direction, one going `.Right()`. Both carry the incoming Subject's `Element`, `Mass`, `Speed`, `Magnetism`, `Load`, halved and rounded per its tier stats (see ADR 0011). Gameplay detail lives in `docs/features/component-duplicator.md`.
+`internal/sim/components/duplicator.go` implements `Splitter`. Its `ApplySplit` consumes the incoming Subject (`lost=true`) and emits two extras — one going the Subject's incoming perpendicular `.Left()` direction, one going `.Right()`. Both carry the incoming Subject's `Element`, `Mass`, `Speed`, `Magnetism`, `Load`, halved and rounded per its tier stats (see ADR 0011). Gameplay detail lives in `docs/features/0009-component-duplicator.md`.
 
 **6. `Splitter` is not a sprite or UI concept.**
 
@@ -121,6 +121,6 @@ This matches how a real T-junction behaves: both output pipes are different path
 - `internal/sim/components.go` — `Splitter` interface.
 - `internal/sim/tick.go` — dispatch branch in `stepSubject`.
 - `internal/sim/components/duplicator.go` — first implementor.
-- `docs/features/component-duplicator.md` — gameplay description.
+- `docs/features/0009-component-duplicator.md` — gameplay description.
 - ADR 0006 — Apply return shape freeze (respected; Splitter is a sibling).
 - ADR 0008 — `ApplyContext` is the shared input.

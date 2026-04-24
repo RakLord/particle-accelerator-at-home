@@ -36,7 +36,7 @@ At exactly `research = 25`, `log10(1) = 0` so `mul = 1.0` — the component acti
 
 ## Tiers
 
-Tierable. See `docs/features/component-tiers.md`. Higher tiers steepen the curve via a larger `k`; the research activation threshold (`25`) is fixed across tiers — a tier up makes the effect stronger, not easier to activate.
+Tierable. See `docs/features/0011-component-tiers.md`. Higher tiers steepen the curve via a larger `k`; the research activation threshold (`25`) is fixed across tiers — a tier up makes the effect stronger, not easier to activate.
 
 | Tier | `k`  | Sample multiplier at R = 30 / 50 / 100 / 500 |
 |------|-----:|---|
@@ -50,6 +50,6 @@ Tier coefficients (`catalystKByTier`) and the threshold (`catalystResearchThresh
 
 - `internal/sim/components/catalyst.go`
 - `docs/adr/0008-apply-context-and-grid-view.md` — research read is what makes this component possible.
-- `docs/features/component-tiers.md`
-- `docs/features/periodic-table.md` — research progression across Elements.
-- `docs/features/value-formula.md` — Mass feeds collected value.
+- `docs/features/0011-component-tiers.md`
+- `docs/features/0004-periodic-table.md` — research progression across Elements.
+- `docs/features/0001-value-formula.md` — Mass feeds collected value.

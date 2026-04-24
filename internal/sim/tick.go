@@ -6,7 +6,7 @@ import "particleaccelerator/internal/bignum"
 // cell. Fixed-point StepProgress crosses a cell at StepProgressPerCell.
 // With the default SpeedDivisor=10, a Subject with Speed=1 moves one cell
 // every 10 ticks; Speed=2 moves one cell every 5 ticks.
-// See docs/features/smooth-motion.md.
+// See docs/features/0005-smooth-motion.md.
 const SpeedDivisor = 10
 
 // Tick advances the simulation by one logical step.

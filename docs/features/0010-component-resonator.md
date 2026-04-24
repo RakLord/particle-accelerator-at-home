@@ -22,7 +22,7 @@ The gameplay pairs naturally with Mesh Grid in the same build: throttle a fast S
 
 ## Tiers
 
-Tierable. See `docs/features/component-tiers.md`. Higher tiers increase the per-neighbour Speed contribution.
+Tierable. See `docs/features/0011-component-tiers.md`. Higher tiers increase the per-neighbour Speed contribution.
 
 | Tier | Speed bonus per neighbour |
 |---|---|
@@ -36,5 +36,5 @@ Tier tables live in `internal/sim/components/resonator.go`.
 
 - `internal/sim/components/resonator.go`
 - `docs/adr/0008-apply-context-and-grid-view.md` — grid read is what makes this component possible.
-- `docs/features/component-tiers.md`
-- `docs/features/value-formula.md` — Speed feeds collected value.
+- `docs/features/0011-component-tiers.md`
+- `docs/features/0001-value-formula.md` — Speed feeds collected value.

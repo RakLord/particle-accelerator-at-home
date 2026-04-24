@@ -9,7 +9,7 @@ import (
 // MeshGrid divides fixed-point Speed by a tier-driven divisor. Fractional
 // speeds are allowed; only true-zero outputs are clamped to the smallest
 // positive Speed so a Subject cannot be trapped forever.
-// See docs/features/component-mesh-grid.md and docs/features/component-tiers.md.
+// See docs/features/0003-component-mesh-grid.md and docs/features/0011-component-tiers.md.
 type MeshGrid struct {
 	Orientation sim.Direction
 }

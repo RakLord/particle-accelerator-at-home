@@ -20,7 +20,7 @@ Tier 1 is the baseline. Higher tiers produce stronger effects (more Speed, more 
 | Duplicator | yes | Mass `×0.5` per output | `×0.6` | `×0.75` |
 | Injector | no | Per-instance config (direction, interval); Element is selected globally in the Codex |
 | Rotator / Elbow | no | Per-instance orientation |
-| Collector | no | Governed by `docs/features/global-upgrades.md` |
+| Collector | no | Governed by `docs/features/0012-global-upgrades.md` |
 
 ## How tiers are purchased
 
@@ -47,15 +47,15 @@ Values subject to playtest.
 
 ## Starter state
 
-A fresh game starts every kind at Tier 1. Starter inventory amounts (see `docs/features/component-cost.md`) are unchanged by tiering — the player always receives Tier 1 items at game start, regardless of how many tier upgrades they later purchase.
+A fresh game starts every kind at Tier 1. Starter inventory amounts (see `docs/features/0007-component-cost.md`) are unchanged by tiering — the player always receives Tier 1 items at game start, regardless of how many tier upgrades they later purchase.
 
 ## Interaction with buying more components
 
-Purchase cost (catalog exponential curve plus optional soft-cap shaping — see `docs/features/component-cost.md`) does **not** change with tier. Buying your 20th Accelerator costs the same whether the Accelerator tier is T1 or T3. Tier upgrades and bulk-purchase costs are independent axes.
+Purchase cost (catalog exponential curve plus optional soft-cap shaping — see `docs/features/0007-component-cost.md`) does **not** change with tier. Buying your 20th Accelerator costs the same whether the Accelerator tier is T1 or T3. Tier upgrades and bulk-purchase costs are independent axes.
 
 ## Interaction with global upgrades
 
-Global upgrades (`docs/features/global-upgrades.md`) layer on top of tier bonuses. A Tier-2 Accelerator with a "+1 Speed" global upgrade gives `+3` Speed (tier 2 gives `+2`, global adds `+1`). Global upgrades are additive flat bonuses; tiers set the baseline.
+Global upgrades (`docs/features/0012-global-upgrades.md`) layer on top of tier bonuses. A Tier-2 Accelerator with a "+1 Speed" global upgrade gives `+3` Speed (tier 2 gives `+2`, global adds `+1`). Global upgrades are additive flat bonuses; tiers set the baseline.
 
 ## UI
 
@@ -74,6 +74,6 @@ Saves from before tiers exist load as Tier 1 for every kind. No migration. See `
 
 - `internal/sim/tier.go` — tier model and purchase flow.
 - `docs/adr/0011-component-tier-primitive.md` — data model and save-compat decisions.
-- `docs/features/component-cost.md` — orthogonal bulk-purchase cost axis.
-- `docs/features/component-creation-and-balancing.md` — practical guide for tuning purchase curves versus tier costs.
-- `docs/features/global-upgrades.md` — orthogonal flat-bonus axis.
+- `docs/features/0007-component-cost.md` — orthogonal bulk-purchase cost axis.
+- `docs/features/0016-component-creation-and-balancing.md` — practical guide for tuning purchase curves versus tier costs.
+- `docs/features/0012-global-upgrades.md` — orthogonal flat-bonus axis.

@@ -9,7 +9,7 @@ import (
 // when Speed is below 1.00. A Subject at Speed 0.10 collects at a 10× Mass
 // multiplier (T1); at Speed 1.00 or above the component is a no-op. Tier
 // scales the coefficient so higher tiers amplify the same slowdown further.
-// See docs/features/component-compressor.md.
+// See docs/features/0019-component-compressor.md.
 type Compressor struct{}
 
 // compressorCoefByTier is the coefficient applied to the 1/Speed ratio. Index

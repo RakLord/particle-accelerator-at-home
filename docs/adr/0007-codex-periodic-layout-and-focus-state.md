@@ -61,7 +61,7 @@ The redesign also adds per-Element best stats. Those are game progress and shoul
 
 ## Related
 
-- `docs/features/periodic-table.md` — gameplay-facing Codex behavior and stat semantics.
+- `docs/features/0004-periodic-table.md` — gameplay-facing Codex behavior and stat semantics.
 - `internal/sim/economy.go` — element catalog metadata.
 - `internal/render/periodic_table.go` — layout, hit-testing, and stat-card rendering.
 - `internal/render/game.go` — Codex input flow and transient focus state.

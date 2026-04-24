@@ -16,7 +16,7 @@ The prestige layer needs:
 3. A persistence model — which fields survive, how do they flow into the new run?
 4. An integration with the modifier pipeline so persistent bonuses are immediately active post-reset.
 
-The trigger gate is settled by gameplay design (see `docs/features/prestige-genesis-ascension.md`): synthesise one Bond, gate opens. The reset scope is settled by gameplay design too (the **hardest** scope: research and unlocks both wiped). The remaining decisions are how to express that in code without breaking save-compat or doubling the reset surface.
+The trigger gate is settled by gameplay design (see `docs/features/0024-prestige-genesis-ascension.md`): synthesise one Bond, gate opens. The reset scope is settled by gameplay design too (the **hardest** scope: research and unlocks both wiped). The remaining decisions are how to express that in code without breaking save-compat or doubling the reset surface.
 
 ## Decision
 
@@ -151,7 +151,7 @@ func (s *GameState) HardReset() {
 - `internal/sim/state.go` — `ResetGenesis`, new fields, `RunCount`.
 - `internal/sim/layer.go` — existing scaffold; not changed by this ADR.
 - `internal/sim/save.go` — `rebuildModifiers(s)` already runs post-load, no change.
-- `docs/features/prestige-genesis-ascension.md` — player-facing description.
+- `docs/features/0024-prestige-genesis-ascension.md` — player-facing description.
 - ADR 0002 — additive save fields, no version bump.
 - ADR 0010 — modifier pipeline that Bonds and Laboratory upgrades extend.
 - ADR 0015 — Binder component (sim-side reserves source).

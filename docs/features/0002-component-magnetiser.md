@@ -18,9 +18,9 @@ Magnetiser triggers when `Speed >= 1`. This is effectively always-on for moving 
 
 ## Stacking
 
-Magnetism stacks additively across multiple Magnetisers on a path. Collection bakes Magnetism into the value formula with coefficient `magK = 0.5` (see `docs/features/value-formula.md`).
+Magnetism stacks additively across multiple Magnetisers on a path. Collection bakes Magnetism into the value formula with coefficient `magK = 0.5` (see `docs/features/0001-value-formula.md`).
 
-The `GlobalModifiers.MagnetiserBonusMul` multiplier (set by global upgrades — see `docs/features/global-upgrades.md`) multiplies the per-pass bonus before it's added to the Subject.
+The `GlobalModifiers.MagnetiserBonusMul` multiplier (set by global upgrades — see `docs/features/0012-global-upgrades.md`) multiplies the per-pass bonus before it's added to the Subject.
 
 ## Design intent
 
@@ -29,6 +29,6 @@ Magnetism is the second independent axis introduced in Phase 2. Pairing a Magnet
 ## Related
 
 - `internal/sim/components/magnetiser.go`
-- `docs/features/component-tiers.md`
-- `docs/features/global-upgrades.md`
-- `docs/features/value-formula.md`
+- `docs/features/0011-component-tiers.md`
+- `docs/features/0012-global-upgrades.md`
+- `docs/features/0001-value-formula.md`

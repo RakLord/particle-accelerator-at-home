@@ -63,6 +63,6 @@ Tuning lives in `ComponentCatalog[KindCompressor]` in `internal/sim/component_co
 ## Related
 
 - `docs/overview.md` — canonical game model.
-- `docs/features/component-mesh-grid.md` — primary synergy partner.
-- `docs/features/component-catalyst.md` — the other Mass multiplier.
-- `docs/features/component-tiers.md` — tier model and purchase flow.
+- `docs/features/0003-component-mesh-grid.md` — primary synergy partner.
+- `docs/features/0008-component-catalyst.md` — the other Mass multiplier.
+- `docs/features/0011-component-tiers.md` — tier model and purchase flow.

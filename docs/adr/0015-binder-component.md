@@ -5,7 +5,7 @@
 
 ## Context
 
-The Binder is the new prestige-feeder Component (see `docs/features/component-binder.md`). It is a typed endpoint that accepts Subjects of a specific Element and stores them in a reserve, sacrificing all $USD and research that Subject would have generated.
+The Binder is the new prestige-feeder Component (see `docs/features/0022-component-binder.md`). It is a typed endpoint that accepts Subjects of a specific Element and stores them in a reserve, sacrificing all $USD and research that Subject would have generated.
 
 Three architectural questions need answering:
 
@@ -126,7 +126,7 @@ if banked && state.BinderReserves[e] >= state.EffectiveBinderCapacity(e) {
 }
 ```
 
-`notifyBinderFullOnce` uses a transient session-only set on `GameState` (not saved) to ensure one notification per Element per session. See `docs/features/helper-notifications.md`.
+`notifyBinderFullOnce` uses a transient session-only set on `GameState` (not saved) to ensure one notification per Element per session. See `docs/features/0017-helper-notifications.md`.
 
 **5. Wrong-Element entry is destroyed silently.**
 
@@ -181,7 +181,7 @@ The Binder Component's `Element` field is part of its serialized Component data 
 - Tick loop now has a third dispatch branch (Banker, Splitter, plain). Three branches is still tractable; if a fourth lands, refactor into a registry.
 - `Grid.CountComponents` is a linear scan called inside `EffectiveBinderCapacity`. At MVP grid size (5×5 → ~100 cells worst case incl. growth) this is cheap, but if `EffectiveBinderCapacity` is called per-tick from inside a hot path, cache the result. Capacity changes only on placement/removal/Lab upgrade — not per tick — so caching is straightforward when needed.
 - The Element picker UX is new surface — placement flow gets a per-Component config step for Binder. Mitigated by reusing the Codex Element selector pattern.
-- Wrong-Element silent destruction can confuse a new player who misroutes. The collection log (see `docs/features/collection-log.md`) shows the loss as a normal lost-Subject event, which is a soft cue. Stronger feedback (e.g. a one-time tutorial notification) is out of scope for MVP.
+- Wrong-Element silent destruction can confuse a new player who misroutes. The collection log (see `docs/features/0013-collection-log.md`) shows the loss as a normal lost-Subject event, which is a soft cue. Stronger feedback (e.g. a one-time tutorial notification) is out of scope for MVP.
 
 ## Alternatives considered
 
@@ -199,7 +199,7 @@ The Binder Component's `Element` field is part of its serialized Component data 
 - `internal/sim/tick.go` — Banker dispatch, capacity check, notification trigger.
 - `internal/sim/state.go` — `BinderReserves`, `EffectiveBinderCapacity`.
 - `internal/sim/grid.go` — `CountComponents` helper.
-- `docs/features/component-binder.md` — player-facing description.
+- `docs/features/0022-component-binder.md` — player-facing description.
 - ADR 0006 — orientation/per-Component config precedent.
 - ADR 0008 — `ApplyContext` read-only contract (preserved).
 - ADR 0009 — `Splitter` capability precedent.

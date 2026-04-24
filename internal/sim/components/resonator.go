@@ -4,7 +4,7 @@ import "particleaccelerator/internal/sim"
 
 // Resonator adds a tier-driven Speed bonus per orthogonally-adjacent Resonator
 // on the grid. Isolated Resonators are inert; clusters compound. See
-// docs/features/component-resonator.md.
+// docs/features/0010-component-resonator.md.
 type Resonator struct{}
 
 // resonatorBonusPerNeighbourByTier is the per-neighbour Speed bonus at each
