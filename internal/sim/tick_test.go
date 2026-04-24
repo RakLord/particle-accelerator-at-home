@@ -225,7 +225,7 @@ func TestTickPathRecordsAcrossRotator(t *testing.T) {
 type testRightTurn struct{}
 
 func (*testRightTurn) Kind() ComponentKind { return ComponentKind("test_right_turn") }
-func (*testRightTurn) Apply(s Subject) (Subject, bool) {
+func (*testRightTurn) Apply(_ ApplyContext, s Subject) (Subject, bool) {
 	s.Direction = DirNorth
 	return s, false
 }

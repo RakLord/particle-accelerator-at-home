@@ -158,6 +158,27 @@ func TestReconfigureIsFree(t *testing.T) {
 	}
 }
 
+func TestMeshGridPlacementAndReconfigureOrientation(t *testing.T) {
+	s, u := newTestState()
+	s.USD = bignum.FromInt(1000)
+	u.Selected = ui.ToolMeshGrid
+	pos := sim.Position{X: 1, Y: 1}
+
+	input.PlaceFromTool(s, u, pos)
+	mesh, ok := s.Grid.Cells[pos.Y][pos.X].Component.(*components.MeshGrid)
+	if !ok {
+		t.Fatalf("expected MeshGrid at placed cell")
+	}
+	if mesh.Orientation != sim.DirEast {
+		t.Fatalf("new mesh orientation = %v, want DirEast", mesh.Orientation)
+	}
+
+	input.Reconfigure(s, pos)
+	if mesh.Orientation != sim.DirSouth {
+		t.Fatalf("reconfigured mesh orientation = %v, want DirSouth", mesh.Orientation)
+	}
+}
+
 func TestPlaceHeliumInjectorLockedIsNoOp(t *testing.T) {
 	s, u := newTestState()
 	s.USD = bignum.FromInt(1000)

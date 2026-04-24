@@ -82,7 +82,7 @@ func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 		cell.Component = &components.SimpleAccelerator{SpeedBonus: 1, Orientation: sim.DirNorth}
 		cell.IsCollector = false
 	case ui.ToolMeshGrid:
-		cell.Component = &components.MeshGrid{}
+		cell.Component = &components.MeshGrid{Orientation: sim.DirEast}
 		cell.IsCollector = false
 	case ui.ToolMagnetiser:
 		cell.Component = &components.Magnetiser{Bonus: bignum.One()}
@@ -117,6 +117,8 @@ func Reconfigure(s *sim.GameState, pos sim.Position) {
 	case *components.Injector:
 		c.Direction = (c.Direction + 1) % 4
 	case *components.SimpleAccelerator:
+		c.Orientation = (c.Orientation + 1) % 4
+	case *components.MeshGrid:
 		c.Orientation = (c.Orientation + 1) % 4
 	case *components.Rotator:
 		c.Orientation = (c.Orientation + 1) % 4

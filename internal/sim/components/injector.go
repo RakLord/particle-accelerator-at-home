@@ -16,11 +16,11 @@ type Injector struct {
 }
 
 func (*Injector) Kind() sim.ComponentKind { return sim.KindInjector }
-func (*Injector) Apply(s sim.Subject) (sim.Subject, bool) {
+func (*Injector) Apply(_ sim.ApplyContext, s sim.Subject) (sim.Subject, bool) {
 	return s, false
 }
 
-func (inj *Injector) MaybeSpawn(pos sim.Position) (sim.Subject, bool) {
+func (inj *Injector) MaybeSpawn(_ sim.ApplyContext, pos sim.Position) (sim.Subject, bool) {
 	inj.TickCounter++
 	if inj.TickCounter < inj.SpawnInterval {
 		return sim.Subject{}, false

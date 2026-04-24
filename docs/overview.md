@@ -30,7 +30,7 @@ Every Subject carries:
 - `Direction` — N/E/S/W
 - `Position` — grid cell
 
-Every Accelerator Component is conceptually a pure function `(Subject) → Subject`, optionally with a direction override. Adding a new Component means defining a new such function plus its sprite.
+Every Accelerator Component is conceptually a pure function `(Subject, context) → Subject`, optionally with a direction override. The context (grid read, per-Element research, tick, global modifiers, tier level) is covered by `docs/adr/0008-apply-context-and-grid-view.md`. Components that emit additional Subjects (e.g. Duplicator) implement a sibling capability interface — see `docs/adr/0009-subject-emitter-capability.md`. Adding a new Component means defining its function plus its sprite.
 
 ## Simulation model
 - **Fixed logical tick rate**, user-configurable. Logical state advances only on ticks. This keeps the simulation deterministic for saves and offline progress. The constant lives at `sim.DefaultTickRate`.
@@ -40,11 +40,16 @@ Every Accelerator Component is conceptually a pure function `(Subject) → Subje
 
 ## Accelerator Components (initial set)
 - **Injector** — spawns a Subject every N ticks in its configured Direction. Blocks spawn when Max Load is reached.
-- **Simple Accelerator** — `+1` Speed.
-- **Mesh Grid** — `×0.5` Speed (rounded).
-- **Magnetiser** — `+1` Magnetism.
+- **Simple Accelerator** — `+1` Speed at T1 (see `docs/features/component-tiers.md`).
+- **Mesh Grid** — `÷2` Speed at T1.
+- **Magnetiser** — `+1` Magnetism at T1.
 - **Rotator** — redirects the Subject (configurable angle; 90° MVP).
 - **Collector** — endpoint. Removes the Subject, awards $USD and Element research.
+
+### Phase-3 additions
+- **Resonator** — neighbour-aware Speed boost (`docs/features/component-resonator.md`).
+- **Catalyst** — research-gated Mass multiplier (`docs/features/component-catalyst.md`).
+- **Duplicator** — T-junction that emits two Subjects (`docs/features/component-duplicator.md`).
 
 ### Design principle — speed bands
 Some Components should only trigger (or change behaviour) within specific Speed ranges. This is what makes Mesh Grid a *tool* instead of a trap. Exact bands per Component live in the relevant feature doc.
@@ -95,10 +100,12 @@ MVP-first. Each phase ends with a playable build.
 - Per-Element research multiplier + Periodic Table (Codex) screen
 
 **Phase 3 — Polish**
-- Global upgrades
-- Offline progress
-- More Elements
-- Two-layer sprite rendering
+- Component tier primitive (`docs/features/component-tiers.md`).
+- Global upgrades (`docs/features/global-upgrades.md`).
+- New components: Resonator, Catalyst, Duplicator.
+- Offline progress.
+- More Elements.
+- ~~Two-layer sprite rendering~~ — live.
 - ~~Render-side tick interpolation~~ — live (`docs/features/smooth-motion.md`). Raising `DefaultTickRate` back to 60 is now a gameplay decision, not a rendering blocker.
 
 **Phase 4 — Prestige**

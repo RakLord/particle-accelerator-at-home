@@ -7,7 +7,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 
 	"particleaccelerator/internal/sim"
-	"particleaccelerator/internal/sim/components"
 )
 
 func drawGrid(dst *ebiten.Image, s *sim.GameState, alpha float64, trail []trailSample) {
@@ -21,20 +20,15 @@ func drawGrid(dst *ebiten.Image, s *sim.GameState, alpha float64, trail []trailS
 		}
 	}
 
-	// Component pass below live Subjects. Split sprites draw only their bottom
-	// half here; legacy one-piece sprites keep their previous ordering.
+	// Component base pass below live Subjects.
 	for cy := range sim.GridSize {
 		for cx := range sim.GridSize {
 			x, y, w, h := cellRect(cx, cy)
 			cell := s.Grid.Cells[cy][cx]
 			if cell.Component != nil {
-				if split := splitTileSpritesForComponent(cell.Component); split.bottom != nil {
-					drawSpriteCenteredRotated(dst, split.bottom, x, y, w, h, tileRotationForComponent(cell.Component))
-				} else if sprite := tileSpriteForComponent(cell.Component); sprite != nil {
-					drawSpriteCenteredRotated(dst, sprite, x, y, w, h, tileRotationForComponent(cell.Component))
-				} else {
-					fillRect(dst, x+18, y+18, w-36, h-36, componentColor(cell.Component))
-					drawComponentGlyph(dst, cell.Component, x, y, w, h)
+				layers := spriteLayersForComponent(cell.Component)
+				if len(layers.base) > 0 {
+					drawSpriteLayers(dst, layers.base, x, y, w, h)
 				}
 			}
 			if cell.IsCollector {
@@ -64,20 +58,26 @@ func drawGrid(dst *ebiten.Image, s *sim.GameState, alpha float64, trail []trailS
 		fillCircle(dst, cx, cy, 10, subjectColor(sub.Element))
 	}
 
-	// Top-half overlay for split component art so Subjects render inside the tube.
+	// Component top pass so Subjects render inside the tube where top art exists.
 	for cy := range sim.GridSize {
 		for cx := range sim.GridSize {
 			cell := s.Grid.Cells[cy][cx]
 			if cell.Component == nil {
 				continue
 			}
-			split := splitTileSpritesForComponent(cell.Component)
-			if split.top == nil {
+			layers := spriteLayersForComponent(cell.Component)
+			if len(layers.top) == 0 {
 				continue
 			}
 			x, y, w, h := cellRect(cx, cy)
-			drawSpriteCenteredRotated(dst, split.top, x, y, w, h, tileRotationForComponent(cell.Component))
+			drawSpriteLayers(dst, layers.top, x, y, w, h)
 		}
+	}
+}
+
+func drawSpriteLayers(dst *ebiten.Image, layers []spriteLayer, x, y, w, h int) {
+	for _, layer := range layers {
+		drawSpriteCenteredRotated(dst, layer.image, x, y, w, h, layer.rotation)
 	}
 }
 
@@ -87,60 +87,6 @@ func subjectColor(e sim.Element) color.Color {
 		return colorSubjectHelium
 	}
 	return colorSubject
-}
-
-func componentColor(c sim.Component) color.Color {
-	switch v := c.(type) {
-	case *components.Injector:
-		if v.Element == sim.ElementHelium {
-			return colorInjectorHelium
-		}
-		return colorInjector
-	case *components.SimpleAccelerator:
-		return colorAccelerator
-	case *components.MeshGrid:
-		return colorMeshGrid
-	case *components.Magnetiser:
-		return colorMagnetiser
-	case *components.Rotator:
-		return colorRotator
-	}
-	return colorButton
-}
-
-// drawComponentGlyph adds a direction arrow for Injector and a turn indicator
-// for Rotator. Accelerator gets a simple label.
-func drawComponentGlyph(dst *ebiten.Image, c sim.Component, x, y, w, h int) {
-	switch v := c.(type) {
-	case *components.Injector:
-		symbol := sim.ElementCatalog[v.Element].Symbol
-		if symbol == "" {
-			symbol = "?"
-		}
-		drawTextCentered(dst, symbol+" "+arrowFor(v.Direction), x, y, w, h, colorText)
-	case *components.SimpleAccelerator:
-		drawTextCentered(dst, "+"+itoa(v.SpeedBonus), x, y, w, h, colorText)
-	case *components.MeshGrid:
-		drawTextCentered(dst, "×½", x, y, w, h, colorText)
-	case *components.Magnetiser:
-		drawTextCentered(dst, "M", x, y, w, h, colorText)
-	case *components.Rotator:
-		drawTextCentered(dst, "L", x, y, w, h, colorText)
-	}
-}
-
-func arrowFor(d sim.Direction) string {
-	switch d {
-	case sim.DirNorth:
-		return "^"
-	case sim.DirEast:
-		return ">"
-	case sim.DirSouth:
-		return "v"
-	case sim.DirWest:
-		return "<"
-	}
-	return "?"
 }
 
 func itoa(n int) string {

@@ -9,7 +9,7 @@ type SimpleAccelerator struct {
 
 func (*SimpleAccelerator) Kind() sim.ComponentKind { return sim.KindAccelerator }
 
-func (a *SimpleAccelerator) Apply(s sim.Subject) (sim.Subject, bool) {
+func (a *SimpleAccelerator) Apply(_ sim.ApplyContext, s sim.Subject) (sim.Subject, bool) {
 	if isVertical(a.Orientation) != isVertical(s.InDirection) {
 		return s, true
 	}

@@ -46,7 +46,7 @@ func TestCellRoundTrip(t *testing.T) {
 		{Component: &components.Injector{Direction: sim.DirSouth, SpawnInterval: 20, Element: sim.ElementHydrogen, TickCounter: 5}},
 		{Component: &components.SimpleAccelerator{SpeedBonus: 3, Orientation: sim.DirWest}},
 		{Component: &components.Rotator{Orientation: sim.DirSouth}},
-		{Component: &components.MeshGrid{}},
+		{Component: &components.MeshGrid{Orientation: sim.DirWest}},
 		{Component: &components.Magnetiser{Bonus: bignum.MustParse("1.5")}},
 	}
 	for i, c := range cells {
@@ -78,6 +78,11 @@ func TestCellRoundTrip(t *testing.T) {
 			if !ok || gotElbow.Orientation != want.Orientation {
 				t.Fatalf("cell %d elbow mismatch: got %#v want %#v", i, got.Component, want)
 			}
+		case *components.MeshGrid:
+			gotMesh, ok := got.Component.(*components.MeshGrid)
+			if !ok || gotMesh.Orientation != want.Orientation {
+				t.Fatalf("cell %d mesh grid mismatch: got %#v want %#v", i, got.Component, want)
+			}
 		}
 	}
 }
@@ -90,6 +95,7 @@ func TestGameStateRoundTrip(t *testing.T) {
 		Direction: sim.DirEast, SpawnInterval: 30, Element: sim.ElementHydrogen, TickCounter: 12,
 	}
 	s.Grid.Cells[2][2].Component = &components.SimpleAccelerator{SpeedBonus: 1, Orientation: sim.DirNorth}
+	s.Grid.Cells[3][3].Component = &components.MeshGrid{Orientation: sim.DirSouth}
 	s.Grid.Cells[4][4].IsCollector = true
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element: sim.ElementHydrogen, Mass: bignum.One(), Speed: 2, Direction: sim.DirEast,
@@ -121,6 +127,9 @@ func TestGameStateRoundTrip(t *testing.T) {
 	}
 	if acc, ok := loaded.Grid.Cells[2][2].Component.(*components.SimpleAccelerator); !ok || acc.Orientation != sim.DirNorth {
 		t.Fatalf("accelerator orientation lost: %#v", loaded.Grid.Cells[2][2].Component)
+	}
+	if mesh, ok := loaded.Grid.Cells[3][3].Component.(*components.MeshGrid); !ok || mesh.Orientation != sim.DirSouth {
+		t.Fatalf("mesh orientation lost: %#v", loaded.Grid.Cells[3][3].Component)
 	}
 	if !loaded.Grid.Cells[4][4].IsCollector {
 		t.Fatalf("collector flag lost")

@@ -9,7 +9,7 @@ import (
 
 func TestMagnetiserAddsMagnetism(t *testing.T) {
 	m := &Magnetiser{Bonus: bignum.MustParse("1.5")}
-	out, lost := m.Apply(sim.Subject{Speed: 2, Magnetism: bignum.MustParse("0.5")})
+	out, lost := m.Apply(sim.ApplyContext{}, sim.Subject{Speed: 2, Magnetism: bignum.MustParse("0.5")})
 	if lost {
 		t.Fatal("magnetiser should never destroy subjects")
 	}
@@ -22,7 +22,7 @@ func TestMagnetiserAddsMagnetism(t *testing.T) {
 func TestMagnetiserBandGate(t *testing.T) {
 	m := &Magnetiser{Bonus: bignum.One()}
 	// Speed=0 is below the band — inert.
-	out, lost := m.Apply(sim.Subject{Speed: 0, Magnetism: bignum.Zero()})
+	out, lost := m.Apply(sim.ApplyContext{}, sim.Subject{Speed: 0, Magnetism: bignum.Zero()})
 	if lost {
 		t.Fatal("magnetiser should never destroy subjects")
 	}

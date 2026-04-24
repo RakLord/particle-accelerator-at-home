@@ -26,6 +26,12 @@ type GameState struct {
 	CurrentLoad int
 	TickRate    int
 	Ticks       uint64
+
+	// Modifiers aggregates active global upgrades. Derived from (future)
+	// PurchasedUpgrades via rebuildModifiers; zero value is identity. Phase 1
+	// carries the field through ApplyContext; Phase 2 (ADR 0010) fills the
+	// struct fields and wires derivation.
+	Modifiers GlobalModifiers `json:"modifiers,omitempty"`
 }
 
 type ElementBestStats struct {
@@ -64,4 +70,17 @@ func starterInventory() map[ComponentKind]int {
 // not restore the previous state.
 func (s *GameState) HardReset() {
 	*s = *NewGameState()
+}
+
+// researchView is the unexported read-only wrapper passed to components via
+// ApplyContext.Research. Absent entries return 0.
+type researchView struct{ m map[Element]int }
+
+func newResearchView(m map[Element]int) ResearchView { return researchView{m: m} }
+
+func (v researchView) Level(e Element) int {
+	if v.m == nil {
+		return 0
+	}
+	return v.m[e]
 }

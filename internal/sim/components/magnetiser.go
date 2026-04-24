@@ -15,7 +15,7 @@ const magnetiserMinSpeed = 1
 
 func (*Magnetiser) Kind() sim.ComponentKind { return sim.KindMagnetiser }
 
-func (m *Magnetiser) Apply(s sim.Subject) (sim.Subject, bool) {
+func (m *Magnetiser) Apply(_ sim.ApplyContext, s sim.Subject) (sim.Subject, bool) {
 	if s.Speed < magnetiserMinSpeed {
 		return s, false
 	}

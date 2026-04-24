@@ -11,7 +11,11 @@ type Component interface {
 	Kind() ComponentKind
 	// Apply transforms the Subject after it enters the cell. When lost is true,
 	// the Subject is destroyed by the Component and removed from the grid.
-	Apply(s Subject) (Subject, bool)
+	//
+	// ctx is a read-only view of world state. Implementations must not mutate
+	// any object reachable through ctx, nor retain references across ticks.
+	// See docs/adr/0008-apply-context-and-grid-view.md.
+	Apply(ctx ApplyContext, s Subject) (Subject, bool)
 }
 
 // Spawner is an optional capability Components can implement to emit new
@@ -21,8 +25,53 @@ type Component interface {
 type Spawner interface {
 	Component
 	// MaybeSpawn advances the Component's internal clock for one tick and
-	// returns (subject, true) when a spawn fires this tick.
-	MaybeSpawn(pos Position) (Subject, bool)
+	// returns (subject, true) when a spawn fires this tick. ctx is the same
+	// read-only view passed to Apply.
+	MaybeSpawn(ctx ApplyContext, pos Position) (Subject, bool)
+}
+
+// Splitter is an optional capability for components that, on Apply, may
+// produce extra Subjects in addition to transforming the incoming one.
+// Components that don't emit extras implement Component, not Splitter.
+//
+// See docs/adr/0009-subject-emitter-capability.md.
+type Splitter interface {
+	Component
+	// ApplySplit is the emitter-aware variant of Apply. The first return is
+	// the transformed incoming Subject (same shape as Apply). Extras are
+	// additional Subjects the component emits this cell visit; each is
+	// appended to the grid with its Load charged against MaxLoad individually.
+	// If the incoming Subject is lost, extras are still emitted — a Splitter
+	// can consume the input and emit replacements.
+	ApplySplit(ctx ApplyContext, s Subject) (self Subject, extras []Subject, lost bool)
+}
+
+// ApplyContext is the read-only view of world state handed to components
+// during a tick. All fields are safe to read; implementations must not
+// mutate any referenced object nor retain references across ticks.
+type ApplyContext struct {
+	Grid      GridView
+	Pos       Position
+	Tick      uint64
+	Research  ResearchView
+	Modifiers GlobalModifiers
+	Layer     Layer
+}
+
+// GridView is the read-only accessor for grid state, handed to components via
+// ApplyContext. Cells are returned by value; SubjectsAt returns a freshly
+// allocated slice so callers cannot mutate live grid data.
+type GridView interface {
+	CellAt(p Position) (Cell, bool)
+	SubjectsAt(p Position) []Subject
+	InBounds(p Position) bool
+	Size() int
+}
+
+// ResearchView is the read-only accessor for per-Element research level.
+// Absent entries return 0.
+type ResearchView interface {
+	Level(e Element) int
 }
 
 // ComponentFactory produces a zero-valued instance of a Component. The

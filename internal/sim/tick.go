@@ -20,15 +20,33 @@ func (s *GameState) Tick() {
 	s.Ticks++
 }
 
+// baseApplyContext builds the invariant portion of ApplyContext for this tick.
+// Callers fill in Pos per-visit. Grid and Research views wrap live state but
+// hand out copies/fresh slices so components cannot mutate through them.
+// See docs/adr/0008-apply-context-and-grid-view.md.
+func (s *GameState) baseApplyContext() ApplyContext {
+	return ApplyContext{
+		Grid:      newGridView(s.Grid),
+		Tick:      s.Ticks,
+		Research:  newResearchView(s.Research),
+		Modifiers: s.Modifiers.Normalized(),
+		Layer:     s.Layer,
+	}
+}
+
 func (s *GameState) injectorSpawns() {
 	g := s.Grid
+	base := s.baseApplyContext()
 	for y := range GridSize {
 		for x := range GridSize {
 			sp, ok := g.Cells[y][x].Component.(Spawner)
 			if !ok {
 				continue
 			}
-			sub, fired := sp.MaybeSpawn(Position{X: x, Y: y})
+			pos := Position{X: x, Y: y}
+			ctx := base
+			ctx.Pos = pos
+			sub, fired := sp.MaybeSpawn(ctx, pos)
 			if !fired {
 				continue
 			}
@@ -87,6 +105,7 @@ func (s *GameState) recordCollectionBestStats(sub Subject, value bignum.Decimal)
 // representing in-cell progress the renderer interpolates.
 func (s *GameState) stepSubject(sub *Subject) (collected, lost bool) {
 	g := s.Grid
+	base := s.baseApplyContext()
 
 	// Snapshot tick-start state for render-side interpolation. Path always
 	// includes at least the starting cell so the renderer has a stable anchor.
@@ -110,12 +129,29 @@ func (s *GameState) stepSubject(sub *Subject) (collected, lost bool) {
 		sub.InDirection = arrival
 		cell := g.Cells[ny][nx]
 		if cell.Component != nil {
-			// Apply takes Subject by value; the returned copy shares the Path slice
-			// header. No Apply impl may overwrite Path/motion-snapshot fields.
-			var destroyed bool
-			*sub, destroyed = cell.Component.Apply(*sub)
-			if destroyed {
-				return false, true
+			ctx := base
+			ctx.Pos = sub.Position
+			if sp, ok := cell.Component.(Splitter); ok {
+				self, extras, destroyed := sp.ApplySplit(ctx, *sub)
+				*sub = self
+				for _, e := range extras {
+					if s.CurrentLoad+e.Load > s.MaxLoad {
+						continue
+					}
+					g.Subjects = append(g.Subjects, e)
+					s.CurrentLoad += e.Load
+				}
+				if destroyed {
+					return false, true
+				}
+			} else {
+				// Apply takes Subject by value; the returned copy shares the Path slice
+				// header. No Apply impl may overwrite Path/motion-snapshot fields.
+				var destroyed bool
+				*sub, destroyed = cell.Component.Apply(ctx, *sub)
+				if destroyed {
+					return false, true
+				}
 			}
 		}
 		sub.Path = append(sub.Path, sub.Position)

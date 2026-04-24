@@ -8,7 +8,7 @@ type Rotator struct {
 
 func (*Rotator) Kind() sim.ComponentKind { return sim.KindRotator }
 
-func (r *Rotator) Apply(s sim.Subject) (sim.Subject, bool) {
+func (r *Rotator) Apply(_ sim.ApplyContext, s sim.Subject) (sim.Subject, bool) {
 	entrySide := opposite(s.InDirection)
 	a, b := r.openSides()
 	if entrySide != a && entrySide != b {
