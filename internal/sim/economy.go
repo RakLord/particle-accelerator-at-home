@@ -82,7 +82,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("1.8"),
 		UnlocksFrom:       ElementHelium,
 		ResearchThreshold: 12,
-		UnlockCost:        bignum.MustParse("2000"),
+		UnlockCost:        bignum.MustParse("7000"),
 	},
 	ElementBeryllium: {
 		AtomicNumber:      4,
@@ -95,7 +95,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("2.1"),
 		UnlocksFrom:       ElementLithium,
 		ResearchThreshold: 14,
-		UnlockCost:        bignum.MustParse("8000"),
+		UnlockCost:        bignum.MustParse("12000"),
 	},
 	ElementBoron: {
 		AtomicNumber:      5,
@@ -121,7 +121,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("2.8"),
 		UnlocksFrom:       ElementBoron,
 		ResearchThreshold: 18,
-		UnlockCost:        bignum.MustParse("100000"),
+		UnlockCost:        bignum.MustParse("250000"),
 	},
 	ElementNitrogen: {
 		AtomicNumber:      7,
@@ -134,7 +134,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("3.2"),
 		UnlocksFrom:       ElementCarbon,
 		ResearchThreshold: 20,
-		UnlockCost:        bignum.MustParse("300000"),
+		UnlockCost:        bignum.MustParse("1e8"),
 	},
 	ElementOxygen: {
 		AtomicNumber:      8,
@@ -147,7 +147,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("3.6"),
 		UnlocksFrom:       ElementNitrogen,
 		ResearchThreshold: 22,
-		UnlockCost:        bignum.MustParse("900000"),
+		UnlockCost:        bignum.MustParse("1e9"),
 	},
 	ElementFluorine: {
 		AtomicNumber:      9,
@@ -160,7 +160,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("3.8"),
 		UnlocksFrom:       ElementOxygen,
 		ResearchThreshold: 24,
-		UnlockCost:        bignum.MustParse("2500000"),
+		UnlockCost:        bignum.MustParse("1e10"),
 	},
 	ElementNeon: {
 		AtomicNumber:      10,
@@ -173,7 +173,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("4"),
 		UnlocksFrom:       ElementFluorine,
 		ResearchThreshold: 26,
-		UnlockCost:        bignum.MustParse("7500000"),
+		UnlockCost:        bignum.MustParse("1e11"),
 	},
 	ElementSodium: {
 		AtomicNumber:      11,
@@ -186,7 +186,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("4.5"),
 		UnlocksFrom:       ElementNeon,
 		ResearchThreshold: 28,
-		UnlockCost:        bignum.MustParse("20000000"),
+		UnlockCost:        bignum.MustParse("1e12"),
 	},
 	ElementMagnesium: {
 		AtomicNumber:      12,
@@ -199,7 +199,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("5"),
 		UnlocksFrom:       ElementSodium,
 		ResearchThreshold: 30,
-		UnlockCost:        bignum.MustParse("55000000"),
+		UnlockCost:        bignum.MustParse("1e13"),
 	},
 	ElementAluminium: {
 		AtomicNumber:      13,
@@ -212,7 +212,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("5.7"),
 		UnlocksFrom:       ElementMagnesium,
 		ResearchThreshold: 32,
-		UnlockCost:        bignum.MustParse("150000000"),
+		UnlockCost:        bignum.MustParse("1e14"),
 	},
 	ElementSilicon: {
 		AtomicNumber:      14,
@@ -225,7 +225,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("6.5"),
 		UnlocksFrom:       ElementAluminium,
 		ResearchThreshold: 34,
-		UnlockCost:        bignum.MustParse("400000000"),
+		UnlockCost:        bignum.MustParse("1e14"),
 	},
 	ElementPhosphorus: {
 		AtomicNumber:      15,
@@ -238,7 +238,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("7.2"),
 		UnlocksFrom:       ElementSilicon,
 		ResearchThreshold: 36,
-		UnlockCost:        bignum.MustParse("1000000000"),
+		UnlockCost:        bignum.MustParse("1e15"),
 	},
 	ElementSulfur: {
 		AtomicNumber:      16,
@@ -251,7 +251,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("8"),
 		UnlocksFrom:       ElementPhosphorus,
 		ResearchThreshold: 38,
-		UnlockCost:        bignum.MustParse("2500000000"),
+		UnlockCost:        bignum.MustParse("1e16"),
 	},
 	ElementChlorine: {
 		AtomicNumber:      17,
@@ -264,7 +264,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("8.6"),
 		UnlocksFrom:       ElementSulfur,
 		ResearchThreshold: 40,
-		UnlockCost:        bignum.MustParse("6000000000"),
+		UnlockCost:        bignum.MustParse("1e17"),
 	},
 	ElementArgon: {
 		AtomicNumber:      18,
@@ -277,7 +277,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("9"),
 		UnlocksFrom:       ElementChlorine,
 		ResearchThreshold: 42,
-		UnlockCost:        bignum.MustParse("15000000000"),
+		UnlockCost:        bignum.MustParse("1e18"),
 	},
 	ElementPotassium: {
 		AtomicNumber:      19,
@@ -290,7 +290,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("10"),
 		UnlocksFrom:       ElementArgon,
 		ResearchThreshold: 45,
-		UnlockCost:        bignum.MustParse("40000000000"),
+		UnlockCost:        bignum.MustParse("1e19"),
 	},
 	ElementCalcium: {
 		AtomicNumber:      20,
@@ -303,7 +303,7 @@ var ElementCatalog = map[Element]ElementInfo{
 		Multiplier:        bignum.MustParse("12"),
 		UnlocksFrom:       ElementPotassium,
 		ResearchThreshold: 50,
-		UnlockCost:        bignum.MustParse("100000000000"),
+		UnlockCost:        bignum.MustParse("1e20"),
 	},
 }
 
