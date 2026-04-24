@@ -49,13 +49,32 @@ type Splitter interface {
 // ApplyContext is the read-only view of world state handed to components
 // during a tick. All fields are safe to read; implementations must not
 // mutate any referenced object nor retain references across ticks.
+//
+// Modifiers is guaranteed to be Normalized when the tick loop constructs the
+// context — Decimal fields can be multiplied without zero-guards. Tests that
+// build ApplyContext by hand should pass Modifiers through Normalized() too,
+// or use NewTestApplyContext below.
 type ApplyContext struct {
 	Grid      GridView
 	Pos       Position
 	Tick      uint64
 	Research  ResearchView
+	Tiers     TierView
 	Modifiers GlobalModifiers
 	Layer     Layer
+}
+
+// NewTestApplyContext returns a zero-valued ApplyContext with Modifiers
+// normalized and a Tiers view that returns BaseTier for every kind, so
+// component tests don't have to remember the Normalized() precondition or
+// construct tier scaffolding by hand. Grid and Research views remain nil —
+// component tests that exercise grid/research reads must populate them
+// explicitly.
+func NewTestApplyContext() ApplyContext {
+	return ApplyContext{
+		Tiers:     newTierView(nil),
+		Modifiers: GlobalModifiers{}.Normalized(),
+	}
 }
 
 // GridView is the read-only accessor for grid state, handed to components via

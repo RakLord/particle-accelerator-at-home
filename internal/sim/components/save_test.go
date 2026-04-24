@@ -44,10 +44,10 @@ func TestCellRoundTrip(t *testing.T) {
 		{},
 		{IsCollector: true},
 		{Component: &components.Injector{Direction: sim.DirSouth, SpawnInterval: 20, Element: sim.ElementHydrogen, TickCounter: 5}},
-		{Component: &components.SimpleAccelerator{SpeedBonus: 3, Orientation: sim.DirWest}},
+		{Component: &components.SimpleAccelerator{Orientation: sim.DirWest}},
 		{Component: &components.Rotator{Orientation: sim.DirSouth}},
 		{Component: &components.MeshGrid{Orientation: sim.DirWest}},
-		{Component: &components.Magnetiser{Bonus: bignum.MustParse("1.5")}},
+		{Component: &components.Magnetiser{}},
 	}
 	for i, c := range cells {
 		blob, err := json.Marshal(c)
@@ -70,7 +70,7 @@ func TestCellRoundTrip(t *testing.T) {
 		switch want := c.Component.(type) {
 		case *components.SimpleAccelerator:
 			gotAcc, ok := got.Component.(*components.SimpleAccelerator)
-			if !ok || gotAcc.Orientation != want.Orientation || gotAcc.SpeedBonus != want.SpeedBonus {
+			if !ok || gotAcc.Orientation != want.Orientation {
 				t.Fatalf("cell %d accelerator mismatch: got %#v want %#v", i, got.Component, want)
 			}
 		case *components.Rotator:
@@ -94,7 +94,7 @@ func TestGameStateRoundTrip(t *testing.T) {
 	s.Grid.Cells[0][0].Component = &components.Injector{
 		Direction: sim.DirEast, SpawnInterval: 30, Element: sim.ElementHydrogen, TickCounter: 12,
 	}
-	s.Grid.Cells[2][2].Component = &components.SimpleAccelerator{SpeedBonus: 1, Orientation: sim.DirNorth}
+	s.Grid.Cells[2][2].Component = &components.SimpleAccelerator{Orientation: sim.DirNorth}
 	s.Grid.Cells[3][3].Component = &components.MeshGrid{Orientation: sim.DirSouth}
 	s.Grid.Cells[4][4].IsCollector = true
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
@@ -139,6 +139,35 @@ func TestGameStateRoundTrip(t *testing.T) {
 	}
 }
 
+func TestLegacySpeedBonusAndBonusFieldsIgnoredOnLoad(t *testing.T) {
+	// Saves from before Phase 3 carried per-instance SpeedBonus/Bonus fields on
+	// Accelerator/Magnetiser. Tier drives these now; the legacy fields must
+	// unmarshal harmlessly (Go's encoding/json drops unknown fields by default).
+	legacy := `{
+		"component": {"speed_bonus": 2, "orientation": 0},
+		"kind": "accelerator"
+	}`
+	var c sim.Cell
+	if err := json.Unmarshal([]byte(legacy), &c); err != nil {
+		t.Fatalf("unmarshal legacy accelerator: %v", err)
+	}
+	if _, ok := c.Component.(*components.SimpleAccelerator); !ok {
+		t.Fatalf("legacy accelerator not reconstructed: %#v", c.Component)
+	}
+
+	legacyMag := `{
+		"component": {"bonus": "1.5"},
+		"kind": "magnetiser"
+	}`
+	var m sim.Cell
+	if err := json.Unmarshal([]byte(legacyMag), &m); err != nil {
+		t.Fatalf("unmarshal legacy magnetiser: %v", err)
+	}
+	if _, ok := m.Component.(*components.Magnetiser); !ok {
+		t.Fatalf("legacy magnetiser not reconstructed: %#v", m.Component)
+	}
+}
+
 func TestLoadV2SeedsOwnedFromGridComponents(t *testing.T) {
 	// Migration path: a save that predates the Owned field must be
 	// grandfathered in by seeding Owned from the grid contents. This test
@@ -153,9 +182,9 @@ func TestLoadV2SeedsOwnedFromGridComponents(t *testing.T) {
 	s.Grid.Cells[0][0].Component = &components.Injector{
 		Direction: sim.DirEast, SpawnInterval: 30, Element: sim.ElementHydrogen,
 	}
-	s.Grid.Cells[1][0].Component = &components.SimpleAccelerator{SpeedBonus: 1, Orientation: sim.DirNorth}
-	s.Grid.Cells[2][0].Component = &components.SimpleAccelerator{SpeedBonus: 1, Orientation: sim.DirEast}
-	s.Grid.Cells[3][0].Component = &components.Magnetiser{Bonus: bignum.One()}
+	s.Grid.Cells[1][0].Component = &components.SimpleAccelerator{Orientation: sim.DirNorth}
+	s.Grid.Cells[2][0].Component = &components.SimpleAccelerator{Orientation: sim.DirEast}
+	s.Grid.Cells[3][0].Component = &components.Magnetiser{}
 	s.Grid.Cells[4][0].IsCollector = true
 
 	if err := s.Save(); err != nil {

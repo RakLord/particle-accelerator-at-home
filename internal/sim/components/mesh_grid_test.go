@@ -22,7 +22,7 @@ func TestMeshGridHalvesSpeed(t *testing.T) {
 	}
 	mg := &MeshGrid{Orientation: sim.DirEast}
 	for _, c := range cases {
-		out, lost := mg.Apply(sim.ApplyContext{}, sim.Subject{Speed: c.in, InDirection: sim.DirEast})
+		out, lost := mg.Apply(sim.NewTestApplyContext(), sim.Subject{Speed: c.in, InDirection: sim.DirEast})
 		if lost {
 			t.Fatal("mesh grid should never destroy subjects")
 		}
@@ -44,7 +44,7 @@ func TestMeshGridPreservesOtherFields(t *testing.T) {
 		InDirection: sim.DirEast,
 		Position:    sim.Position{X: 1, Y: 2},
 	}
-	out, lost := mg.Apply(sim.ApplyContext{}, in)
+	out, lost := mg.Apply(sim.NewTestApplyContext(), in)
 	if lost {
 		t.Fatal("mesh grid should never destroy subjects")
 	}
@@ -56,9 +56,36 @@ func TestMeshGridPreservesOtherFields(t *testing.T) {
 
 func TestMeshGridRejectsSideEntry(t *testing.T) {
 	mg := &MeshGrid{Orientation: sim.DirNorth}
-	_, lost := mg.Apply(sim.ApplyContext{}, sim.Subject{Speed: 4, InDirection: sim.DirEast})
+	_, lost := mg.Apply(sim.NewTestApplyContext(), sim.Subject{Speed: 4, InDirection: sim.DirEast})
 	if !lost {
 		t.Fatal("expected mesh grid to reject side entry")
+	}
+}
+
+func TestMeshGridTiersChangeDivisor(t *testing.T) {
+	cases := []struct {
+		tier    sim.Tier
+		inSpeed int
+		want    int
+	}{
+		{sim.BaseTier, 6, 3}, // T1 halves
+		{sim.Tier(2), 6, 2},  // T2 thirds
+		{sim.Tier(3), 8, 2},  // T3 quarters
+		// Below each tier's min-speed band, component is inert.
+		{sim.Tier(2), 2, 2}, // band is 3 at T2
+		{sim.Tier(3), 3, 3}, // band is 4 at T3
+	}
+	for _, c := range cases {
+		mg := &MeshGrid{Orientation: sim.DirEast}
+		ctx := sim.NewTestApplyContext()
+		ctx.Tiers = testTierView(map[sim.ComponentKind]sim.Tier{sim.KindMeshGrid: c.tier})
+		out, lost := mg.Apply(ctx, sim.Subject{Speed: c.inSpeed, InDirection: sim.DirEast})
+		if lost {
+			t.Fatal("mesh grid should never destroy subjects")
+		}
+		if out.Speed != c.want {
+			t.Fatalf("tier %d speed %d: got %d want %d", c.tier, c.inSpeed, out.Speed, c.want)
+		}
 	}
 }
 

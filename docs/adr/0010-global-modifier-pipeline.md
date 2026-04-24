@@ -1,6 +1,6 @@
 # ADR 0010 — Global modifier pipeline
 
-**Status:** proposed.
+**Status:** accepted (Phase 2 pipeline shipped; Phase 6 purchase flow pending).
 **Date:** 2026-04-24.
 
 ## Context

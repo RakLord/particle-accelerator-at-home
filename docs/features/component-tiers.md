@@ -10,16 +10,16 @@ Tier 1 is the baseline. Higher tiers produce stronger effects (more Speed, more 
 
 ## Which components tier
 
-| Kind | Tierable? | Stat progression |
-|---|---|---|
-| Simple Accelerator | yes | Speed bonus grows per tier |
-| Magnetiser | yes | Magnetism bonus grows per tier |
-| Mesh Grid | yes | Speed divisor grows per tier (tier 2 divides by 3, tier 3 by 4) |
-| Resonator | yes | Per-neighbour Speed contribution grows per tier |
-| Catalyst | yes | Mass multiplier grows per tier |
-| Duplicator | yes | Per-output Mass fraction grows per tier (T1 is mass-conservative; T2+ actively creates mass) |
-| Injector | no | Per-instance config (element, direction, interval) instead |
-| Rotator / Elbow | no | Per-instance orientation instead |
+| Kind | Tierable? | T1 | T2 | T3 |
+|---|---|---|---|---|
+| Simple Accelerator | yes | `+1` Speed | `+2` | `+3` |
+| Magnetiser | yes | `+1` Magnetism | `+2` | `+3` |
+| Mesh Grid | yes | `÷2` Speed (band ≥ 2) | `÷3` (band ≥ 3) | `÷4` (band ≥ 4) |
+| Resonator | yes (Phase 4) | — | — | — |
+| Catalyst | yes (Phase 4) | — | — | — |
+| Duplicator | yes (Phase 4) | Mass `×0.5` per output | `×0.6` | `×0.75` |
+| Injector | no | Per-instance config (element, direction, interval) |
+| Rotator / Elbow | no | Per-instance orientation |
 | Collector | no | Governed by `docs/features/global-upgrades.md` |
 
 ## How tiers are purchased
@@ -31,6 +31,16 @@ Each tierable kind has an ordered list of tier unlocks in the shop: T2, then T3,
 - The previous tier must already be unlocked. T3 cannot be bought before T2.
 
 A purchase advances the global tier by exactly one level for that kind. The advance is immediate and applies to every placed and inventoried instance on the next tick.
+
+Initial catalog (`internal/sim/tier.go`):
+
+| Kind | T2 cost / research | T3 cost / research |
+|---|---|---|
+| Simple Accelerator | $500 / Hydrogen ≥ 3 | $5 000 / Hydrogen ≥ 15 |
+| Magnetiser | $800 / Hydrogen ≥ 5 | $8 000 / Hydrogen ≥ 20 |
+| Mesh Grid | $400 / Hydrogen ≥ 4 | $4 000 / Hydrogen ≥ 18 |
+
+Values subject to playtest.
 
 ## Starter state
 

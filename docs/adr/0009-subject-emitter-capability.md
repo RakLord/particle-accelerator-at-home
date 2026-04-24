@@ -1,6 +1,6 @@
 # ADR 0009 — Subject-emitter capability
 
-**Status:** proposed.
+**Status:** accepted.
 **Date:** 2026-04-24.
 
 ## Context

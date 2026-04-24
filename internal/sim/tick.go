@@ -29,6 +29,7 @@ func (s *GameState) baseApplyContext() ApplyContext {
 		Grid:      newGridView(s.Grid),
 		Tick:      s.Ticks,
 		Research:  newResearchView(s.Research),
+		Tiers:     newTierView(s.ComponentTiers),
 		Modifiers: s.Modifiers.Normalized(),
 		Layer:     s.Layer,
 	}
@@ -37,6 +38,7 @@ func (s *GameState) baseApplyContext() ApplyContext {
 func (s *GameState) injectorSpawns() {
 	g := s.Grid
 	base := s.baseApplyContext()
+	cap := s.EffectiveMaxLoad()
 	for y := range GridSize {
 		for x := range GridSize {
 			sp, ok := g.Cells[y][x].Component.(Spawner)
@@ -50,7 +52,7 @@ func (s *GameState) injectorSpawns() {
 			if !fired {
 				continue
 			}
-			if s.CurrentLoad+sub.Load > s.MaxLoad {
+			if s.CurrentLoad+sub.Load > cap {
 				continue
 			}
 			g.Subjects = append(g.Subjects, sub)
@@ -61,6 +63,7 @@ func (s *GameState) injectorSpawns() {
 
 func (s *GameState) advanceSubjects() {
 	g := s.Grid
+	mods := s.Modifiers.Normalized()
 	alive := g.Subjects[:0]
 	for _, sub := range g.Subjects {
 		collected, lost := s.stepSubject(&sub)
@@ -69,10 +72,10 @@ func (s *GameState) advanceSubjects() {
 			continue
 		}
 		if collected {
-			value := collectValue(sub, s.Research[sub.Element])
+			value := collectValue(sub, s.Research[sub.Element], mods)
 			s.USD = s.USD.Add(value)
 			s.recordCollectionBestStats(sub, value)
-			s.Research[sub.Element]++
+			s.Research[sub.Element] += 1 + mods.ResearchPerCollectBonus
 			s.CurrentLoad -= sub.Load
 			continue
 		}
@@ -134,8 +137,9 @@ func (s *GameState) stepSubject(sub *Subject) (collected, lost bool) {
 			if sp, ok := cell.Component.(Splitter); ok {
 				self, extras, destroyed := sp.ApplySplit(ctx, *sub)
 				*sub = self
+				cap := s.EffectiveMaxLoad()
 				for _, e := range extras {
-					if s.CurrentLoad+e.Load > s.MaxLoad {
+					if s.CurrentLoad+e.Load > cap {
 						continue
 					}
 					g.Subjects = append(g.Subjects, e)

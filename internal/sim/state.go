@@ -32,6 +32,12 @@ type GameState struct {
 	// carries the field through ApplyContext; Phase 2 (ADR 0010) fills the
 	// struct fields and wires derivation.
 	Modifiers GlobalModifiers `json:"modifiers,omitempty"`
+
+	// ComponentTiers is the global tier level per component kind. Absent
+	// entries default to sim.BaseTier. Tier upgrades purchased via
+	// PurchaseTierUpgrade advance this map by one step.
+	// See docs/adr/0011-component-tier-primitive.md.
+	ComponentTiers map[ComponentKind]Tier `json:"component_tiers,omitempty"`
 }
 
 type ElementBestStats struct {
@@ -70,6 +76,14 @@ func starterInventory() map[ComponentKind]int {
 // not restore the previous state.
 func (s *GameState) HardReset() {
 	*s = *NewGameState()
+}
+
+// EffectiveMaxLoad returns the grid-load cap after applying global upgrades.
+// Base MaxLoad is the un-upgraded value; upgrade sources (globals, prestige,
+// events) contribute flat bonuses on top. All call sites that enforce the
+// cap should read this, not MaxLoad directly.
+func (s *GameState) EffectiveMaxLoad() int {
+	return s.MaxLoad + s.Modifiers.MaxLoadBonus
 }
 
 // researchView is the unexported read-only wrapper passed to components via

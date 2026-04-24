@@ -4,7 +4,13 @@
 
 ## Behaviour
 
-`(Subject) → Subject` — adds `Bonus` to the Subject's `Magnetism`. MVP default `Bonus = 1`.
+`(Subject) → Subject` — adds a tier-driven flat bonus to the Subject's `Magnetism`. The per-tier bonus lives in the `magnetiserBonusByTier` table in `internal/sim/components/magnetiser.go`.
+
+| Tier | Magnetism bonus |
+|---|---|
+| T1 | `+1` |
+| T2 | `+2` |
+| T3 | `+3` |
 
 ### Speed band
 
@@ -14,11 +20,15 @@ Magnetiser triggers when `Speed >= 1`. This is effectively always-on for moving 
 
 Magnetism stacks additively across multiple Magnetisers on a path. Collection bakes Magnetism into the value formula with coefficient `magK = 0.5` (see `docs/features/value-formula.md`).
 
+The `GlobalModifiers.MagnetiserBonusMul` multiplier (set by global upgrades — see `docs/features/global-upgrades.md`) multiplies the per-pass bonus before it's added to the Subject.
+
 ## Design intent
 
 Magnetism is the second independent axis introduced in Phase 2. Pairing a Magnetiser path with a long Simple Accelerator chain lets the player choose whether to optimise for the Speed axis (raw cells/tick) or the Magnetism axis (collected value multiplier). The coefficient is deliberately lower than the Speed axis gain so Magnetism alone can't outrun a Speed build.
 
 ## Related
 
-- `internal/sim/component_magnetiser.go`
+- `internal/sim/components/magnetiser.go`
+- `docs/features/component-tiers.md`
+- `docs/features/global-upgrades.md`
 - `docs/features/value-formula.md`
