@@ -34,6 +34,8 @@ type tileSprites struct {
 	magnetiserTop    *ebiten.Image
 	magnetiserBottom *ebiten.Image
 	collector        *ebiten.Image
+	compressorHori   *ebiten.Image
+	compressorVert   *ebiten.Image
 
 	accelLogo    *ebiten.Image
 	meshLogo     *ebiten.Image
@@ -66,6 +68,8 @@ func mustLoadTileSprites() tileSprites {
 		magnetiserTop:    mustLoadTileSprite("images/tiles/magnetiser_top.png"),
 		magnetiserBottom: mustLoadTileSprite("images/tiles/magnetiser_bottom.png"),
 		collector:        mustLoadTileSprite("images/tiles/collector.png"),
+		compressorHori:   mustLoadTileSprite("images/tiles/compressor_hori.png"),
+		compressorVert:   mustLoadTileSprite("images/tiles/compressor_vert.png"),
 
 		accelLogo:    mustLoadTileSprite("images/tiles/accelerator_logo.png"),
 		meshLogo:     mustLoadTileSprite("images/tiles/mesh_grid_logo.png"),
@@ -139,8 +143,7 @@ func spriteLayersForComponent(c sim.Component) componentSpriteLayers {
 			},
 		}
 	case *components.Compressor:
-		// Placeholder: a plain horizontal pipe until dedicated art lands.
-		return componentSpriteLayers{top: []spriteLayer{{image: sprites.pipeHori}}}
+		return componentSpriteLayers{top: []spriteLayer{{image: compressorSpriteForOrientation(v.Orientation)}}}
 	}
 	return componentSpriteLayers{}
 }
@@ -159,6 +162,13 @@ func pipeSpriteForOrientation(d sim.Direction) *ebiten.Image {
 		return sprites.pipeVert
 	}
 	return sprites.pipeHori
+}
+
+func compressorSpriteForOrientation(d sim.Direction) *ebiten.Image {
+	if d == sim.DirNorth || d == sim.DirSouth {
+		return sprites.compressorVert
+	}
+	return sprites.compressorHori
 }
 
 func meshGridSpriteForOrientation(d sim.Direction) *ebiten.Image {
@@ -273,7 +283,7 @@ func tileSpriteForTool(t ui.Tool) *ebiten.Image {
 	case ui.ToolDuplicator:
 		return sprites.turnNE
 	case ui.ToolCompressor:
-		return sprites.pipeHori
+		return sprites.compressorHori
 	}
 	return nil
 }

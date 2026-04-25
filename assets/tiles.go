@@ -26,4 +26,6 @@ import "embed"
 //go:embed images/tiles/pipe_logo.png
 //go:embed images/tiles/turn_logo.png
 //go:embed images/tiles/injector_logo.png
+//go:embed images/tiles/compressor_hori.png
+//go:embed images/tiles/compressor_vert.png
 var TileFS embed.FS

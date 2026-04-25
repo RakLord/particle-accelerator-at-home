@@ -70,7 +70,7 @@ func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 		cell.Component = &components.Duplicator{Orientation: sim.DirWest}
 		cell.IsCollector = false
 	case ui.ToolCompressor:
-		cell.Component = &components.Compressor{}
+		cell.Component = &components.Compressor{Orientation: sim.DirEast}
 		cell.IsCollector = false
 	}
 }
@@ -151,6 +151,8 @@ func ReconfigureBy(s *sim.GameState, pos sim.Position, steps int) {
 	case *components.Pipe:
 		c.Orientation = rotateDirection(c.Orientation, steps)
 	case *components.Duplicator:
+		c.Orientation = rotateDirection(c.Orientation, steps)
+	case *components.Compressor:
 		c.Orientation = rotateDirection(c.Orientation, steps)
 	}
 }
