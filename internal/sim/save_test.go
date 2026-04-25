@@ -181,6 +181,45 @@ func TestSaveLoadPreservesNotifications(t *testing.T) {
 	}
 }
 
+func TestSaveLoadPreservesPrestigeFieldsAndResetsTransientAutoCounter(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	t.Setenv("HOME", dir)
+
+	s := NewGameState()
+	s.BinderReserves[ElementCarbon] = 12
+	s.TokenInventory[ElementHydrogen] = 4
+	s.BondsState[BondMethane] = true
+	s.BondPoints = 3
+	s.LaboratoryUpgrades[LabDensePacking] = 1
+	s.AutoInjectActive = true
+	s.AutoInjectTickCounter = 9
+	s.RunCount = 2
+	if err := s.Save(); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	loaded, ok, err := Load()
+	if err != nil || !ok {
+		t.Fatalf("Load: ok=%v err=%v", ok, err)
+	}
+	if loaded.BinderReserves[ElementCarbon] != 12 || loaded.TokenInventory[ElementHydrogen] != 4 {
+		t.Fatalf("prestige run fields mismatch: reserves=%v tokens=%v", loaded.BinderReserves, loaded.TokenInventory)
+	}
+	if !loaded.BondsState[BondMethane] || loaded.BondPoints != 3 || loaded.RunCount != 2 || !loaded.AutoInjectActive {
+		t.Fatalf("durable prestige fields mismatch: bonds=%v BP=%d run=%d auto=%v", loaded.BondsState, loaded.BondPoints, loaded.RunCount, loaded.AutoInjectActive)
+	}
+	if loaded.AutoInjectTickCounter != 0 {
+		t.Fatalf("AutoInjectTickCounter should be transient, got %d", loaded.AutoInjectTickCounter)
+	}
+	if got := loaded.Modifiers.Normalized().CollectorValueMul; !got.Eq(bignum.MustParse("1.15")) {
+		t.Fatalf("modifiers not rebuilt from bonds: got %v want 1.15", got)
+	}
+	if got := loaded.Modifiers.Normalized().BinderStoreCapacityMul; !got.Eq(bignum.FromInt(2)) {
+		t.Fatalf("modifiers not rebuilt from lab: got %v want 2", got)
+	}
+}
+
 func TestLoadV2SaveSeedsOwnedCollectorsFromGrid(t *testing.T) {
 	// Craft a v2 save with two Collector cells and no `owned` field.
 	// Collectors don't go through componentRegistry (they're cell.IsCollector),

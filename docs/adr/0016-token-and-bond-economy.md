@@ -3,6 +3,8 @@
 **Status:** accepted (Phase 4 design freeze; implementation pending).
 **Date:** 2026-04-24.
 
+> Implementation note: token costs use geometric growth with nice-number rounding, producing `10, 50, 300, 1500, 8000` for the first five Tokens without hard-coding the sequence.
+
 ## Context
 
 Tokens (per-Element crystallisations) and Bonds (synthesised compounds) are the two prestige-currency layers between *banked Subjects* and *permanent modifiers* (see `docs/features/0021-bonds-and-tokens.md`).
@@ -111,20 +113,18 @@ var BondCatalog = map[BondID]Bond{
 // internal/sim/economy.go
 
 const tokenCostBase = 10
-const tokenCostGrowth = 5
+const tokenCostGrowth = 5.3
 
 func CrystallisationCost(e Element, owned int) int {
-    cost := tokenCostBase
-    for i := 0; i < owned; i++ {
-        cost *= tokenCostGrowth
-    }
-    return cost
+	cost := float64(tokenCostBase)
+	for i := 0; i < owned; i++ {
+		cost = roundNiceTokenCost(cost * tokenCostGrowth)
+	}
+	return int(cost)
 }
 ```
 
-So `CrystallisationCost(e, 0) == 10`, `(e, 1) == 50`, `(e, 2) == 300` (with the 6× factor between 50 and 300 as stated in the design — match the table by adjusting the growth factor or hard-code an early irregularity if needed; the design doc says "~5× each step", which `tokenCostGrowth = 5` matches with growth factor 6 from 50→300 being a documented sequence quirk).
-
-**Note on the published sequence (`10, 50, 300, 1500, 8000`):** the increments are 5×, 6×, 5×, ~5.3×. If the design intends an exact table, replace the formula with a `var tokenCostTable = []int{10, 50, 300, 1500, 8000, 40000, 200000}` lookup with a fallback `(table[len-1] * 5) ^ (n - len + 1)` extrapolation for n beyond the table. The senior dev should pick one of these on implementation; the spec is ambiguous.
+So `CrystallisationCost(e, 0) == 10`, `(e, 1) == 50`, `(e, 2) == 300`, `(e, 3) == 1500`, and `(e, 4) == 8000`. The nice-number rounding keeps future costs readable while preserving formula-driven growth.
 
 The cost is per-Element. The function takes `Element` for forward extensibility (a future per-Element cost-multiplier upgrade can read it) but doesn't currently use it.
 

@@ -95,6 +95,10 @@ func (g *Game) handleInput() {
 
 	// Global: Escape closes the topmost overlay before any other input is handled.
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		if g.ui.PrestigeConfirmOpen {
+			g.ui.PrestigeConfirmOpen = false
+			return
+		}
 		if g.ui.HelperOpen {
 			g.closeHelper()
 			return
@@ -142,6 +146,12 @@ func (g *Game) handleInput() {
 		}
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			g.handleHotkeysClick(mx, my)
+		}
+		return
+	}
+	if g.ui.PrestigeConfirmOpen {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			g.handlePrestigeConfirmClick(mx, my)
 		}
 		return
 	}
@@ -256,6 +266,9 @@ func (g *Game) handleInput() {
 			g.triggerInjection()
 			return
 		}
+		if g.handlePrestigePanelClick(mx, my) {
+			return
+		}
 	}
 
 	// Grid: place / reconfigure / erase.
@@ -294,6 +307,7 @@ func (g *Game) openSettings() {
 	g.ui.LogOpen = false
 	g.ui.NotificationHistoryOpen = false
 	g.ui.HotkeysOpen = false
+	g.ui.PrestigeConfirmOpen = false
 	g.ui.ResetArmed = false
 	g.ui.LastSaveNotice = ""
 }
@@ -501,6 +515,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	if g.ui.HotkeysOpen {
 		drawHotkeysModal(screen)
+	}
+	if g.ui.PrestigeConfirmOpen {
+		drawPrestigeConfirmModal(screen, g.state)
 	}
 	if g.ui.HelperOpen {
 		drawHelperModal(screen, g.ui)

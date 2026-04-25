@@ -136,6 +136,19 @@ func Load() (*GameState, bool, error) {
 	if state.ShownHelperMilestones == nil {
 		state.ShownHelperMilestones = map[string]bool{}
 	}
+	if state.BinderReserves == nil {
+		state.BinderReserves = map[Element]int{}
+	}
+	if state.TokenInventory == nil {
+		state.TokenInventory = map[Element]int{}
+	}
+	if state.BondsState == nil {
+		state.BondsState = map[BondID]bool{}
+	}
+	if state.LaboratoryUpgrades == nil {
+		state.LaboratoryUpgrades = map[LabUpgradeID]int{}
+	}
+	state.AutoInjectTickCounter = 0
 	if state.UnlockedElements == nil {
 		state.UnlockedElements = map[Element]bool{ElementHydrogen: true}
 	}
@@ -176,6 +189,7 @@ func Load() (*GameState, bool, error) {
 		// zero-value arc through the current cell.
 		sub.InDirection = sub.Direction
 	}
+	rebuildModifiers(state)
 	return state, true, nil
 }
 

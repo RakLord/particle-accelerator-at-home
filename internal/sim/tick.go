@@ -17,6 +17,7 @@ const SpeedDivisor = 10
 //     Component; Collector cells remove the Subject and award $USD.
 func (s *GameState) Tick() {
 	s.advanceInjectionCooldown()
+	s.advanceAutoInjection()
 	s.advanceSubjects()
 	s.Ticks++
 }
@@ -154,7 +155,16 @@ func (s *GameState) stepSubject(sub *Subject, pending *[]Subject) (collected, lo
 		if cell.Component != nil {
 			ctx := base
 			ctx.Pos = sub.Position
-			if sp, ok := cell.Component.(Splitter); ok {
+			if banker, ok := cell.Component.(Banker); ok {
+				out, destroyed, banked, e := banker.ApplyBank(ctx, *sub)
+				*sub = out
+				if banked {
+					s.BankSubject(e)
+				}
+				if destroyed {
+					return false, true
+				}
+			} else if sp, ok := cell.Component.(Splitter); ok {
 				self, extras, destroyed := sp.ApplySplit(ctx, *sub)
 				*sub = self
 				*pending = append(*pending, extras...)

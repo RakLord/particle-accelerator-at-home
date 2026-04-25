@@ -34,7 +34,7 @@ Every Element has its own Token type. The cost to crystallise the *next* Token i
 
 The cost is **per-Element**: owning 2 Carbon Tokens does not affect the cost of the first Hydrogen Token. Each Element has its own scaling wall.
 
-The cost is read from `BinderReserves[Element]` only — the player chooses to crystallise via the Bonds tab UI, and the function is:
+The cost is read from `BinderReserves[Element]` only — the player chooses to crystallise via the Binder Store UI, and the function is:
 
 ```go
 func CrystalliseToken(s *GameState, e Element) error
@@ -61,7 +61,7 @@ A Bond is a compound the player has synthesised. Synthesis spends Tokens and is 
 | Bond | Formula | Token cost | Modifier effect | Bond Points awarded |
 |---|---|---|---|---:|
 | Methane | CH₄ | 1C + 4H | `CollectorValueMul ×1.15` | 1 |
-| Acetylene | C₂H₂ | 2C + 2H | `InjectorRateMul ×0.75` (cooldown 25% faster) | 1 |
+| Acetylene | C₂H₂ | 2C + 2H | `InjectorRateMul ×1.333` (cooldown 25% faster) | 1 |
 | Ethylene | C₂H₄ | 2C + 4H | `AcceleratorSpeedBonus +1` | 2 |
 | Benzene | C₆H₆ | 6C + 6H | Unlocks **Auto-Inject** (see `docs/features/0020-auto-injection.md`) | 3 |
 | Diamond | C₁₂ | 12C | `MaxLoadBonus +15` | 3 |
@@ -76,21 +76,21 @@ Bonds that require Lithium, Beryllium, Boron, Nitrogen, Oxygen, etc. are designe
 
 ## Bonds tab (UI)
 
-Unlocked once the player owns ≥1 Token of any Element. Lives as a new tab in the right-side panel, peer to the existing inventory and codex tabs.
+Unlocked once the player owns ≥1 Token of any Element, and remains visible once any Bond has been synthesised. It lives in the right-side panel's Carbon Loop area. The first Token is minted from the Binder Store display; the Bonds tab is for synthesis once at least one Token exists.
 
 **MVP — list view:**
 
-A scrollable list of synthesisable compounds. Each row shows:
+A compact list of synthesisable compounds. Each row shows:
 
 - Compound name + formula ("Acetylene — C₂H₂")
 - Token cost breakdown ("2× Carbon, 2× Hydrogen")
 - A **Synthesise** button — enabled when the player has the Tokens, greyed otherwise.
 - A small "+1 BP" / "+2 BP" / "+3 BP" badge indicating the award.
-- Owned Bonds: row dimmed, button replaced with a checkmark.
+- Owned Bonds: row highlighted and button labelled `Owned`.
 
-A separate **Crystallise** section at the top of the Bonds tab shows each Element's reserve and the cost of its next Token, with one Crystallise button per Element. This is the only place Tokens are minted.
+The **Binder Store** display shows each Element's reserve, capacity, next Token cost, and one Crystallise button per Element. This is the only place Tokens are minted.
 
-Hovering a Bond row shows an inline tooltip:
+Deferred polish: hovering a Bond row should show an inline tooltip:
 
 - One-line real-world description (e.g. "Methane — the simplest hydrocarbon").
 - In-game effect summary.
@@ -112,7 +112,7 @@ Each Bond entry carries an `Apply(*GlobalModifiers)` closure, identical to a `Gl
 - `internal/sim/bonds.go` — Bond catalog, `Apply` closures, `SynthesiseBond` entry point.
 - `internal/sim/economy.go` — `CrystallisationCost`, `CrystalliseToken`.
 - `internal/sim/state.go` — `TokenInventory`, `BondsState`, `BinderReserves`.
-- `internal/ui/bonds_tab.go` — list-view UI.
+- `internal/render/prestige_panel.go` — Binder Store and Bonds list UI.
 - `docs/adr/0016-token-and-bond-economy.md` — storage shapes, cost function, modifier integration.
 - `docs/adr/0010-global-modifier-pipeline.md` — modifier pipeline that Bonds plug into.
 - `docs/features/0022-component-binder.md` — what feeds the reserves.

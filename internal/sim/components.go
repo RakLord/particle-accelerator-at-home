@@ -42,6 +42,14 @@ type Splitter interface {
 	ApplySplit(ctx ApplyContext, s Subject) (self Subject, extras []Subject, lost bool)
 }
 
+// Banker is an optional capability for Components that destroy incoming
+// Subjects and request that the tick loop add them to a per-Element store on
+// GameState. The Component reports intent; GameState enforces capacity.
+type Banker interface {
+	Component
+	ApplyBank(ctx ApplyContext, s Subject) (out Subject, lost bool, banked bool, element Element)
+}
+
 // ApplyContext is the read-only view of world state handed to components
 // during a tick. All fields are safe to read; implementations must not
 // mutate any referenced object nor retain references across ticks.

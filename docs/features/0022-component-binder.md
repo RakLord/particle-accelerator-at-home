@@ -4,19 +4,19 @@
 
 ## Behaviour
 
-A Binder is a **typed endpoint** — a Collector-class Component that accepts Subjects of a specific Element and stores them in a per-Element reserve instead of awarding $USD or research.
+A Binder is a generic prestige endpoint — a Collector-class Component that accepts any Subject and stores it in that Element's Binder Store reserve instead of awarding $USD or research.
 
 `(Subject) → ∅` — the Subject is removed from the grid on entry. No payout, no value awarded.
 
-Each Binder is bound to a single Element (chosen at placement time, like Injector binds to the Codex selector). A Subject of any other Element entering a Binder is **destroyed** the same way it would be at a wrong-axis Pipe — wrong tool for the job. This keeps players from accidentally banking Hydrogen into a Carbon Binder.
+The physical Binder has no Element setting and no local storage. It only deletes the incoming Subject and adds one count to `GameState.BinderReserves[Subject.Element]` if that Element's Binder Store has capacity.
 
 ### Reserve semantics
 
-Subjects banked by a Binder feed `GameState.BinderReserves[Element]`, a per-Element pool. Multiple Binders of the same Element pool into the same reserve — placing two Hydrogen Binders gives `2 × HydrogenCapacity` total banking room.
+Subjects banked by any Binder feed `GameState.BinderReserves[Element]`, a per-Element Binder Store. Capacity belongs to the store, not to the physical grid Component.
 
-Per-Element capacity (per-Binder) at base:
+Per-Element Binder Store base capacity:
 
-| Element | Per-Binder capacity | Rationale |
+| Element | Base store capacity | Rationale |
 |---|---:|---|
 | Hydrogen | 15 | Gas — hard to contain. |
 | Helium | 8 | Noble gas — notoriously difficult to store. |
@@ -28,30 +28,28 @@ Heavier-element capacities are TBD and added when those Elements gain compound r
 The **effective per-Element capacity** on `GameState` is:
 
 ```
-EffectiveBinderCapacity(e) = count(Binders placed for e) × BaseBinderCapacity[e] × DensePackingMultiplier
+EffectiveBinderStoreCapacity(e) = BaseBinderStoreCapacity[e] × BinderStoreCapacityMultiplier
 ```
 
-`DensePackingMultiplier` is `2^DensePackingLevel` from the Laboratory tree, capped at level 5 (×32). See `docs/features/0023-laboratory.md`.
+`BinderStoreCapacityMultiplier` is a global modifier. Dense Packing currently contributes `2^DensePackingLevel`, capped at level 5 (×32), and future global upgrades can multiply the same field. See `docs/features/0023-laboratory.md`.
 
 ### At capacity — destroy
 
-When a Subject enters a Binder of its own Element and `BinderReserves[Element] >= EffectiveBinderCapacity(Element)`, the Subject is **destroyed** with no $USD, no research, no refund, no Token credit. Its `Load` is freed.
+When a Subject enters a Binder and `BinderReserves[Subject.Element] >= EffectiveBinderStoreCapacity(Subject.Element)`, the Subject is **destroyed** with no $USD, no research, no refund, no Token credit. Its `Load` is freed.
 
-A "Binder full" notification fires on the first incineration of a session (see `docs/features/0017-helper-notifications.md`). The Binder cell renders a "FULL" overlay while at capacity. Subsequent incinerations are silent — the player has been warned.
+Fullness is shown in the Binder Store display, not as a per-cell overlay, because capacity is not owned by the physical Binder. A future polish pass should add a one-shot "Binder Store full" notification on the first over-capacity incineration of a session (see `docs/features/0017-helper-notifications.md`).
 
 This is harsh by design: routing Subjects into a Binder is an active commitment to bank them, and walking away from a full Binder loses Subjects. The Laboratory's Dense Packing upgrade (×2 cap per level) is the lever for shrinking that risk window.
 
-### Wrong-Element entry
+### Unsupported Elements
 
-A Subject whose `Element` does not match the Binder's bound Element is **destroyed**. Same outcome as wrong-axis Pipe entry. No reserve gain, no payout, no warning beyond the `lost` event in the collection log.
+A Subject whose Element has no Binder Store capacity entry is **destroyed**. No reserve gain, no payout, no warning beyond the `lost` event in the collection log. Add store capacity for heavier Elements when their Bond recipes ship.
 
 ## Placement
 
-Binder is purchased from the inventory like any other Component (see `docs/features/0014-inventory.md`). At placement, the player selects which Element the Binder binds to from a per-Binder picker — the same picker pattern as the Injector's Codex element selector.
+Binder is purchased from the inventory like any other Component (see `docs/features/0014-inventory.md`). There is no per-Binder Element picker.
 
-A Binder cannot be re-bound after placement. To change its Element, the player removes and replaces the Component.
-
-In MVP, only Carbon and Hydrogen Binders are useful — those are the only Elements with Bond recipes. Heavier-Element Binders are placeable but bank into a reserve with no Token recipe yet. Element pickers grey out unsupported Elements until heavier Bonds ship.
+In MVP, Hydrogen and Carbon reserves are the main Bond inputs. Helium and Lithium can also be stored because their base capacities are defined; heavier Elements are unsupported until their Bond recipes and store capacities ship.
 
 ## Cost
 
@@ -59,7 +57,7 @@ From the Component cost catalog (see `docs/features/0007-component-cost.md` for 
 
 - `Base = $40`
 - `Growth = 1.30`
-- Soft cap at 5 owned (Binders are deliberately scarce).
+- Soft cap starts around the sixth purchase (Binders are deliberately scarce).
 
 Binders sit in the same cost tier as Catalyst — they are a strategic investment, not a spammable utility.
 
@@ -75,8 +73,9 @@ The Binder also gives the prestige loop a placement-shaped surface. Without it, 
 
 - `internal/sim/components/binder.go` — Component implementation.
 - `internal/sim/kinds.go` — `KindBinder` registration.
-- `internal/sim/state.go` — `BinderReserves`, `EffectiveBinderCapacity`.
-- `docs/adr/0015-binder-component.md` — storage model, full-behavior dispatch, capacity registry.
+- `internal/sim/state.go` — `BinderReserves`.
+- `internal/sim/binder_store.go` — store capacities and `EffectiveBinderStoreCapacity`.
+- `docs/adr/0019-generic-binder-store.md` — generic Binder and Store capacity model.
 - `docs/features/0021-bonds-and-tokens.md` — what banked reserves are spent on.
 - `docs/features/0014-inventory.md` — placement/purchase flow.
 - `docs/features/0007-component-cost.md` — cost formula.

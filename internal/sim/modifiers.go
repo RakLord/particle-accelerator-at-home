@@ -19,6 +19,9 @@ type GlobalModifiers struct {
 	MagnetiserBonusMul      bignum.Decimal `json:"magnetiser_bonus_mul,omitempty"`
 	ResearchPerCollectBonus int            `json:"research_per_collect_bonus,omitempty"`
 	MaxLoadBonus            int            `json:"max_load_bonus,omitempty"`
+	BinderStoreCapacityMul  bignum.Decimal `json:"binder_store_capacity_mul,omitempty"`
+	AutoInjectEnabled       bool           `json:"auto_inject_enabled,omitempty"`
+	AutoInjectCadenceTicks  int            `json:"auto_inject_cadence_ticks,omitempty"`
 }
 
 // Normalized returns a copy with zero-valued Decimal fields promoted to 1 so
@@ -40,5 +43,45 @@ func (m GlobalModifiers) Normalized() GlobalModifiers {
 	if m.MagnetiserBonusMul.IsZero() {
 		m.MagnetiserBonusMul = bignum.One()
 	}
+	if m.BinderStoreCapacityMul.IsZero() {
+		m.BinderStoreCapacityMul = bignum.One()
+	}
 	return m
+}
+
+func rebuildModifiers(s *GameState) {
+	if s == nil {
+		return
+	}
+	s.Modifiers = GlobalModifiers{}
+	for id, owned := range s.BondsState {
+		if !owned {
+			continue
+		}
+		bond, ok := BondCatalog[id]
+		if !ok || bond.Apply == nil {
+			continue
+		}
+		bond.Apply(&s.Modifiers)
+	}
+	for id, level := range s.LaboratoryUpgrades {
+		if level <= 0 {
+			continue
+		}
+		upgrade, ok := LabCatalog[id]
+		if !ok || upgrade.AppliesIn != LabApplyModifiers || upgrade.Apply == nil {
+			continue
+		}
+		upgrade.Apply(&s.Modifiers, s, level)
+	}
+	if s.Modifiers.AutoInjectEnabled {
+		s.Modifiers.AutoInjectCadenceTicks = computeAutoInjectCadence(s)
+	}
+}
+
+func multiplyDecimalModifier(current bignum.Decimal, factor bignum.Decimal) bignum.Decimal {
+	if current.IsZero() {
+		current = bignum.One()
+	}
+	return current.Mul(factor)
 }

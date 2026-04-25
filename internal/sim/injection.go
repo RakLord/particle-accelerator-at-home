@@ -84,3 +84,16 @@ func (s *GameState) advanceInjectionCooldown() {
 		s.InjectionCooldownRemaining--
 	}
 }
+
+func (s *GameState) advanceAutoInjection() {
+	mods := s.Modifiers
+	if !mods.AutoInjectEnabled || !s.AutoInjectActive || mods.AutoInjectCadenceTicks <= 0 {
+		return
+	}
+	s.AutoInjectTickCounter++
+	if s.AutoInjectTickCounter < mods.AutoInjectCadenceTicks {
+		return
+	}
+	s.AutoInjectTickCounter = 0
+	s.Inject()
+}

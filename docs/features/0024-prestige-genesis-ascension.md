@@ -52,10 +52,11 @@ The "harder" reset (research and unlocks both wiped) is the deliberate trade-off
 
 ## UI surface
 
-- **Prestige button** in the right-side panel, hidden until `len(BondsState) >= 1`.
-- **Confirmation modal** on press, listing what will be reset and what will persist. Same modal pattern as the existing Hard Reset confirmation in `internal/render/settings.go`.
+- **Prestige button** in the right-side panel's Carbon Loop header, hidden until `len(BondsState) >= 1`.
+- **Confirmation modal** on press, listing what will be reset and what will persist.
 - **Run counter** in the panel after first prestige: "Run #N".
-- **Bonds tab** (see `docs/features/0021-bonds-and-tokens.md`) becomes available the moment a player owns ≥1 Token of any element — independent of having prestiged.
+- **Binder Store tab** shows reserve/capacity by Element and is where Tokens are crystallised.
+- **Bonds tab** (see `docs/features/0021-bonds-and-tokens.md`) becomes available the moment a player owns ≥1 Token of any Element, and remains visible once a Bond exists.
 - **Laboratory tab** (see `docs/features/0023-laboratory.md`) becomes visible after the first prestige.
 
 ## Save compatibility
@@ -66,7 +67,7 @@ The "harder" reset (research and unlocks both wiped) is the deliberate trade-off
 
 - `internal/sim/state.go` — `ResetGenesis`, persistent vs. wiped fields.
 - `internal/sim/layer.go` — `Layer` enum, `LayerGenesis`.
-- `internal/render/settings.go` — confirmation-modal pattern to follow.
+- `internal/render/prestige_panel.go` — Carbon Loop panel and Prestige confirmation modal.
 - `docs/adr/0014-carbon-prestige-layer.md` — reset architecture, persistence model, save-compat.
 - `docs/adr/0010-global-modifier-pipeline.md` — `rebuildModifiers` is reused as the post-reset modifier rebuild.
 - `docs/overview.md` — Phase 4 prestige scope.

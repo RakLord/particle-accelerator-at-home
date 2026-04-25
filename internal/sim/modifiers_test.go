@@ -17,6 +17,9 @@ func TestGlobalModifiersNormalizedPromotesZeroDecimals(t *testing.T) {
 	if !n.MagnetiserBonusMul.Eq(bignum.One()) {
 		t.Fatalf("MagnetiserBonusMul: got %v want 1", n.MagnetiserBonusMul)
 	}
+	if !n.BinderStoreCapacityMul.Eq(bignum.One()) {
+		t.Fatalf("BinderStoreCapacityMul: got %v want 1", n.BinderStoreCapacityMul)
+	}
 	// Integer fields stay zero — zero is the additive identity.
 	if n.AcceleratorSpeedBonus != 0 || n.ResearchPerCollectBonus != 0 || n.MaxLoadBonus != 0 {
 		t.Fatalf("integer fields should remain zero: %+v", n)
@@ -25,14 +28,16 @@ func TestGlobalModifiersNormalizedPromotesZeroDecimals(t *testing.T) {
 
 func TestGlobalModifiersNormalizedPreservesNonZeroValues(t *testing.T) {
 	in := GlobalModifiers{
-		CollectorValueMul:  bignum.MustParse("1.25"),
-		InjectorRateMul:    bignum.MustParse("2"),
-		MagnetiserBonusMul: bignum.MustParse("3"),
+		CollectorValueMul:      bignum.MustParse("1.25"),
+		InjectorRateMul:        bignum.MustParse("2"),
+		MagnetiserBonusMul:     bignum.MustParse("3"),
+		BinderStoreCapacityMul: bignum.MustParse("4"),
 	}
 	n := in.Normalized()
 	if !n.CollectorValueMul.Eq(in.CollectorValueMul) ||
 		!n.InjectorRateMul.Eq(in.InjectorRateMul) ||
-		!n.MagnetiserBonusMul.Eq(in.MagnetiserBonusMul) {
+		!n.MagnetiserBonusMul.Eq(in.MagnetiserBonusMul) ||
+		!n.BinderStoreCapacityMul.Eq(in.BinderStoreCapacityMul) {
 		t.Fatalf("non-zero Decimal fields mutated by Normalized: got %+v", n)
 	}
 }

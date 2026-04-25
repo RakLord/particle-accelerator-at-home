@@ -69,6 +69,12 @@ var ToolInfoCatalog = map[Tool]ToolInfo{
 			"Tier scales the coefficient (×1.5 at T2, ×2 at T3), so the same slowdown is worth more over time. " +
 			"Pairs naturally with Mesh Grid: throttle a Subject into a slow lane, then stack Compressors to cash in.",
 	},
+	ToolBinder: {
+		Name:    "Binder",
+		Tagline: "Prestige endpoint that stores Subjects instead of paying $USD.",
+		Description: "Consumes any incoming Subject and adds it to the matching Element's Binder Store reserve. " +
+			"No $USD or research is awarded. Reserves are crystallised into Tokens for permanent Bonds, and each Element has its own store capacity.",
+	},
 	ToolElbow: {
 		Name:    "Elbow (turn)",
 		Tagline: "Redirects a Subject by 90°.",

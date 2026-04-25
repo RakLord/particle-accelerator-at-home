@@ -3,6 +3,8 @@
 **Status:** accepted (Phase 4 design freeze; implementation pending).
 **Date:** 2026-04-24.
 
+> Implementation note: ADR 0019 changes Dense Packing from per-Binder capacity to Binder Store capacity via `GlobalModifiers.BinderStoreCapacityMul`.
+
 ## Context
 
 The Laboratory tree is the third upgrade catalog plugging into the modifier pipeline (after `GlobalUpgradeCatalog` from ADR 0010 and `BondCatalog` from ADR 0016). It houses upgrades paid in Bond Points and unlocked post-prestige. See `docs/features/0023-laboratory.md` for the player-facing description and full catalog.
@@ -89,10 +91,10 @@ const (
 | Stable Isotope | LabApplyResetSeed (snapshots research pre-wipe; see below) |
 | Chain Reaction | LabApplyModifiers (modifies `InjectorRateMul`) |
 | Carbon Core | LabApplyResetSeed |
-| Dense Packing | LabApplyModifiers (read by `EffectiveBinderCapacity`; no `GlobalModifiers` field — read directly from `LaboratoryUpgrades`) |
+| Dense Packing | LabApplyModifiers (writes `BinderStoreCapacityMul`; see ADR 0019) |
 | Auto-Inject Speed I-IV | LabApplyModifiers (drives `AutoInjectCadenceTicks`) |
 
-Note: Dense Packing's effect is read by `EffectiveBinderCapacity` (ADR 0015) directly from `LaboratoryUpgrades[LabDensePacking]`. It doesn't need to write to `GlobalModifiers` at all — its `Apply` is a no-op. Could be omitted, but kept as a `LabApplyModifiers` no-op for catalog uniformity.
+Note: ADR 0019 supersedes the original Dense Packing implementation detail. Dense Packing now writes `GlobalModifiers.BinderStoreCapacityMul` so future global upgrades can compose with the same Binder Store capacity field.
 
 **3. `ResetGenesis` calls Lab upgrades with the `LabApplyResetSeed` phase.**
 

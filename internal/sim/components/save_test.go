@@ -50,6 +50,7 @@ func TestCellRoundTrip(t *testing.T) {
 		{Component: &components.MeshGrid{Orientation: sim.DirWest}},
 		{Component: &components.Magnetiser{}},
 		{Component: &components.Compressor{Orientation: sim.DirNorth}},
+		{Component: &components.Binder{Orientation: sim.DirWest}},
 	}
 	for i, c := range cells {
 		blob, err := json.Marshal(c)
@@ -92,6 +93,11 @@ func TestCellRoundTrip(t *testing.T) {
 			gotComp, ok := got.Component.(*components.Compressor)
 			if !ok || gotComp.Orientation != want.Orientation {
 				t.Fatalf("cell %d compressor mismatch: got %#v want %#v", i, got.Component, want)
+			}
+		case *components.Binder:
+			gotBinder, ok := got.Component.(*components.Binder)
+			if !ok || gotBinder.Orientation != want.Orientation {
+				t.Fatalf("cell %d binder mismatch: got %#v want %#v", i, got.Component, want)
 			}
 		}
 	}

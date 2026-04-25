@@ -73,6 +73,9 @@ func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 	case ui.ToolCompressor:
 		cell.Component = &components.Compressor{Orientation: sim.DirEast}
 		cell.IsCollector = false
+	case ui.ToolBinder:
+		cell.Component = &components.Binder{Orientation: sim.DirSouth}
+		cell.IsCollector = false
 	}
 }
 
@@ -119,6 +122,8 @@ func PickToolAt(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 		u.Selected = ui.ToolDuplicator
 	case *components.Compressor:
 		u.Selected = ui.ToolCompressor
+	case *components.Binder:
+		u.Selected = ui.ToolBinder
 	}
 }
 
@@ -158,6 +163,8 @@ func ReconfigureBy(s *sim.GameState, pos sim.Position, steps int) {
 	case *components.Duplicator:
 		c.Orientation = rotateDirection(c.Orientation, steps)
 	case *components.Compressor:
+		c.Orientation = rotateDirection(c.Orientation, steps)
+	case *components.Binder:
 		c.Orientation = rotateDirection(c.Orientation, steps)
 	}
 }

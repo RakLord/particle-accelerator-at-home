@@ -291,6 +291,70 @@ func TestTickDoesNotAutoInject(t *testing.T) {
 	}
 }
 
+func TestTickAutoInjectsWhenEnabledAndActive(t *testing.T) {
+	s := sim.NewGameState()
+	s.MaxLoad = 3
+	s.Grid.Cells[0][0].Component = &components.Injector{Direction: sim.DirEast}
+	s.Modifiers.AutoInjectEnabled = true
+	s.Modifiers.AutoInjectCadenceTicks = 1
+	s.AutoInjectActive = true
+	s.Tick()
+	if got := len(s.Grid.Subjects); got != 1 {
+		t.Fatalf("auto inject admitted %d Subjects, want 1", got)
+	}
+	if s.InjectionCooldownRemaining <= 0 {
+		t.Fatalf("auto inject should reuse manual cooldown path")
+	}
+}
+
+func TestBinderBanksSubjectAndFreesLoad(t *testing.T) {
+	s := sim.NewGameState()
+	s.Grid.Cells[0][1].Component = &components.Binder{}
+	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
+		Element:     sim.ElementCarbon,
+		Mass:        bignum.One(),
+		Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
+		Direction:   sim.DirEast,
+		InDirection: sim.DirEast,
+		Position:    sim.Position{X: 0, Y: 0},
+		Load:        1,
+	})
+	s.CurrentLoad = 1
+	s.Tick()
+	if got := len(s.Grid.Subjects); got != 0 {
+		t.Fatalf("subjects after Binder: got %d want 0", got)
+	}
+	if got := s.CurrentLoad; got != 0 {
+		t.Fatalf("CurrentLoad after Binder: got %d want 0", got)
+	}
+	if got := s.BinderReserves[sim.ElementCarbon]; got != 1 {
+		t.Fatalf("Carbon reserve: got %d want 1", got)
+	}
+}
+
+func TestBinderDestroysWithoutBankingWhenStoreFull(t *testing.T) {
+	s := sim.NewGameState()
+	s.Grid.Cells[0][1].Component = &components.Binder{}
+	s.BinderReserves[sim.ElementHydrogen] = s.EffectiveBinderStoreCapacity(sim.ElementHydrogen)
+	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
+		Element:     sim.ElementHydrogen,
+		Mass:        bignum.One(),
+		Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
+		Direction:   sim.DirEast,
+		InDirection: sim.DirEast,
+		Position:    sim.Position{X: 0, Y: 0},
+		Load:        1,
+	})
+	s.CurrentLoad = 1
+	s.Tick()
+	if got := len(s.Grid.Subjects); got != 0 {
+		t.Fatalf("subjects after full Binder: got %d want 0", got)
+	}
+	if got := s.BinderReserves[sim.ElementHydrogen]; got != sim.BinderStoreBaseCapacity[sim.ElementHydrogen] {
+		t.Fatalf("Hydrogen reserve after full store: got %d want %d", got, sim.BinderStoreBaseCapacity[sim.ElementHydrogen])
+	}
+}
+
 func TestInjectStartsAndRespectsCooldown(t *testing.T) {
 	s := sim.NewGameState()
 	s.Grid.Cells[0][0].Component = &components.Injector{Direction: sim.DirEast}

@@ -33,7 +33,7 @@ The Laboratory tree (see `docs/features/0023-laboratory.md`) sells four cadence 
 | Auto-Inject Speed III | 6s → 5s (matches manual base) | 3 |
 | Auto-Inject Speed IV | 5s → 4s (faster than manual base) | 4 |
 
-Speed IV is intentionally cheaper than buying it via Acetylene + manual play would imply: the player has invested heavily in the prestige loop to reach this depth, and the reward is a true idle-friendly cadence. With both Acetylene and Speed IV, manual play remains slightly faster (4s × 0.75 = 3s effective), so the active vs. idle tension stays alive.
+Speed IV is intentionally cheaper than buying it via Acetylene + manual play would imply: the player has invested heavily in the prestige loop to reach this depth, and the reward is a true idle-friendly cadence. With both Acetylene and Speed IV, manual play remains slightly faster (4s ÷ 1.333 ≈ 3s effective), so the active vs. idle tension stays alive.
 
 The Lab levels stack; only the highest purchased level applies. Level is read from `LaboratoryUpgrades["auto_inject_speed"]` (an int, capped at 4).
 

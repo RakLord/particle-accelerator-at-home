@@ -36,7 +36,7 @@ Numbers are first-draft and may shift after playtesting. The catalog lives in `i
 | Stable Isotope | 1 | Per-Element research carries over at 30% on prestige. | 2 |
 | Chain Reaction | 1 | Injectors start at 2× base emission rate (effective on Run 1 only — subsequent purchases supersede). | 2 |
 | Carbon Core | 1 | Binder + Bonds tab unlock immediately on Run start, before reaching Carbon. | 1 |
-| Dense Packing | 5 | All Binder per-Binder capacities ×2 per purchase (multiplicative; cap at 5 → ×32). | 1 / 2 / 3 / 4 / 5 |
+| Dense Packing | 5 | All Binder Store capacities ×2 per purchase (multiplicative; cap at 5 → ×32). | 1 / 2 / 3 / 4 / 5 |
 | Auto-Inject Speed I | 1 | Auto-Inject cadence 10s → 8s. | 1 |
 | Auto-Inject Speed II | 1 | 8s → 6s. | 2 |
 | Auto-Inject Speed III | 1 | 6s → 5s. | 3 |
@@ -53,7 +53,7 @@ The Genesis reset wipes both per-Element research *and* `UnlockedElements` (see 
 Skips the entire Carbon unlock chain on every future Run — no Boron grind, no $100K wall. Combined with `Stable Isotope`'s 30% research carryover, a Run 5+ player effectively jumps straight to Carbon banking on each prestige.
 
 **Dense Packing.**
-Multiplicative ×2 per purchase, applied to *per-Binder* base capacity (not the per-Element total). At level 5: a Carbon Binder holds 100 × 32 = 3,200 Subjects. Each level's cost climbs to keep the late tiers as long-tail goals.
+Multiplicative ×2 per purchase, applied to each Element's Binder Store base capacity. At level 5: the Carbon store holds 100 × 32 = 3,200 Subjects. Each level's cost climbs to keep the late tiers as long-tail goals.
 
 **Auto-Inject Speed I-IV.**
 See `docs/features/0020-auto-injection.md`. Only the highest purchased level applies (`max(LaboratoryUpgrades["auto_inject_speed"], ...)`). The four entries together cost 10 BP — a substantial chunk of the tree, balancing the strong idle-mode payoff.

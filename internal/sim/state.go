@@ -47,10 +47,9 @@ type GameState struct {
 	TickRate                   int
 	Ticks                      uint64
 
-	// Modifiers aggregates active global upgrades. Derived from (future)
-	// PurchasedUpgrades via rebuildModifiers; zero value is identity. Phase 1
-	// carries the field through ApplyContext; Phase 2 (ADR 0010) fills the
-	// struct fields and wires derivation.
+	// Modifiers aggregates active global effects. It is derived from durable
+	// unlock state by rebuildModifiers; zero-valued Decimal fields read as
+	// identity after Normalized().
 	Modifiers GlobalModifiers `json:"modifiers,omitempty"`
 
 	// ComponentTiers is the global tier level per component kind. Absent
@@ -58,6 +57,17 @@ type GameState struct {
 	// PurchaseTierUpgrade advance this map by one step.
 	// See docs/adr/0011-component-tier-primitive.md.
 	ComponentTiers map[ComponentKind]Tier `json:"component_tiers,omitempty"`
+
+	// Prestige-layer state. These fields are additive save data; empty values
+	// mean the save has not entered the Carbon reset loop yet.
+	BinderReserves        map[Element]int      `json:"binder_reserves,omitempty"`
+	TokenInventory        map[Element]int      `json:"token_inventory,omitempty"`
+	BondsState            map[BondID]bool      `json:"bonds_state,omitempty"`
+	BondPoints            int                  `json:"bond_points,omitempty"`
+	LaboratoryUpgrades    map[LabUpgradeID]int `json:"laboratory_upgrades,omitempty"`
+	AutoInjectActive      bool                 `json:"auto_inject_active,omitempty"`
+	AutoInjectTickCounter int                  `json:"-"`
+	RunCount              int                  `json:"run_count,omitempty"`
 }
 
 type ElementBestStats struct {
@@ -97,6 +107,10 @@ func NewGameState() *GameState {
 		Owned:                 starterInventory(),
 		MaxLoad:               DefaultMaxLoad,
 		TickRate:              DefaultTickRate,
+		BinderReserves:        map[Element]int{},
+		TokenInventory:        map[Element]int{},
+		BondsState:            map[BondID]bool{},
+		LaboratoryUpgrades:    map[LabUpgradeID]int{},
 	}
 }
 
@@ -116,6 +130,82 @@ func starterInventory() map[ComponentKind]int {
 // not restore the previous state.
 func (s *GameState) HardReset() {
 	*s = *NewGameState()
+}
+
+// ResetGenesis starts a fresh Genesis run while preserving durable prestige
+// progression. It is intentionally separate from HardReset, which wipes every
+// prestige field too.
+func ResetGenesis(s *GameState) {
+	if s == nil {
+		return
+	}
+	var researchSnapshot map[Element]int
+	if s.LaboratoryUpgrades[LabStableIsotope] > 0 {
+		researchSnapshot = copyElementIntMap(s.Research)
+	}
+
+	s.USD = bignum.Zero()
+	s.Grid = NewGrid()
+	s.Research = map[Element]int{}
+	s.CollectionLog = nil
+	s.NotificationLog = nil
+	s.ShownHelperMilestones = map[string]bool{}
+	s.UnlockedElements = map[Element]bool{ElementHydrogen: true}
+	s.InjectionElement = ElementHydrogen
+	s.Owned = starterInventory()
+	s.MaxLoad = DefaultMaxLoad
+	s.CurrentLoad = 0
+	s.InjectionCooldownRemaining = 0
+	s.TickRate = DefaultTickRate
+	s.Ticks = 0
+	s.ComponentTiers = nil
+	s.BinderReserves = map[Element]int{}
+	s.TokenInventory = map[Element]int{}
+	s.AutoInjectTickCounter = 0
+	s.RunCount++
+	if s.Layer == "" {
+		s.Layer = LayerGenesis
+	}
+	if s.BondsState == nil {
+		s.BondsState = map[BondID]bool{}
+	}
+	if s.LaboratoryUpgrades == nil {
+		s.LaboratoryUpgrades = map[LabUpgradeID]int{}
+	}
+	if s.BestStats == nil {
+		s.BestStats = map[Element]ElementBestStats{}
+	}
+
+	for id, level := range s.LaboratoryUpgrades {
+		if level <= 0 {
+			continue
+		}
+		upgrade, ok := LabCatalog[id]
+		if !ok || upgrade.AppliesIn != LabApplyResetSeed || upgrade.Apply == nil {
+			continue
+		}
+		upgrade.Apply(nil, s, level)
+	}
+	if researchSnapshot != nil {
+		for e, v := range researchSnapshot {
+			if v <= 0 {
+				continue
+			}
+			s.Research[e] = v * 30 / 100
+		}
+	}
+	rebuildModifiers(s)
+}
+
+func copyElementIntMap(in map[Element]int) map[Element]int {
+	if len(in) == 0 {
+		return map[Element]int{}
+	}
+	out := make(map[Element]int, len(in))
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
 }
 
 func (s *GameState) effectiveInjectionElement() Element {

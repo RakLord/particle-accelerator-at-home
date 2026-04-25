@@ -36,6 +36,7 @@ type tileSprites struct {
 	collector        *ebiten.Image
 	compressorHori   *ebiten.Image
 	compressorVert   *ebiten.Image
+	binder           *ebiten.Image
 
 	accelLogo    *ebiten.Image
 	meshLogo     *ebiten.Image
@@ -70,6 +71,7 @@ func mustLoadTileSprites() tileSprites {
 		collector:        mustLoadTileSprite("images/tiles/collector.png"),
 		compressorHori:   mustLoadTileSprite("images/tiles/compressor_hori.png"),
 		compressorVert:   mustLoadTileSprite("images/tiles/compressor_vert.png"),
+		binder:           mustLoadTileSprite("images/tiles/binder.png"),
 
 		accelLogo:    mustLoadTileSprite("images/tiles/accelerator_logo.png"),
 		meshLogo:     mustLoadTileSprite("images/tiles/mesh_grid_logo.png"),
@@ -144,6 +146,8 @@ func spriteLayersForComponent(c sim.Component) componentSpriteLayers {
 		}
 	case *components.Compressor:
 		return componentSpriteLayers{top: []spriteLayer{{image: compressorSpriteForOrientation(v.Orientation)}}}
+	case *components.Binder:
+		return componentSpriteLayers{top: []spriteLayer{{image: sprites.binder, rotation: binderRotation(v.Orientation)}}}
 	}
 	return componentSpriteLayers{}
 }
@@ -247,6 +251,12 @@ func collectorRotation(d sim.Direction) float64 {
 	}
 }
 
+// binderRotation maps a Binder's Orientation to a rotation angle.
+// The source PNG is drawn facing South — same convention as the Collector.
+func binderRotation(d sim.Direction) float64 {
+	return collectorRotation(d)
+}
+
 func injectorRotation(d sim.Direction) float64 {
 	switch d {
 	case sim.DirNorth:
@@ -299,6 +309,8 @@ func tileSpriteForTool(t ui.Tool) *ebiten.Image {
 		return sprites.turnNE
 	case ui.ToolCompressor:
 		return sprites.compressorHori
+	case ui.ToolBinder:
+		return sprites.binder
 	}
 	return nil
 }

@@ -19,6 +19,7 @@ const (
 	KindCatalyst   ComponentKind = "catalyst"
 	KindDuplicator ComponentKind = "duplicator"
 	KindCompressor ComponentKind = "compressor"
+	KindBinder     ComponentKind = "binder"
 
 	// KindCollector is used only for cost/ownership accounting. Collectors
 	// are stored as cell.IsCollector (see Cell), not Component instances,

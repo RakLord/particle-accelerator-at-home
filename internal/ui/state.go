@@ -1,5 +1,12 @@
 package ui
 
+type PrestigePanelTab int
+
+const (
+	PrestigeTabStore PrestigePanelTab = iota
+	PrestigeTabBonds
+)
+
 type Tool int
 
 const (
@@ -17,6 +24,7 @@ const (
 	ToolCatalyst
 	ToolDuplicator
 	ToolCompressor
+	ToolBinder
 )
 
 type UIState struct {
@@ -55,6 +63,10 @@ type UIState struct {
 	// from Settings or by pressing '/' (shift-'/' = '?' on UK/US layouts maps
 	// to the same physical key).
 	HotkeysOpen bool
+
+	PrestigeTab         PrestigePanelTab
+	PrestigeConfirmOpen bool
+	PrestigeNotice      string
 }
 
 func NewUIState() *UIState { return &UIState{Selected: ToolNone, TrailsEnabled: true} }

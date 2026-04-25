@@ -1,7 +1,9 @@
 # ADR 0015 — Binder component and per-Element reserves
 
-**Status:** accepted (Phase 4 design freeze; implementation pending).
+**Status:** superseded in part by ADR 0019 (generic Binder Store implementation).
 **Date:** 2026-04-24.
+
+> Implementation note: ADR 0019 replaces this ADR's Element-bound Binder and per-Binder capacity decisions. The shipped Binder is generic and feeds a per-Element Binder Store with global capacity multipliers.
 
 ## Context
 

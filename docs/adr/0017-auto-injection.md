@@ -13,7 +13,7 @@ Auto-injection is the prestige layer's idle-mode injection mechanism (see `docs/
 2. **How do auto-cadence upgrades and `InjectorRateMul` (manual cooldown speed) compose?** Stack? Or are they independent?
 3. **How is the unlock expressed — a boolean modifier, a flag derived from `BondsState`, or some other gate?**
 
-The composition question is load-bearing. If auto-cadence and `InjectorRateMul` stack multiplicatively, Speed IV (cadence ×0.4 → 4s) plus Acetylene (cooldown ×0.75) plus Chain Reaction (×0.5 effective rate) compresses the auto-fire interval below tick granularity, and the simulation breaks.
+The composition question is load-bearing. If auto-cadence and `InjectorRateMul` stack multiplicatively, Speed IV (cadence ×0.4 → 4s) plus Acetylene (cooldown ÷1.333) plus Chain Reaction (cooldown ÷2 effective rate) compresses the auto-fire interval below tick granularity, and the simulation breaks.
 
 ## Decision
 
@@ -23,7 +23,7 @@ The composition question is load-bearing. If auto-cadence and `InjectorRateMul` 
 
 The two compose as: every `AutoInjectCadenceTicks`, the auto path calls `Inject()`; that call is admitted only if `InjectionCooldown` is ready. If the cadence is shorter than the effective cooldown, the auto path will fail-fast on most ticks (no admission, no injection) — wasted scheduling but no simulation break.
 
-In practice, the Lab Speed upgrades cap the cadence at 4s (Speed IV). The base cooldown is 5s. With Acetylene, effective cooldown is 5s × 0.75 = 3.75s. So Speed IV + Acetylene means the auto path schedules every 4s, but each attempt is admitted because the cooldown (3.75s) has already cleared. Auto fires every 4s effectively. **No simulation break, no requirement to stack.**
+In practice, the Lab Speed upgrades cap the cadence at 4s (Speed IV). The base cooldown is 5s. With Acetylene, effective cooldown is 5s ÷ 1.333 ≈ 3.75s. So Speed IV + Acetylene means the auto path schedules every 4s, but each attempt is admitted because the cooldown (3.75s) has already cleared. Auto fires every 4s effectively. **No simulation break, no requirement to stack.**
 
 If a future upgrade pushes effective cooldown below 3s, the cadence stays the bottleneck. If a future Lab upgrade pushes cadence below cooldown, the cooldown becomes the bottleneck. Either way, the slower of the two governs.
 

@@ -61,6 +61,7 @@ func drawPalette(dst *ebiten.Image, s *sim.GameState, u *ui.UIState) {
 	strokeRect(dst, openInvBtnX, openInvBtnY, openInvBtnW, openInvBtnH, 1, colorTextMuted)
 	drawTextCentered(dst, "Open Inventory  (E)", openInvBtnX, openInvBtnY, openInvBtnW, openInvBtnH, colorText)
 
+	drawPrestigePanel(dst, s, u)
 	drawInjectButton(dst, s)
 }
 
@@ -237,6 +238,8 @@ func toolColor(t ui.Tool) color.Color {
 		return colorRotator
 	case ui.ToolCollector:
 		return colorCollector
+	case ui.ToolBinder:
+		return colorBinder
 	case ui.ToolErase:
 		return colorBG
 	}

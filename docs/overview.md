@@ -56,7 +56,7 @@ When adding or retuning Components, use `docs/features/0016-component-creation-a
 - **Compressor** — inverse-Speed Mass multiplier; rewards slowed paths (`docs/features/0019-component-compressor.md`).
 
 ### Phase-4 additions
-- **Binder** — typed endpoint that banks Subjects into a per-Element reserve, sacrificing $USD and research for the prestige loop (`docs/features/0022-component-binder.md`).
+- **Binder** — generic endpoint that banks Subjects into the per-Element Binder Store, sacrificing $USD and research for the prestige loop (`docs/features/0022-component-binder.md`).
 
 ### Design principle — speed bands
 Some Components should only trigger (or change behaviour) within specific Speed ranges. This is what makes Mesh Grid a *tool* instead of a trap. Exact bands per Component live in the relevant feature doc.
