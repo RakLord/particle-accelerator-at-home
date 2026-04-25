@@ -32,9 +32,6 @@ func drawGrid(dst *ebiten.Image, s *sim.GameState, alpha float64, trail []trailS
 					drawSpriteLayers(dst, layers.base, x, y, w, h)
 				}
 			}
-			if cell.IsCollector {
-				drawSpriteFitted(dst, sprites.collector, x, y, w, h)
-			}
 		}
 	}
 
@@ -72,6 +69,19 @@ func drawGrid(dst *ebiten.Image, s *sim.GameState, alpha float64, trail []trailS
 			}
 			x, y, w, h := cellRect(cx, cy)
 			drawSpriteLayers(dst, layers.top, x, y, w, h)
+		}
+	}
+
+	// Collector pass above subjects: transparent regions of the collector art
+	// reveal subjects and tails passing underneath.
+	for cy := range sim.GridSize {
+		for cx := range sim.GridSize {
+			cell := s.Grid.Cells[cy][cx]
+			if !cell.IsCollector {
+				continue
+			}
+			x, y, w, h := cellRect(cx, cy)
+			drawSpriteCenteredRotated(dst, sprites.collector, x, y, w, h, collectorRotation(cell.CollectorDirection))
 		}
 	}
 }

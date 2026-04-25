@@ -232,6 +232,21 @@ func drawSpriteCenteredRotated(dst, img *ebiten.Image, x, y, w, h int, angle flo
 	dst.DrawImage(img, op)
 }
 
+// collectorRotation maps a placed collector's direction to a rotation angle.
+// The source PNG is drawn facing South (down) — DirSouth is the unrotated case.
+func collectorRotation(d sim.Direction) float64 {
+	switch d {
+	case sim.DirNorth:
+		return math.Pi
+	case sim.DirEast:
+		return -math.Pi / 2
+	case sim.DirWest:
+		return math.Pi / 2
+	default:
+		return 0
+	}
+}
+
 func injectorRotation(d sim.Direction) float64 {
 	switch d {
 	case sim.DirNorth:

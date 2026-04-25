@@ -60,6 +60,7 @@ func PlaceFromTool(s *sim.GameState, u *ui.UIState, pos sim.Position) {
 	case ui.ToolCollector:
 		cell.Component = nil
 		cell.IsCollector = true
+		cell.CollectorDirection = sim.DirEast
 	case ui.ToolResonator:
 		cell.Component = &components.Resonator{}
 		cell.IsCollector = false
@@ -137,6 +138,10 @@ func ReconfigureBy(s *sim.GameState, pos sim.Position, steps int) {
 		return
 	}
 	cell := &s.Grid.Cells[pos.Y][pos.X]
+	if cell.IsCollector {
+		cell.CollectorDirection = rotateDirection(cell.CollectorDirection, steps)
+		return
+	}
 	switch c := cell.Component.(type) {
 	case *components.Injector:
 		c.Direction = rotateDirection(c.Direction, steps)

@@ -173,6 +173,11 @@ func (s *GameState) stepSubject(sub *Subject, pending *[]Subject) (collected, lo
 		}
 		sub.Path = append(sub.Path, sub.Position)
 		if cell.IsCollector {
+			collectorVertical := cell.CollectorDirection == DirNorth || cell.CollectorDirection == DirSouth
+			arrivalVertical := arrival == DirNorth || arrival == DirSouth
+			if collectorVertical != arrivalVertical {
+				return false, true
+			}
 			return true, false
 		}
 	}

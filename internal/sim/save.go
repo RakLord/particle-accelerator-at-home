@@ -18,13 +18,18 @@ type saveEnvelope struct {
 }
 
 type cellJSON struct {
-	IsCollector bool            `json:"is_collector,omitempty"`
-	Kind        ComponentKind   `json:"kind,omitempty"`
-	Component   json.RawMessage `json:"component,omitempty"`
+	IsCollector        bool            `json:"is_collector,omitempty"`
+	CollectorDirection *Direction      `json:"collector_direction,omitempty"`
+	Kind               ComponentKind   `json:"kind,omitempty"`
+	Component          json.RawMessage `json:"component,omitempty"`
 }
 
 func (c Cell) MarshalJSON() ([]byte, error) {
 	out := cellJSON{IsCollector: c.IsCollector}
+	if c.IsCollector {
+		dir := c.CollectorDirection
+		out.CollectorDirection = &dir
+	}
 	if c.Component != nil {
 		inner, err := json.Marshal(c.Component)
 		if err != nil {
@@ -42,6 +47,15 @@ func (c *Cell) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	c.IsCollector = in.IsCollector
+	if in.IsCollector {
+		if in.CollectorDirection == nil {
+			c.CollectorDirection = DirEast
+		} else {
+			c.CollectorDirection = *in.CollectorDirection
+		}
+	} else {
+		c.CollectorDirection = 0
+	}
 	if in.Kind == "" || len(in.Component) == 0 {
 		c.Component = nil
 		return nil

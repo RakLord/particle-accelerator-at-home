@@ -3,8 +3,9 @@ package sim
 const GridSize = 5
 
 type Cell struct {
-	Component   Component
-	IsCollector bool
+	Component          Component
+	IsCollector        bool
+	CollectorDirection Direction
 }
 
 type Grid struct {

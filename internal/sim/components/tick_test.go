@@ -337,6 +337,7 @@ func TestResearchPerCollectBonusAppliesOnCollection(t *testing.T) {
 		Element:       sim.ElementHydrogen,
 	}
 	s.Grid.Cells[0][1].IsCollector = true
+	s.Grid.Cells[0][1].CollectorDirection = sim.DirEast
 	s.Inject()
 	for range sim.SpeedDivisor {
 		s.Tick()

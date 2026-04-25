@@ -32,6 +32,7 @@ func TestTickMovesSubject(t *testing.T) {
 func TestCollectorAwardsUSD(t *testing.T) {
 	s := NewGameState()
 	s.Grid.Cells[2][2].IsCollector = true
+	s.Grid.Cells[2][2].CollectorDirection = DirEast
 	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
 		Element:   ElementHydrogen,
 		Mass:      bignum.FromInt(2),
@@ -81,6 +82,37 @@ func TestCollectorAwardsUSD(t *testing.T) {
 	}
 }
 
+func TestCollectorRejectsOffAxisSubject(t *testing.T) {
+	s := NewGameState()
+	// Vertical collector at (2,2). An East-moving subject is off-axis and
+	// should be destroyed (no payout, no collection log entry).
+	s.Grid.Cells[2][2].IsCollector = true
+	s.Grid.Cells[2][2].CollectorDirection = DirNorth
+	s.Grid.Subjects = append(s.Grid.Subjects, Subject{
+		Element:   ElementHydrogen,
+		Mass:      bignum.FromInt(2),
+		Speed:     SpeedFromInt(SpeedDivisor),
+		Direction: DirEast,
+		Position:  Position{X: 1, Y: 2},
+		Load:      1,
+	})
+	s.CurrentLoad = 1
+	startUSD := s.USD
+	s.Tick()
+	if len(s.Grid.Subjects) != 0 {
+		t.Fatalf("off-axis subject should be removed, got %d remaining", len(s.Grid.Subjects))
+	}
+	if !s.USD.Eq(startUSD) {
+		t.Fatalf("off-axis hit should not award USD: got %v want %v", s.USD, startUSD)
+	}
+	if s.Research[ElementHydrogen] != 0 {
+		t.Fatalf("off-axis hit should not yield research, got %d", s.Research[ElementHydrogen])
+	}
+	if len(s.CollectionLog) != 0 {
+		t.Fatalf("off-axis hit should not log a collection, got %d entries", len(s.CollectionLog))
+	}
+}
+
 func TestCollectionLogKeepsRecentTenNewestFirst(t *testing.T) {
 	s := NewGameState()
 	for i := 0; i < MaxCollectionLogEntries+2; i++ {
@@ -107,6 +139,7 @@ func TestCollectionLogKeepsRecentTenNewestFirst(t *testing.T) {
 func TestBestStatsUpdateOnCollectionOnly(t *testing.T) {
 	s := NewGameState()
 	s.Grid.Cells[2][2].IsCollector = true
+	s.Grid.Cells[2][2].CollectorDirection = DirEast
 	s.Grid.Subjects = append(s.Grid.Subjects,
 		Subject{
 			Element:   ElementHydrogen,

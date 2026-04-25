@@ -42,7 +42,7 @@ func TestSaveLoadRoundTripDesktop(t *testing.T) {
 func TestCellRoundTrip(t *testing.T) {
 	cells := []sim.Cell{
 		{},
-		{IsCollector: true},
+		{IsCollector: true, CollectorDirection: sim.DirNorth},
 		{Component: &components.Injector{Direction: sim.DirSouth, SpawnInterval: 20, Element: sim.ElementHydrogen, TickCounter: 5}},
 		{Component: &components.SimpleAccelerator{Orientation: sim.DirWest}},
 		{Component: &components.Rotator{Orientation: sim.DirSouth}},
@@ -62,6 +62,9 @@ func TestCellRoundTrip(t *testing.T) {
 		}
 		if got.IsCollector != c.IsCollector {
 			t.Fatalf("cell %d IsCollector mismatch", i)
+		}
+		if got.CollectorDirection != c.CollectorDirection {
+			t.Fatalf("cell %d CollectorDirection mismatch: got %v want %v", i, got.CollectorDirection, c.CollectorDirection)
 		}
 		if (got.Component == nil) != (c.Component == nil) {
 			t.Fatalf("cell %d Component nil-ness mismatch", i)
