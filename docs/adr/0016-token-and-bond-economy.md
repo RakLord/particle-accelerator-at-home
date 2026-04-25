@@ -3,7 +3,7 @@
 **Status:** accepted (Phase 4 design freeze; implementation pending).
 **Date:** 2026-04-24.
 
-> Implementation note: token costs use geometric growth with nice-number rounding, producing `10, 50, 300, 1500, 8000` for the first five Tokens without hard-coding the sequence.
+> Implementation note: token costs were retuned after first UI integration to `5, 10, 15, 50, 50, 100, 200...`, preserving a formula while making the first Bond materially faster to reach.
 
 ## Context
 
@@ -112,19 +112,17 @@ var BondCatalog = map[BondID]Bond{
 ```go
 // internal/sim/economy.go
 
-const tokenCostBase = 10
-const tokenCostGrowth = 5.3
+const tokenCostBase = 5
+const tokenCostFirstShelf = 50
 
 func CrystallisationCost(e Element, owned int) int {
-	cost := float64(tokenCostBase)
-	for i := 0; i < owned; i++ {
-		cost = roundNiceTokenCost(cost * tokenCostGrowth)
-	}
-	return int(cost)
+    if owned < 3 { return tokenCostBase * (owned + 1) }
+    if owned < 5 { return tokenCostFirstShelf }
+    return 100 << (owned - 5)
 }
 ```
 
-So `CrystallisationCost(e, 0) == 10`, `(e, 1) == 50`, `(e, 2) == 300`, `(e, 3) == 1500`, and `(e, 4) == 8000`. The nice-number rounding keeps future costs readable while preserving formula-driven growth.
+So `CrystallisationCost(e, 0) == 5`, `(e, 1) == 10`, `(e, 2) == 15`, `(e, 3) == 50`, `(e, 4) == 50`, `(e, 5) == 100`, and `(e, 6) == 200`.
 
 The cost is per-Element. The function takes `Element` for forward extensibility (a future per-Element cost-multiplier upgrade can read it) but doesn't currently use it.
 
@@ -193,7 +191,7 @@ If a Bond is removed from `BondCatalog` in a future release while an existing sa
 
 **Costs**
 - Two parallel catalogs (`GlobalUpgradeCatalog` + `BondCatalog`) — and a third coming with Laboratory (ADR 0018). Pattern is consistent but the senior dev should resist the urge to refactor into one shared type until the third catalog has its own constraints visible.
-- `CrystallisationCost` formula vs. table ambiguity: the proposal's published sequence has a 6× step that pure-5× growth doesn't reproduce. Senior dev decision required at implementation time. Recommend table for first ship (matches spec exactly), formula later when scaling beyond the table.
+- `CrystallisationCost` is piecewise rather than a single exponential; this is deliberate so early Tokens are accessible while later same-Element Token requirements still escalate.
 - `BondsState map[BondID]bool` is a set-shaped map; using a `[]BondID` would be smaller in JSON. Map keeps lookups O(1) and serializes adequately at this scale.
 
 ## Alternatives considered
@@ -207,7 +205,7 @@ If a Bond is removed from `BondCatalog` in a future release while an existing sa
 ## Related
 
 - `internal/sim/bonds.go` (new) — `BondCatalog`, `Bond`, `SynthesiseBond`.
-- `internal/sim/economy.go` — `CrystallisationCost`, `CrystalliseToken`.
+- `internal/sim/bonds.go` — `CrystallisationCost`, `CrystalliseToken`.
 - `internal/sim/modifiers.go` — `rebuildModifiers` extended to read `BondsState`.
 - `internal/sim/state.go` — `TokenInventory`, `BondsState`, `BondPoints`.
 - `internal/ui/bonds_tab.go` (new) — list view, Crystallise + Synthesise.

@@ -309,7 +309,7 @@ func TestTickAutoInjectsWhenEnabledAndActive(t *testing.T) {
 
 func TestBinderBanksSubjectAndFreesLoad(t *testing.T) {
 	s := sim.NewGameState()
-	s.Grid.Cells[0][1].Component = &components.Binder{}
+	s.Grid.Cells[0][1].Component = &components.Binder{Orientation: sim.DirWest}
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementCarbon,
 		Mass:        bignum.One(),
@@ -332,9 +332,34 @@ func TestBinderBanksSubjectAndFreesLoad(t *testing.T) {
 	}
 }
 
+func TestBinderRejectsWrongDirection(t *testing.T) {
+	// Binder at (1,0) has its entry pipe on the east side, so a Subject moving
+	// east arrives from the west — wrong direction. It should be destroyed
+	// without banking, mirroring Collector's off-axis rejection.
+	s := sim.NewGameState()
+	s.Grid.Cells[0][1].Component = &components.Binder{Orientation: sim.DirEast}
+	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
+		Element:     sim.ElementCarbon,
+		Mass:        bignum.One(),
+		Speed:       sim.SpeedFromInt(sim.SpeedDivisor),
+		Direction:   sim.DirEast,
+		InDirection: sim.DirEast,
+		Position:    sim.Position{X: 0, Y: 0},
+		Load:        1,
+	})
+	s.CurrentLoad = 1
+	s.Tick()
+	if got := len(s.Grid.Subjects); got != 0 {
+		t.Fatalf("subjects after wrong-direction Binder: got %d want 0", got)
+	}
+	if got := s.BinderReserves[sim.ElementCarbon]; got != 0 {
+		t.Fatalf("Carbon reserve after wrong-direction entry: got %d want 0", got)
+	}
+}
+
 func TestBinderDestroysWithoutBankingWhenStoreFull(t *testing.T) {
 	s := sim.NewGameState()
-	s.Grid.Cells[0][1].Component = &components.Binder{}
+	s.Grid.Cells[0][1].Component = &components.Binder{Orientation: sim.DirWest}
 	s.BinderReserves[sim.ElementHydrogen] = s.EffectiveBinderStoreCapacity(sim.ElementHydrogen)
 	s.Grid.Subjects = append(s.Grid.Subjects, sim.Subject{
 		Element:     sim.ElementHydrogen,

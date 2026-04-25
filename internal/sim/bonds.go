@@ -2,7 +2,6 @@ package sim
 
 import (
 	"errors"
-	"math"
 
 	"particleaccelerator/internal/bignum"
 )
@@ -101,52 +100,31 @@ var (
 )
 
 const (
-	tokenCostBase   = 10
-	tokenCostGrowth = 5.3
+	tokenCostBase       = 5
+	tokenCostFirstShelf = 50
 )
 
 // CrystallisationCost returns the reserve count required to mint the next
-// Token for an Element. It uses a geometric formula with nice-number rounding,
-// producing the early sequence 10, 50, 300, 1500, 8000 without hard-coding it.
+// Token for an Element. Early Tokens are cheap so a first Bond is reachable;
+// later Tokens double from the sixth Token onward.
 func CrystallisationCost(e Element, owned int) int {
 	if _, ok := ElementCatalog[e]; !ok {
 		return 0
 	}
-	if owned <= 0 {
-		return tokenCostBase
+	if owned < 0 {
+		owned = 0
 	}
-	cost := float64(tokenCostBase)
-	for range owned {
-		cost = float64(roundNiceTokenCost(cost * tokenCostGrowth))
+	if owned < 3 {
+		return tokenCostBase * (owned + 1)
 	}
-	return int(cost)
-}
-
-func roundNiceTokenCost(raw float64) int {
-	if raw <= 0 || math.IsNaN(raw) {
-		return 0
+	if owned < 5 {
+		return tokenCostFirstShelf
 	}
-	if math.IsInf(raw, 1) {
+	shift := owned - 5
+	if shift >= 30 {
 		return int(^uint(0) >> 1)
 	}
-	exponent := math.Floor(math.Log10(raw))
-	scale := math.Pow(10, exponent)
-	mantissa := raw / scale
-	nice := [...]float64{1, 1.5, 2, 3, 4, 5, 8, 10}
-	best := nice[0]
-	bestDiff := math.Abs(mantissa - best)
-	for _, candidate := range nice[1:] {
-		diff := math.Abs(mantissa - candidate)
-		if diff < bestDiff {
-			best = candidate
-			bestDiff = diff
-		}
-	}
-	rounded := int(math.Round(best * scale))
-	if rounded < 1 {
-		return 1
-	}
-	return rounded
+	return 100 << shift
 }
 
 func CrystalliseToken(s *GameState, e Element) error {

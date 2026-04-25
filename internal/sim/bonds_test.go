@@ -9,7 +9,7 @@ import (
 )
 
 func TestCrystallisationCostFormulaMatchesEarlyTargets(t *testing.T) {
-	want := []int{10, 50, 300, 1500, 8000}
+	want := []int{5, 10, 15, 50, 50, 100, 200, 400}
 	for owned, expected := range want {
 		if got := CrystallisationCost(ElementCarbon, owned); got != expected {
 			t.Fatalf("CrystallisationCost owned=%d: got %d want %d", owned, got, expected)
@@ -23,8 +23,8 @@ func TestCrystalliseTokenConsumesReserve(t *testing.T) {
 	if err := CrystalliseToken(s, ElementCarbon); err != nil {
 		t.Fatalf("CrystalliseToken: %v", err)
 	}
-	if got := s.BinderReserves[ElementCarbon]; got != 2 {
-		t.Fatalf("reserve after crystallise: got %d want 2", got)
+	if got := s.BinderReserves[ElementCarbon]; got != 7 {
+		t.Fatalf("reserve after crystallise: got %d want 7", got)
 	}
 	if got := s.TokenInventory[ElementCarbon]; got != 1 {
 		t.Fatalf("tokens after crystallise: got %d want 1", got)
@@ -33,7 +33,7 @@ func TestCrystalliseTokenConsumesReserve(t *testing.T) {
 
 func TestCrystalliseTokenRejectsInsufficientReserve(t *testing.T) {
 	s := NewGameState()
-	s.BinderReserves[ElementHydrogen] = 9
+	s.BinderReserves[ElementHydrogen] = 4
 	err := CrystalliseToken(s, ElementHydrogen)
 	if !errors.Is(err, ErrInsufficientReserve) {
 		t.Fatalf("CrystalliseToken err = %v want ErrInsufficientReserve", err)

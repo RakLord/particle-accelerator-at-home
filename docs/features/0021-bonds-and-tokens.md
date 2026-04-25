@@ -25,12 +25,14 @@ Every Element has its own Token type. The cost to crystallise the *next* Token i
 
 | Tokens already owned (this Element) | Subjects required to crystallise next |
 |---:|---:|
-| 0 | 10 |
-| 1 | 50 |
-| 2 | 300 |
-| 3 | 1 500 |
-| 4 | 8 000 |
-| n ≥ 5 | next ≈ 5× previous |
+| 0 | 5 |
+| 1 | 10 |
+| 2 | 15 |
+| 3 | 50 |
+| 4 | 50 |
+| 5 | 100 |
+| 6 | 200 |
+| n ≥ 7 | doubles each Token |
 
 The cost is **per-Element**: owning 2 Carbon Tokens does not affect the cost of the first Hydrogen Token. Each Element has its own scaling wall.
 
@@ -46,7 +48,7 @@ Crystallisation is manual. Subjects in the Binder reserve do not auto-convert.
 
 ### Cost intent
 
-On a first Carbon run the player should realistically afford 1-2 Tokens *per Element* at most. Per-Element scaling means compounds that require multiple Tokens of the same Element (Benzene 6C+6H, Diamond 12C) are deliberately multi-run goals, not first-run achievements. Heavier-Element runs are expected to bring Token-gain bonuses (planned, not in MVP) that flatten this curve.
+On a first Carbon run the player should be able to mint the first few Tokens without a long idle wall, so the first three costs are intentionally light. Per-Element scaling still makes compounds that require many Tokens of the same Element (Benzene 6C+6H, Diamond 12C) multi-run goals. Heavier-Element runs are expected to bring Token-gain bonuses (planned, not in MVP) that flatten this curve further.
 
 ## Bonds — compound catalog
 
@@ -110,7 +112,7 @@ Each Bond entry carries an `Apply(*GlobalModifiers)` closure, identical to a `Gl
 ## Related
 
 - `internal/sim/bonds.go` — Bond catalog, `Apply` closures, `SynthesiseBond` entry point.
-- `internal/sim/economy.go` — `CrystallisationCost`, `CrystalliseToken`.
+- `internal/sim/bonds.go` — `CrystallisationCost`, `CrystalliseToken`.
 - `internal/sim/state.go` — `TokenInventory`, `BondsState`, `BinderReserves`.
 - `internal/render/prestige_panel.go` — Binder Store and Bonds list UI.
 - `docs/adr/0016-token-and-bond-economy.md` — storage shapes, cost function, modifier integration.

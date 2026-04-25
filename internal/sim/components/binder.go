@@ -5,20 +5,23 @@ import "particleaccelerator/internal/sim"
 // Binder is a generic prestige endpoint. It destroys any incoming Subject and
 // asks GameState to add that Subject to the per-Element Binder Store.
 //
-// Orientation is purely cosmetic — the Binder accepts Subjects from any
-// direction. It exists so the player can rotate the sprite to face the
-// incoming pipe, mirroring Collector's affordance.
+// Orientation marks the side of the cell where the entry pipe attaches.
+// Subjects must arrive from that side (i.e. moving in the opposite direction);
+// any other approach destroys the Subject without banking it.
 type Binder struct {
 	Orientation sim.Direction
 }
 
 func (*Binder) Kind() sim.ComponentKind { return sim.KindBinder }
 
-func (*Binder) Apply(_ sim.ApplyContext, s sim.Subject) (sim.Subject, bool) {
+func (b *Binder) Apply(_ sim.ApplyContext, s sim.Subject) (sim.Subject, bool) {
 	return s, true
 }
 
-func (*Binder) ApplyBank(_ sim.ApplyContext, s sim.Subject) (sim.Subject, bool, bool, sim.Element) {
+func (b *Binder) ApplyBank(_ sim.ApplyContext, s sim.Subject) (sim.Subject, bool, bool, sim.Element) {
+	if opposite(s.InDirection) != b.Orientation {
+		return s, true, false, ""
+	}
 	if _, ok := sim.ElementCatalog[s.Element]; !ok {
 		return s, true, false, ""
 	}
